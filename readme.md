@@ -1,6 +1,6 @@
-# BB5
+# Coq-BB5
 
-An Turing machine(TM) has type $St\to\Sigma\to ((St\times\{-1,+1\}\times\Sigma)+\{\bot\})$ , given current state and input, it returns the next state, head moving direction and output; $\bot$ means halt at the next step.
+A Turing machine(TM) has type $St\to\Sigma\to ((St\times\{-1,+1\}\times\Sigma)+\{\bot\})$ , given current state and input, it returns the next state, head moving direction and output; $\bot$ means halt at the next step.
 
 An ExecState has type $St\times (\mathbb{Z}\to\Sigma)$ , means the current state and tape configuration after some steps.
 
@@ -40,7 +40,7 @@ We can save more information on the tape, for example, use a queue of fixed size
 
 This decider is the special case of CTL deciders ([The 30 to 34 CTL holdouts from BB(5) - Individual machines - The Busy Beaver Challenge (bbchallenge.org)](https://discuss.bbchallenge.org/t/the-30-to-34-ctl-holdouts-from-bb-5/141)).
 
-If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegExp}$ , and forall reachable ExecState $0^\infty A(s,x)B0^\infty$ , exists $R_1,R_2\in\mathrm{RegExp}$ , $R_1,R_2$ matches $A,xB$ (or $Ax,B$) and $(R_1,s,R_2)\in S_1$ (or $(R_1,s,R_2)\in S_2$ ), then the TM will never halt.
+If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegExp}$ , and forall reachable ExecState, it can reach an ExecState $0^\infty A(s,x)B0^\infty$ , exists $R_1,R_2\in\mathrm{RegExp}$ , $R_1,R_2$ matches $A,xB$ (or $Ax,B$) and $(R_1,s,R_2)\in S_1$ (or $(R_1,s,R_2)\in S_2$ ), then the TM will never halt.
 
 Regular expressions used in this decider (with parameters $n$ and $m$) are limited to be like $A_1A_2A_3\dots A_n$ and each $A_i$ is like $B^k$ or $B^mB^*$ , $B$ matches a fixed string of length $n$ , and $1\le k\le m-1$ .
 
