@@ -7203,11 +7203,11 @@ Definition getDecider(x:DeciderType) :=
 match x with
 | NG hlen len =>
   match hlen with
-  | O => NGramCPS_decider_impl2 len len 100001
-  | _ => NGramCPS_decider_impl1 hlen len len 100001
+  | O => NGramCPS_decider_impl2 len len 5000001
+  | _ => NGramCPS_decider_impl1 hlen len len 5000001
   end
 | NG_LRU len =>
-  NGramCPS_LRU_decider len len 100001
+  NGramCPS_LRU_decider len len 5000001
 | RWL len mnc => RepWL_ES_decider len mnc 320 40001
 | Ha => halt_decider_max
 | Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
@@ -15450,6 +15450,13 @@ Definition tm_NG_LRU :=
 (makeTM BR1 ER1 CL0 BR0 DL1 CL1 AL1 HR1 CL0 ER1,NG_LRU 2)::
 nil.
 
+Definition tm_NG0' :=
+(makeTM BR1 AL0 CR0 HR1 DR1 DR0 EL1 ER0 AR1 CL0,NG 0 17)::
+(makeTM BR1 BL0 CL1 ER0 DL1 CR0 EL0 HR1 AL1 AL0,NG 0 17)::
+(makeTM BR1 DL0 CR1 BL0 DR0 HR1 ER1 BL0 AL1 AR0,NG 0 21)::
+(makeTM BR1 DL0 CR1 BL0 DR0 HR1 ER1 ER0 AL1 AR0,NG 0 20)::
+nil.
+
 Definition check_tms(ls:list ((TM Σ)*DeciderType)):=
   map (fun (x:(TM Σ)*DeciderType)=> let (tm,d):=x in getDecider d tm) ls.
 
@@ -15461,7 +15468,6 @@ Definition tm_list :=
   tm_NG_LRU::
   nil.
 
-Time Compute (check_tms (firstn 4 (skipn 0 tm_NG_LRU))).
 
 Definition TM_enc(tm:TM Σ):positive :=
   match TM_to_N tm with
@@ -15538,558 +15544,416 @@ Definition test_i (n:nat) := (SearchQueue_upds
   decider_all
   30).
 
+Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 20).
+
+Definition q_0 := q0.
+
+Definition q_1_def := q_suc q_0.
+Time Definition q_1 := Eval vm_compute in q_1_def.
+Definition q_2_def := q_suc q_1.
+Time Definition q_2 := Eval vm_compute in q_2_def.
+Definition q_3_def := q_suc q_2.
+Time Definition q_3 := Eval vm_compute in q_3_def.
+Definition q_4_def := q_suc q_3.
+Time Definition q_4 := Eval vm_compute in q_4_def.
+Definition q_5_def := q_suc q_4.
+Time Definition q_5 := Eval vm_compute in q_5_def.
+Definition q_6_def := q_suc q_5.
+Time Definition q_6 := Eval vm_compute in q_6_def.
+Definition q_7_def := q_suc q_6.
+Time Definition q_7 := Eval vm_compute in q_7_def.
+Definition q_8_def := q_suc q_7.
+Time Definition q_8 := Eval vm_compute in q_8_def.
+Definition q_9_def := q_suc q_8.
+Time Definition q_9 := Eval vm_compute in q_9_def.
+Definition q_10_def := q_suc q_9.
+Time Definition q_10 := Eval vm_compute in q_10_def.
+Definition q_11_def := q_suc q_10.
+Time Definition q_11 := Eval vm_compute in q_11_def.
+Definition q_12_def := q_suc q_11.
+Time Definition q_12 := Eval vm_compute in q_12_def.
+Definition q_13_def := q_suc q_12.
+Time Definition q_13 := Eval vm_compute in q_13_def.
+Definition q_14_def := q_suc q_13.
+Time Definition q_14 := Eval vm_compute in q_14_def.
+Definition q_15_def := q_suc q_14.
+Time Definition q_15 := Eval vm_compute in q_15_def.
+Definition q_16_def := q_suc q_15.
+Time Definition q_16 := Eval vm_compute in q_16_def.
+Definition q_17_def := q_suc q_16.
+Time Definition q_17 := Eval vm_compute in q_17_def.
+Definition q_18_def := q_suc q_17.
+Time Definition q_18 := Eval vm_compute in q_18_def.
+Definition q_19_def := q_suc q_18.
+Time Definition q_19 := Eval vm_compute in q_19_def.
+Definition q_20_def := q_suc q_19.
+Time Definition q_20 := Eval vm_compute in q_20_def.
+Definition q_21_def := q_suc q_20.
+Time Definition q_21 := Eval vm_compute in q_21_def.
+Definition q_22_def := q_suc q_21.
+Time Definition q_22 := Eval vm_compute in q_22_def.
+Definition q_23_def := q_suc q_22.
+Time Definition q_23 := Eval vm_compute in q_23_def.
+Definition q_24_def := q_suc q_23.
+Time Definition q_24 := Eval vm_compute in q_24_def.
+Definition q_25_def := q_suc q_24.
+Time Definition q_25 := Eval vm_compute in q_25_def.
+Definition q_26_def := q_suc q_25.
+Time Definition q_26 := Eval vm_compute in q_26_def.
+Definition q_27_def := q_suc q_26.
+Time Definition q_27 := Eval vm_compute in q_27_def.
+Definition q_28_def := q_suc q_27.
+Time Definition q_28 := Eval vm_compute in q_28_def.
+Definition q_29_def := q_suc q_28.
+Time Definition q_29 := Eval vm_compute in q_29_def.
+Definition q_30_def := q_suc q_29.
+Time Definition q_30 := Eval vm_compute in q_30_def.
+Definition q_31_def := q_suc q_30.
+Time Definition q_31 := Eval vm_compute in q_31_def.
+Definition q_32_def := q_suc q_31.
+Time Definition q_32 := Eval vm_compute in q_32_def.
+Definition q_33_def := q_suc q_32.
+Time Definition q_33 := Eval vm_compute in q_33_def.
+Definition q_34_def := q_suc q_33.
+Time Definition q_34 := Eval vm_compute in q_34_def.
+Definition q_35_def := q_suc q_34.
+Time Definition q_35 := Eval vm_compute in q_35_def.
+Definition q_36_def := q_suc q_35.
+Time Definition q_36 := Eval vm_compute in q_36_def.
+Definition q_37_def := q_suc q_36.
+Time Definition q_37 := Eval vm_compute in q_37_def.
+Definition q_38_def := q_suc q_37.
+Time Definition q_38 := Eval vm_compute in q_38_def.
+Definition q_39_def := q_suc q_38.
+Time Definition q_39 := Eval vm_compute in q_39_def.
+Definition q_40_def := q_suc q_39.
+Time Definition q_40 := Eval vm_compute in q_40_def.
+Definition q_41_def := q_suc q_40.
+Time Definition q_41 := Eval vm_compute in q_41_def.
+Definition q_42_def := q_suc q_41.
+Time Definition q_42 := Eval vm_compute in q_42_def.
+Definition q_43_def := q_suc q_42.
+Time Definition q_43 := Eval vm_compute in q_43_def.
+Definition q_44_def := q_suc q_43.
+Time Definition q_44 := Eval vm_compute in q_44_def.
+Definition q_45_def := q_suc q_44.
+Time Definition q_45 := Eval vm_compute in q_45_def.
+Definition q_46_def := q_suc q_45.
+Time Definition q_46 := Eval vm_compute in q_46_def.
+Definition q_47_def := q_suc q_46.
+Time Definition q_47 := Eval vm_compute in q_47_def.
+Definition q_48_def := q_suc q_47.
+Time Definition q_48 := Eval vm_compute in q_48_def.
+Definition q_49_def := q_suc q_48.
+Time Definition q_49 := Eval vm_compute in q_49_def.
+Definition q_50_def := q_suc q_49.
+Time Definition q_50 := Eval vm_compute in q_50_def.
+Definition q_51_def := q_suc q_50.
+Time Definition q_51 := Eval vm_compute in q_51_def.
+Definition q_52_def := q_suc q_51.
+Time Definition q_52 := Eval vm_compute in q_52_def.
+Definition q_53_def := q_suc q_52.
+Time Definition q_53 := Eval vm_compute in q_53_def.
+Definition q_54_def := q_suc q_53.
+Time Definition q_54 := Eval vm_compute in q_54_def.
+Definition q_55_def := q_suc q_54.
+Time Definition q_55 := Eval vm_compute in q_55_def.
+Definition q_56_def := q_suc q_55.
+Time Definition q_56 := Eval vm_compute in q_56_def.
+Definition q_57_def := q_suc q_56.
+Time Definition q_57 := Eval vm_compute in q_57_def.
+Definition q_58_def := q_suc q_57.
+Time Definition q_58 := Eval vm_compute in q_58_def.
+Definition q_59_def := q_suc q_58.
+Time Definition q_59 := Eval vm_compute in q_59_def.
+Definition q_60_def := q_suc q_59.
+Time Definition q_60 := Eval vm_compute in q_60_def.
+Definition q_61_def := q_suc q_60.
+Time Definition q_61 := Eval vm_compute in q_61_def.
+Definition q_62_def := q_suc q_61.
+Time Definition q_62 := Eval vm_compute in q_62_def.
+Definition q_63_def := q_suc q_62.
+Time Definition q_63 := Eval vm_compute in q_63_def.
+Definition q_64_def := q_suc q_63.
+Time Definition q_64 := Eval vm_compute in q_64_def.
+Definition q_65_def := q_suc q_64.
+Time Definition q_65 := Eval vm_compute in q_65_def.
+Definition q_66_def := q_suc q_65.
+Time Definition q_66 := Eval vm_compute in q_66_def.
+Definition q_67_def := q_suc q_66.
+Time Definition q_67 := Eval vm_compute in q_67_def.
+Definition q_68_def := q_suc q_67.
+Time Definition q_68 := Eval vm_compute in q_68_def.
+Definition q_69_def := q_suc q_68.
+Time Definition q_69 := Eval vm_compute in q_69_def.
+Definition q_70_def := q_suc q_69.
+Time Definition q_70 := Eval vm_compute in q_70_def.
+Definition q_71_def := q_suc q_70.
+Time Definition q_71 := Eval vm_compute in q_71_def.
+Definition q_72_def := q_suc q_71.
+Time Definition q_72 := Eval vm_compute in q_72_def.
+Definition q_73_def := q_suc q_72.
+Time Definition q_73 := Eval vm_compute in q_73_def.
+Definition q_74_def := q_suc q_73.
+Time Definition q_74 := Eval vm_compute in q_74_def.
+Definition q_75_def := q_suc q_74.
+Time Definition q_75 := Eval vm_compute in q_75_def.
+Definition q_76_def := q_suc q_75.
+Time Definition q_76 := Eval vm_compute in q_76_def.
+Definition q_77_def := q_suc q_76.
+Time Definition q_77 := Eval vm_compute in q_77_def.
+Definition q_78_def := q_suc q_77.
+Time Definition q_78 := Eval vm_compute in q_78_def.
+Definition q_79_def := q_suc q_78.
+Time Definition q_79 := Eval vm_compute in q_79_def.
+Definition q_80_def := q_suc q_79.
+Time Definition q_80 := Eval vm_compute in q_80_def.
+Definition q_81_def := q_suc q_80.
+Time Definition q_81 := Eval vm_compute in q_81_def.
+Definition q_82_def := q_suc q_81.
+Time Definition q_82 := Eval vm_compute in q_82_def.
+Definition q_83_def := q_suc q_82.
+Time Definition q_83 := Eval vm_compute in q_83_def.
+Definition q_84_def := q_suc q_83.
+Time Definition q_84 := Eval vm_compute in q_84_def.
+Definition q_85_def := q_suc q_84.
+Time Definition q_85 := Eval vm_compute in q_85_def.
+Definition q_86_def := q_suc q_85.
+Time Definition q_86 := Eval vm_compute in q_86_def.
+Definition q_87_def := q_suc q_86.
+Time Definition q_87 := Eval vm_compute in q_87_def.
+Definition q_88_def := q_suc q_87.
+Time Definition q_88 := Eval vm_compute in q_88_def.
+Definition q_89_def := q_suc q_88.
+Time Definition q_89 := Eval vm_compute in q_89_def.
+Definition q_90_def := q_suc q_89.
+Time Definition q_90 := Eval vm_compute in q_90_def.
+Definition q_91_def := q_suc q_90.
+Time Definition q_91 := Eval vm_compute in q_91_def.
+Definition q_92_def := q_suc q_91.
+Time Definition q_92 := Eval vm_compute in q_92_def.
+Definition q_93_def := q_suc q_92.
+Time Definition q_93 := Eval vm_compute in q_93_def.
+Definition q_94_def := q_suc q_93.
+Time Definition q_94 := Eval vm_compute in q_94_def.
+Definition q_95_def := q_suc q_94.
+Time Definition q_95 := Eval vm_compute in q_95_def.
+Definition q_96_def := q_suc q_95.
+Time Definition q_96 := Eval vm_compute in q_96_def.
+Definition q_97_def := q_suc q_96.
+Time Definition q_97 := Eval vm_compute in q_97_def.
+Definition q_98_def := q_suc q_97.
+Time Definition q_98 := Eval vm_compute in q_98_def.
+Definition q_99_def := q_suc q_98.
+Time Definition q_99 := Eval vm_compute in q_99_def.
+Definition q_100_def := q_suc q_99.
+Time Definition q_100 := Eval vm_compute in q_100_def.
+Definition q_101_def := q_suc q_100.
+Time Definition q_101 := Eval vm_compute in q_101_def.
+Definition q_102_def := q_suc q_101.
+Time Definition q_102 := Eval vm_compute in q_102_def.
+Definition q_103_def := q_suc q_102.
+Time Definition q_103 := Eval vm_compute in q_103_def.
+Definition q_104_def := q_suc q_103.
+Time Definition q_104 := Eval vm_compute in q_104_def.
+Definition q_105_def := q_suc q_104.
+Time Definition q_105 := Eval vm_compute in q_105_def.
+Definition q_106_def := q_suc q_105.
+Time Definition q_106 := Eval vm_compute in q_106_def.
+Definition q_107_def := q_suc q_106.
+Time Definition q_107 := Eval vm_compute in q_107_def.
+Definition q_108_def := q_suc q_107.
+Time Definition q_108 := Eval vm_compute in q_108_def.
+Definition q_109_def := q_suc q_108.
+Time Definition q_109 := Eval vm_compute in q_109_def.
+Definition q_110_def := q_suc q_109.
+Time Definition q_110 := Eval vm_compute in q_110_def.
+Definition q_111_def := q_suc q_110.
+Time Definition q_111 := Eval vm_compute in q_111_def.
+Definition q_112_def := q_suc q_111.
+Time Definition q_112 := Eval vm_compute in q_112_def.
+Definition q_113_def := q_suc q_112.
+Time Definition q_113 := Eval vm_compute in q_113_def.
+Definition q_114_def := q_suc q_113.
+Time Definition q_114 := Eval vm_compute in q_114_def.
+Definition q_115_def := q_suc q_114.
+Time Definition q_115 := Eval vm_compute in q_115_def.
+Definition q_116_def := q_suc q_115.
+Time Definition q_116 := Eval vm_compute in q_116_def.
+Definition q_117_def := q_suc q_116.
+Time Definition q_117 := Eval vm_compute in q_117_def.
+Definition q_118_def := q_suc q_117.
+Time Definition q_118 := Eval vm_compute in q_118_def.
+Definition q_119_def := q_suc q_118.
+Time Definition q_119 := Eval vm_compute in q_119_def.
+Definition q_120_def := q_suc q_119.
+Time Definition q_120 := Eval vm_compute in q_120_def.
+Definition q_121_def := q_suc q_120.
+Time Definition q_121 := Eval vm_compute in q_121_def.
+Definition q_122_def := q_suc q_121.
+Time Definition q_122 := Eval vm_compute in q_122_def.
+Definition q_123_def := q_suc q_122.
+Time Definition q_123 := Eval vm_compute in q_123_def.
+Definition q_124_def := q_suc q_123.
+Time Definition q_124 := Eval vm_compute in q_124_def.
+Definition q_125_def := q_suc q_124.
+Time Definition q_125 := Eval vm_compute in q_125_def.
+Definition q_126_def := q_suc q_125.
+Time Definition q_126 := Eval vm_compute in q_126_def.
+Definition q_127_def := q_suc q_126.
+Time Definition q_127 := Eval vm_compute in q_127_def.
+Definition q_128_def := q_suc q_127.
+Time Definition q_128 := Eval vm_compute in q_128_def.
+Definition q_129_def := q_suc q_128.
+Time Definition q_129 := Eval vm_compute in q_129_def.
+Definition q_130_def := q_suc q_129.
+Time Definition q_130 := Eval vm_compute in q_130_def.
+Definition q_131_def := q_suc q_130.
+Time Definition q_131 := Eval vm_compute in q_131_def.
+Definition q_132_def := q_suc q_131.
+Time Definition q_132 := Eval vm_compute in q_132_def.
+Definition q_133_def := q_suc q_132.
+Time Definition q_133 := Eval vm_compute in q_133_def.
+Definition q_134_def := q_suc q_133.
+Time Definition q_134 := Eval vm_compute in q_134_def.
+Definition q_135_def := q_suc q_134.
+Time Definition q_135 := Eval vm_compute in q_135_def.
+Definition q_136_def := q_suc q_135.
+Time Definition q_136 := Eval vm_compute in q_136_def.
+Definition q_137_def := q_suc q_136.
+Time Definition q_137 := Eval vm_compute in q_137_def.
+Definition q_138_def := q_suc q_137.
+Time Definition q_138 := Eval vm_compute in q_138_def.
+Definition q_139_def := q_suc q_138.
+Time Definition q_139 := Eval vm_compute in q_139_def.
+Definition q_140_def := q_suc q_139.
+Time Definition q_140 := Eval vm_compute in q_140_def.
+Definition q_141_def := q_suc q_140.
+Time Definition q_141 := Eval vm_compute in q_141_def.
+Definition q_142_def := q_suc q_141.
+Time Definition q_142 := Eval vm_compute in q_142_def.
+Definition q_143_def := q_suc q_142.
+Time Definition q_143 := Eval vm_compute in q_143_def.
+Definition q_144_def := q_suc q_143.
+Time Definition q_144 := Eval vm_compute in q_144_def.
+Definition q_145_def := q_suc q_144.
+Time Definition q_145 := Eval vm_compute in q_145_def.
+Definition q_146_def := q_suc q_145.
+Time Definition q_146 := Eval vm_compute in q_146_def.
+Definition q_147_def := q_suc q_146.
+Time Definition q_147 := Eval vm_compute in q_147_def.
+Definition q_148_def := q_suc q_147.
+Time Definition q_148 := Eval vm_compute in q_148_def.
+Definition q_149_def := q_suc q_148.
+Time Definition q_149 := Eval vm_compute in q_149_def.
+Definition q_150_def := q_suc q_149.
+Time Definition q_150 := Eval vm_compute in q_150_def.
+Definition q_151_def := q_suc q_150.
+Time Definition q_151 := Eval vm_compute in q_151_def.
+Definition q_152_def := q_suc q_151.
+Time Definition q_152 := Eval vm_compute in q_152_def.
+Definition q_153_def := q_suc q_152.
+Time Definition q_153 := Eval vm_compute in q_153_def.
+Definition q_154_def := q_suc q_153.
+Time Definition q_154 := Eval vm_compute in q_154_def.
+Definition q_155_def := q_suc q_154.
+Time Definition q_155 := Eval vm_compute in q_155_def.
+Definition q_156_def := q_suc q_155.
+Time Definition q_156 := Eval vm_compute in q_156_def.
+Definition q_157_def := q_suc q_156.
+Time Definition q_157 := Eval vm_compute in q_157_def.
+Definition q_158_def := q_suc q_157.
+Time Definition q_158 := Eval vm_compute in q_158_def.
+Definition q_159_def := q_suc q_158.
+Time Definition q_159 := Eval vm_compute in q_159_def.
+Definition q_160_def := q_suc q_159.
+Time Definition q_160 := Eval vm_compute in q_160_def.
+Definition q_161_def := q_suc q_160.
+Time Definition q_161 := Eval vm_compute in q_161_def.
+Definition q_162_def := q_suc q_161.
+Time Definition q_162 := Eval vm_compute in q_162_def.
+Definition q_163_def := q_suc q_162.
+Time Definition q_163 := Eval vm_compute in q_163_def.
+Definition q_164_def := q_suc q_163.
+Time Definition q_164 := Eval vm_compute in q_164_def.
+Definition q_165_def := q_suc q_164.
+Time Definition q_165 := Eval vm_compute in q_165_def.
+Definition q_166_def := q_suc q_165.
+Time Definition q_166 := Eval vm_compute in q_166_def.
+Definition q_167_def := q_suc q_166.
+Time Definition q_167 := Eval vm_compute in q_167_def.
+Definition q_168_def := q_suc q_167.
+Time Definition q_168 := Eval vm_compute in q_168_def.
+Definition q_169_def := q_suc q_168.
+Time Definition q_169 := Eval vm_compute in q_169_def.
+Definition q_170_def := q_suc q_169.
+Time Definition q_170 := Eval vm_compute in q_170_def.
+Definition q_171_def := q_suc q_170.
+Time Definition q_171 := Eval vm_compute in q_171_def.
+Definition q_172_def := q_suc q_171.
+Time Definition q_172 := Eval vm_compute in q_172_def.
+Definition q_173_def := q_suc q_172.
+Time Definition q_173 := Eval vm_compute in q_173_def.
+Definition q_174_def := q_suc q_173.
+Time Definition q_174 := Eval vm_compute in q_174_def.
+Definition q_175_def := q_suc q_174.
+Time Definition q_175 := Eval vm_compute in q_175_def.
+Definition q_176_def := q_suc q_175.
+Time Definition q_176 := Eval vm_compute in q_176_def.
+Definition q_177_def := q_suc q_176.
+Time Definition q_177 := Eval vm_compute in q_177_def.
+Definition q_178_def := q_suc q_177.
+Time Definition q_178 := Eval vm_compute in q_178_def.
+Definition q_179_def := q_suc q_178.
+Time Definition q_179 := Eval vm_compute in q_179_def.
+Definition q_180_def := q_suc q_179.
+Time Definition q_180 := Eval vm_compute in q_180_def.
+Definition q_181_def := q_suc q_180.
+Time Definition q_181 := Eval vm_compute in q_181_def.
+Definition q_182_def := q_suc q_181.
+Time Definition q_182 := Eval vm_compute in q_182_def.
+Definition q_183_def := q_suc q_182.
+Time Definition q_183 := Eval vm_compute in q_183_def.
+Definition q_184_def := q_suc q_183.
+Time Definition q_184 := Eval vm_compute in q_184_def.
+Definition q_185_def := q_suc q_184.
+Time Definition q_185 := Eval vm_compute in q_185_def.
+Definition q_186_def := q_suc q_185.
+Time Definition q_186 := Eval vm_compute in q_186_def.
+Definition q_187_def := q_suc q_186.
+Time Definition q_187 := Eval vm_compute in q_187_def.
+Definition q_188_def := q_suc q_187.
+Time Definition q_188 := Eval vm_compute in q_188_def.
+Definition q_189_def := q_suc q_188.
+Time Definition q_189 := Eval vm_compute in q_189_def.
+Definition q_190_def := q_suc q_189.
+Time Definition q_190 := Eval vm_compute in q_190_def.
+Definition q_191_def := q_suc q_190.
+Time Definition q_191 := Eval vm_compute in q_191_def.
+Definition q_192_def := q_suc q_191.
+Time Definition q_192 := Eval vm_compute in q_192_def.
+Definition q_193_def := q_suc q_192.
+Time Definition q_193 := Eval vm_compute in q_193_def.
+Definition q_194_def := q_suc q_193.
+Time Definition q_194 := Eval vm_compute in q_194_def.
+Definition q_195_def := q_suc q_194.
+Time Definition q_195 := Eval vm_compute in q_195_def.
+Definition q_196_def := q_suc q_195.
+Time Definition q_196 := Eval vm_compute in q_196_def.
+Definition q_197_def := q_suc q_196.
+Time Definition q_197 := Eval vm_compute in q_197_def.
+Definition q_198_def := q_suc q_197.
+Time Definition q_198 := Eval vm_compute in q_198_def.
+Definition q_199_def := q_suc q_198.
+Time Definition q_199 := Eval vm_compute in q_199_def.
+Definition q_200_def := q_suc q_199.
+Time Definition q_200 := Eval vm_compute in q_200_def.
+
+
+Compute (length (TNF_Node_list_to_N_list (snd q_200))). (* 78 *)
+Compute (firstn 40 (TNF_Node_list_to_N_list (snd q_200))).
+Compute (skipn 40 (TNF_Node_list_to_N_list (snd q_200))).
 
-(*
-
-Definition q_0 := Eval vm_compute in (test_i 10).
-Definition q_1 := Eval vm_compute in (test_i 21).
-Definition q_2 := Eval vm_compute in (test_i 42).
-Definition q_3 := Eval vm_compute in (test_i 73).
-Definition q_4 := Eval vm_compute in (test_i 84).
-Definition q_5 := Eval vm_compute in (test_i 245).
-Definition q_6 := Eval vm_compute in (test_i 346).
-Time Definition q_7 := Eval vm_compute in (test_i 647).
-Definition q_8 := Eval vm_compute in (test_i 1098).
-
-Compute ((TNF_Node_list_to_N_list (((snd q_7))))).
-Compute ((length_tailrec (((snd q_7))))).
-
-
-
-Time Definition test := Eval vm_compute in SearchQueue_upds root_q decider_all 20.
-
-
-Compute (skipn 40 (TNF_Node_list_to_N_list (snd test))).
-
-Compute (length (snd test)).
-*)
-
-
-Definition q_range(n1 n2:nat):SearchQueue := ((firstn n2 (skipn n1 (fst q3))),nil).
-Definition solve_q_range(n1 n2:nat):SearchQueue := (SearchQueue_upds (q_range n1 n2) decider_all 32).
-
-
-Time Definition q_0 := Eval vm_compute in solve_q_range 0 10.
-Time Definition q_1 := Eval vm_compute in solve_q_range 10 10.
-Time Definition q_2 := Eval vm_compute in solve_q_range 20 10.
-Time Definition q_3 := Eval vm_compute in solve_q_range 30 10.
-Time Definition q_4 := Eval vm_compute in solve_q_range 40 10.
-Time Definition q_5 := Eval vm_compute in solve_q_range 50 10.
-Time Definition q_6 := Eval vm_compute in solve_q_range 60 10.
-Time Definition q_7 := Eval vm_compute in solve_q_range 70 10.
-Time Definition q_8 := Eval vm_compute in solve_q_range 80 10.
-Time Definition q_9 := Eval vm_compute in solve_q_range 90 10.
-Time Definition q_10 := Eval vm_compute in solve_q_range 100 10.
-Time Definition q_11 := Eval vm_compute in solve_q_range 110 10.
-Time Definition q_12 := Eval vm_compute in solve_q_range 120 10.
-Time Definition q_13 := Eval vm_compute in solve_q_range 130 10.
-Time Definition q_14 := Eval vm_compute in solve_q_range 140 10.
-Time Definition q_15 := Eval vm_compute in solve_q_range 150 10.
-Time Definition q_16 := Eval vm_compute in solve_q_range 160 10.
-Time Definition q_17 := Eval vm_compute in solve_q_range 170 10.
-Time Definition q_18 := Eval vm_compute in solve_q_range 180 10.
-Time Definition q_19 := Eval vm_compute in solve_q_range 190 10.
-Time Definition q_20 := Eval vm_compute in solve_q_range 200 10.
-Time Definition q_21 := Eval vm_compute in solve_q_range 210 10.
-Time Definition q_22 := Eval vm_compute in solve_q_range 220 10.
-Time Definition q_23 := Eval vm_compute in solve_q_range 230 10.
-Time Definition q_24 := Eval vm_compute in solve_q_range 240 10.
-Time Definition q_25 := Eval vm_compute in solve_q_range 250 10.
-Time Definition q_26 := Eval vm_compute in solve_q_range 260 10.
-Time Definition q_27 := Eval vm_compute in solve_q_range 270 10.
-Time Definition q_28 := Eval vm_compute in solve_q_range 280 10.
-Time Definition q_29 := Eval vm_compute in solve_q_range 290 10.
-Time Definition q_30 := Eval vm_compute in solve_q_range 300 10.
-Time Definition q_31 := Eval vm_compute in solve_q_range 310 10.
-Time Definition q_32 := Eval vm_compute in solve_q_range 320 10.
-Time Definition q_33 := Eval vm_compute in solve_q_range 330 10.
-Time Definition q_34 := Eval vm_compute in solve_q_range 340 10.
-Time Definition q_35 := Eval vm_compute in solve_q_range 350 10.
-Time Definition q_36 := Eval vm_compute in solve_q_range 360 10.
-Time Definition q_37 := Eval vm_compute in solve_q_range 370 10.
-Time Definition q_38 := Eval vm_compute in solve_q_range 380 10.
-Time Definition q_39 := Eval vm_compute in solve_q_range 390 10.
-Time Definition q_40 := Eval vm_compute in solve_q_range 400 10.
-Time Definition q_41 := Eval vm_compute in solve_q_range 410 10.
-Time Definition q_42 := Eval vm_compute in solve_q_range 420 10.
-Time Definition q_43 := Eval vm_compute in solve_q_range 430 10.
-Time Definition q_44 := Eval vm_compute in solve_q_range 440 10.
-Time Definition q_45 := Eval vm_compute in solve_q_range 450 10.
-Time Definition q_46 := Eval vm_compute in solve_q_range 460 10.
-Time Definition q_47 := Eval vm_compute in solve_q_range 470 10.
-Time Definition q_48 := Eval vm_compute in solve_q_range 480 10.
-Time Definition q_49 := Eval vm_compute in solve_q_range 490 10.
-Time Definition q_50 := Eval vm_compute in solve_q_range 500 10.
-Time Definition q_51 := Eval vm_compute in solve_q_range 510 10.
-Time Definition q_52 := Eval vm_compute in solve_q_range 520 10.
-Time Definition q_53 := Eval vm_compute in solve_q_range 530 10.
-Time Definition q_54 := Eval vm_compute in solve_q_range 540 10.
-Time Definition q_55 := Eval vm_compute in solve_q_range 550 10.
-Time Definition q_56 := Eval vm_compute in solve_q_range 560 10.
-Time Definition q_57 := Eval vm_compute in solve_q_range 570 10.
-Time Definition q_58 := Eval vm_compute in solve_q_range 580 10.
-Time Definition q_59 := Eval vm_compute in solve_q_range 590 10.
-Time Definition q_60 := Eval vm_compute in solve_q_range 600 10.
-Time Definition q_61 := Eval vm_compute in solve_q_range 610 10.
-Time Definition q_62 := Eval vm_compute in solve_q_range 620 10.
-Time Definition q_63 := Eval vm_compute in solve_q_range 630 10.
-Time Definition q_64 := Eval vm_compute in solve_q_range 640 10.
-Time Definition q_65 := Eval vm_compute in solve_q_range 650 10.
-Time Definition q_66 := Eval vm_compute in solve_q_range 660 10.
-Time Definition q_67 := Eval vm_compute in solve_q_range 670 10.
-Time Definition q_68 := Eval vm_compute in solve_q_range 680 10.
-Time Definition q_69 := Eval vm_compute in solve_q_range 690 10.
-Time Definition q_70 := Eval vm_compute in solve_q_range 700 10.
-Time Definition q_71 := Eval vm_compute in solve_q_range 710 10.
-Time Definition q_72 := Eval vm_compute in solve_q_range 720 10.
-Time Definition q_73 := Eval vm_compute in solve_q_range 730 10.
-Time Definition q_74 := Eval vm_compute in solve_q_range 740 10.
-Time Definition q_75 := Eval vm_compute in solve_q_range 750 10.
-Time Definition q_76 := Eval vm_compute in solve_q_range 760 10.
-Time Definition q_77 := Eval vm_compute in solve_q_range 770 10.
-Time Definition q_78 := Eval vm_compute in solve_q_range 780 10.
-Time Definition q_79 := Eval vm_compute in solve_q_range 790 10.
-Time Definition q_80 := Eval vm_compute in solve_q_range 800 10.
-Time Definition q_81 := Eval vm_compute in solve_q_range 810 10.
-Time Definition q_82 := Eval vm_compute in solve_q_range 820 10.
-Time Definition q_83 := Eval vm_compute in solve_q_range 830 10.
-Time Definition q_84 := Eval vm_compute in solve_q_range 840 10.
-Time Definition q_85 := Eval vm_compute in solve_q_range 850 10.
-Time Definition q_86 := Eval vm_compute in solve_q_range 860 10.
-Time Definition q_87 := Eval vm_compute in solve_q_range 870 10.
-Time Definition q_88 := Eval vm_compute in solve_q_range 880 10.
-Time Definition q_89 := Eval vm_compute in solve_q_range 890 10.
-Time Definition q_90 := Eval vm_compute in solve_q_range 900 10.
-Time Definition q_91 := Eval vm_compute in solve_q_range 910 10.
-Time Definition q_92 := Eval vm_compute in solve_q_range 920 10.
-Time Definition q_93 := Eval vm_compute in solve_q_range 930 10.
-Time Definition q_94 := Eval vm_compute in solve_q_range 940 10.
-Time Definition q_95 := Eval vm_compute in solve_q_range 950 10.
-Time Definition q_96 := Eval vm_compute in solve_q_range 960 10.
-Time Definition q_97 := Eval vm_compute in solve_q_range 970 10.
-Time Definition q_98 := Eval vm_compute in solve_q_range 980 10.
-Time Definition q_99 := Eval vm_compute in solve_q_range 990 10.
-Time Definition q_100 := Eval vm_compute in solve_q_range 1000 10.
-Time Definition q_101 := Eval vm_compute in solve_q_range 1010 10.
-Time Definition q_102 := Eval vm_compute in solve_q_range 1020 10.
-Time Definition q_103 := Eval vm_compute in solve_q_range 1030 10.
-Time Definition q_104 := Eval vm_compute in solve_q_range 1040 10.
-Time Definition q_105 := Eval vm_compute in solve_q_range 1050 10.
-Time Definition q_106 := Eval vm_compute in solve_q_range 1060 10.
-Time Definition q_107 := Eval vm_compute in solve_q_range 1070 10.
-Time Definition q_108 := Eval vm_compute in solve_q_range 1080 10.
-Time Definition q_109 := Eval vm_compute in solve_q_range 1090 10.
-Time Definition q_110 := Eval vm_compute in solve_q_range 1100 10.
-Time Definition q_111 := Eval vm_compute in solve_q_range 1110 10.
-Time Definition q_112 := Eval vm_compute in solve_q_range 1120 10.
-Time Definition q_113 := Eval vm_compute in solve_q_range 1130 10.
-Time Definition q_114 := Eval vm_compute in solve_q_range 1140 10.
-Time Definition q_115 := Eval vm_compute in solve_q_range 1150 10.
-Time Definition q_116 := Eval vm_compute in solve_q_range 1160 10.
-Time Definition q_117 := Eval vm_compute in solve_q_range 1170 10.
-Time Definition q_118 := Eval vm_compute in solve_q_range 1180 10.
-Time Definition q_119 := Eval vm_compute in solve_q_range 1190 10.
-Time Definition q_120 := Eval vm_compute in solve_q_range 1200 10.
-Time Definition q_121 := Eval vm_compute in solve_q_range 1210 10.
-Time Definition q_122 := Eval vm_compute in solve_q_range 1220 10.
-Time Definition q_123 := Eval vm_compute in solve_q_range 1230 10.
-Time Definition q_124 := Eval vm_compute in solve_q_range 1240 10.
-Time Definition q_125 := Eval vm_compute in solve_q_range 1250 10.
-Time Definition q_126 := Eval vm_compute in solve_q_range 1260 10.
-Time Definition q_127 := Eval vm_compute in solve_q_range 1270 10.
-Time Definition q_128 := Eval vm_compute in solve_q_range 1280 10.
-Time Definition q_129 := Eval vm_compute in solve_q_range 1290 10.
-Time Definition q_130 := Eval vm_compute in solve_q_range 1300 10.
-Time Definition q_131 := Eval vm_compute in solve_q_range 1310 10.
-Time Definition q_132 := Eval vm_compute in solve_q_range 1320 10.
-Time Definition q_133 := Eval vm_compute in solve_q_range 1330 10.
-Time Definition q_134 := Eval vm_compute in solve_q_range 1340 10.
-Time Definition q_135 := Eval vm_compute in solve_q_range 1350 10.
-Time Definition q_136 := Eval vm_compute in solve_q_range 1360 10.
-Time Definition q_137 := Eval vm_compute in solve_q_range 1370 10.
-Time Definition q_138 := Eval vm_compute in solve_q_range 1380 10.
-Time Definition q_139 := Eval vm_compute in solve_q_range 1390 10.
-Time Definition q_140 := Eval vm_compute in solve_q_range 1400 10.
-Time Definition q_141 := Eval vm_compute in solve_q_range 1410 10.
-Time Definition q_142 := Eval vm_compute in solve_q_range 1420 10.
-Time Definition q_143 := Eval vm_compute in solve_q_range 1430 10.
-Time Definition q_144 := Eval vm_compute in solve_q_range 1440 10.
-Time Definition q_145 := Eval vm_compute in solve_q_range 1450 10.
-Time Definition q_146 := Eval vm_compute in solve_q_range 1460 10.
-Time Definition q_147 := Eval vm_compute in solve_q_range 1470 10.
-Time Definition q_148 := Eval vm_compute in solve_q_range 1480 10.
-Time Definition q_149 := Eval vm_compute in solve_q_range 1490 10.
-Time Definition q_150 := Eval vm_compute in solve_q_range 1500 10.
-Time Definition q_151 := Eval vm_compute in solve_q_range 1510 10.
-Time Definition q_152 := Eval vm_compute in solve_q_range 1520 10.
-Time Definition q_153 := Eval vm_compute in solve_q_range 1530 10.
-Time Definition q_154 := Eval vm_compute in solve_q_range 1540 10.
-Time Definition q_155 := Eval vm_compute in solve_q_range 1550 10.
-Time Definition q_156 := Eval vm_compute in solve_q_range 1560 10.
-Time Definition q_157 := Eval vm_compute in solve_q_range 1570 10.
-Time Definition q_158 := Eval vm_compute in solve_q_range 1580 10.
-Time Definition q_159 := Eval vm_compute in solve_q_range 1590 10.
-Time Definition q_160 := Eval vm_compute in solve_q_range 1600 10.
-Time Definition q_161 := Eval vm_compute in solve_q_range 1610 10.
-Time Definition q_162 := Eval vm_compute in solve_q_range 1620 10.
-Time Definition q_163 := Eval vm_compute in solve_q_range 1630 10.
-Time Definition q_164 := Eval vm_compute in solve_q_range 1640 10.
-Time Definition q_165 := Eval vm_compute in solve_q_range 1650 10.
-Time Definition q_166 := Eval vm_compute in solve_q_range 1660 10.
-Time Definition q_167 := Eval vm_compute in solve_q_range 1670 10.
-Time Definition q_168 := Eval vm_compute in solve_q_range 1680 10.
-Time Definition q_169 := Eval vm_compute in solve_q_range 1690 10.
-Time Definition q_170 := Eval vm_compute in solve_q_range 1700 10.
-Time Definition q_171 := Eval vm_compute in solve_q_range 1710 10.
-Time Definition q_172 := Eval vm_compute in solve_q_range 1720 10.
-Time Definition q_173 := Eval vm_compute in solve_q_range 1730 10.
-Time Definition q_174 := Eval vm_compute in solve_q_range 1740 10.
-Time Definition q_175 := Eval vm_compute in solve_q_range 1750 10.
-Time Definition q_176 := Eval vm_compute in solve_q_range 1760 10.
-Time Definition q_177 := Eval vm_compute in solve_q_range 1770 10.
-Time Definition q_178 := Eval vm_compute in solve_q_range 1780 10.
-Time Definition q_179 := Eval vm_compute in solve_q_range 1790 10.
-Time Definition q_180 := Eval vm_compute in solve_q_range 1800 10.
-Time Definition q_181 := Eval vm_compute in solve_q_range 1810 10.
-Time Definition q_182 := Eval vm_compute in solve_q_range 1820 10.
-Time Definition q_183 := Eval vm_compute in solve_q_range 1830 10.
-Time Definition q_184 := Eval vm_compute in solve_q_range 1840 10.
-Time Definition q_185 := Eval vm_compute in solve_q_range 1850 10.
-Time Definition q_186 := Eval vm_compute in solve_q_range 1860 10.
-Time Definition q_187 := Eval vm_compute in solve_q_range 1870 10.
-Time Definition q_188 := Eval vm_compute in solve_q_range 1880 10.
-Time Definition q_189 := Eval vm_compute in solve_q_range 1890 10.
-Time Definition q_190 := Eval vm_compute in solve_q_range 1900 10.
-Time Definition q_191 := Eval vm_compute in solve_q_range 1910 10.
-Time Definition q_192 := Eval vm_compute in solve_q_range 1920 10.
-Time Definition q_193 := Eval vm_compute in solve_q_range 1930 10.
-Time Definition q_194 := Eval vm_compute in solve_q_range 1940 10.
-Time Definition q_195 := Eval vm_compute in solve_q_range 1950 10.
-Time Definition q_196 := Eval vm_compute in solve_q_range 1960 10.
-Time Definition q_197 := Eval vm_compute in solve_q_range 1970 10.
-Time Definition q_198 := Eval vm_compute in solve_q_range 1980 10.
-Time Definition q_199 := Eval vm_compute in solve_q_range 1990 10.
-
-
-Definition holdouts := Eval vm_compute in
-(snd q_0)++(snd q_1)++(snd q_2)++(snd q_3)++(snd q_4)++(snd q_5)++(snd q_6)++(snd q_7)++(snd q_8)++(snd q_9)++(snd q_10)++(snd q_11)++(snd q_12)++(snd q_13)++(snd q_14)++(snd q_15)++(snd q_16)++(snd q_17)++(snd q_18)++(snd q_19)++(snd q_20)++(snd q_21)++(snd q_22)++(snd q_23)++(snd q_24)++(snd q_25)++(snd q_26)++(snd q_27)++(snd q_28)++(snd q_29)++(snd q_30)++(snd q_31)++(snd q_32)++(snd q_33)++(snd q_34)++(snd q_35)++(snd q_36)++(snd q_37)++(snd q_38)++(snd q_39)++(snd q_40)++(snd q_41)++(snd q_42)++(snd q_43)++(snd q_44)++(snd q_45)++(snd q_46)++(snd q_47)++(snd q_48)++(snd q_49)++(snd q_50)++(snd q_51)++(snd q_52)++(snd q_53)++(snd q_54)++(snd q_55)++(snd q_56)++(snd q_57)++(snd q_58)++(snd q_59)++(snd q_60)++(snd q_61)++(snd q_62)++(snd q_63)++(snd q_64)++(snd q_65)++(snd q_66)++(snd q_67)++(snd q_68)++(snd q_69)++(snd q_70)++(snd q_71)++(snd q_72)++(snd q_73)++(snd q_74)++(snd q_75)++(snd q_76)++(snd q_77)++(snd q_78)++(snd q_79)++(snd q_80)++(snd q_81)++(snd q_82)++(snd q_83)++(snd q_84)++(snd q_85)++(snd q_86)++(snd q_87)++(snd q_88)++(snd q_89)++(snd q_90)++(snd q_91)++(snd q_92)++(snd q_93)++(snd q_94)++(snd q_95)++(snd q_96)++(snd q_97)++(snd q_98)++(snd q_99)++(snd q_100)++(snd q_101)++(snd q_102)++(snd q_103)++(snd q_104)++(snd q_105)++(snd q_106)++(snd q_107)++(snd q_108)++(snd q_109)++(snd q_110)++(snd q_111)++(snd q_112)++(snd q_113)++(snd q_114)++(snd q_115)++(snd q_116)++(snd q_117)++(snd q_118)++(snd q_119)++(snd q_120)++(snd q_121)++(snd q_122)++(snd q_123)++(snd q_124)++(snd q_125)++(snd q_126)++(snd q_127)++(snd q_128)++(snd q_129)++(snd q_130)++(snd q_131)++(snd q_132)++(snd q_133)++(snd q_134)++(snd q_135)++(snd q_136)++(snd q_137)++(snd q_138)++(snd q_139)++(snd q_140)++(snd q_141)++(snd q_142)++(snd q_143)++(snd q_144)++(snd q_145)++(snd q_146)++(snd q_147)++(snd q_148)++(snd q_149)++(snd q_150)++(snd q_151)++(snd q_152)++(snd q_153)++(snd q_154)++(snd q_155)++(snd q_156)++(snd q_157)++(snd q_158)++(snd q_159)++(snd q_160)++(snd q_161)++(snd q_162)++(snd q_163)++(snd q_164)++(snd q_165)++(snd q_166)++(snd q_167)++(snd q_168)++(snd q_169)++(snd q_170)++(snd q_171)++(snd q_172)++(snd q_173)++(snd q_174)++(snd q_175)++(snd q_176)++(snd q_177)++(snd q_178)++(snd q_179)++(snd q_180)++(snd q_181)++(snd q_182)++(snd q_183)++(snd q_184)++(snd q_185)++(snd q_186)++(snd q_187)++(snd q_188)++(snd q_189)++(snd q_190)++(snd q_191)++(snd q_192)++(snd q_193)++(snd q_194)++(snd q_195)++(snd q_196)++(snd q_197)++(snd q_198)++(snd q_199).
-
-Compute (length_tailrec holdouts).
-
-
-Definition HO := Eval vm_compute in TNF_Node_list_to_N_list holdouts.
-
-Fixpoint fold_list{T}(x:list T) :=
-match x with
-| c1::c2::c3::c4::c5::c6::x0 => (c1::c2::c3::c4::c5::c6::nil)::fold_list x0
-| _ => x::nil
-end.
-
-
-Compute (firstn 40 (skipn (40*0) HO)).
-Compute (firstn 40 (skipn (40*1) HO)).
-Compute (firstn 40 (skipn (40*2) HO)).
-Compute (firstn 40 (skipn (40*3) HO)).
-Compute (firstn 40 (skipn (40*4) HO)).
-
-Compute (firstn 40 (skipn (40*5) HO)).
-Compute (firstn 40 (skipn (40*6) HO)).
-Compute (firstn 40 (skipn (40*7) HO)).
-Compute (firstn 40 (skipn (40*8) HO)).
-Compute (firstn 40 (skipn (40*9) HO)).
-
-Compute (firstn 40 (skipn (40*10) HO)).
-Compute (firstn 40 (skipn (40*11) HO)).
-Compute (firstn 40 (skipn (40*12) HO)).
-Compute (firstn 40 (skipn (40*13) HO)).
-Compute (firstn 40 (skipn (40*14) HO)).
-Compute (firstn 40 (skipn (40*15) HO)).
-
-Compute (firstn 40 (skipn (40*16) HO)).
-Compute (firstn 40 (skipn (40*17) HO)).
-Compute (firstn 40 (skipn (40*18) HO)).
-Compute (firstn 40 (skipn (40*19) HO)).
-Compute (firstn 40 (skipn (40*20) HO)).
-
-Compute (firstn 40 (skipn (40*21) HO)).
-Compute (firstn 40 (skipn (40*22) HO)).
-Compute (firstn 40 (skipn (40*23) HO)).
-Compute (firstn 40 (skipn (40*24) HO)).
-
-Compute (firstn 40 (skipn (40*25) HO)).
-Compute (firstn 40 (skipn (40*26) HO)).
-Compute (firstn 40 (skipn (40*27) HO)).
-Compute (firstn 40 (skipn (40*28) HO)).
-Compute (firstn 40 (skipn (40*29) HO)).
-
-Compute (firstn 40 (skipn (40*30) HO)).
-Compute (firstn 40 (skipn (40*31) HO)).
-Compute (firstn 40 (skipn (40*32) HO)).
-Compute (firstn 40 (skipn (40*33) HO)).
-Compute (firstn 40 (skipn (40*34) HO)).
-
-Compute (firstn 40 (skipn (40*35) HO)).
-Compute (firstn 40 (skipn (40*36) HO)).
-Compute (firstn 40 (skipn (40*37) HO)).
-Compute (firstn 40 (skipn (40*38) HO)).
-Compute (firstn 40 (skipn (40*39) HO)).
-
-Compute (firstn 40 (skipn (40*40) HO)).
-Compute (firstn 40 (skipn (40*41) HO)).
-Compute (firstn 40 (skipn (40*42) HO)).
-Compute (firstn 40 (skipn (40*43) HO)).
-Compute (firstn 40 (skipn (40*44) HO)).
-
-Compute (firstn 40 (skipn (40*45) HO)).
-Compute (firstn 40 (skipn (40*46) HO)).
-Compute (firstn 40 (skipn (40*47) HO)).
-Compute (firstn 40 (skipn (40*48) HO)).
-Compute (firstn 40 (skipn (40*49) HO)).
-
-Compute (firstn 40 (skipn (40*50) HO)).
-Compute (firstn 40 (skipn (40*51) HO)).
-Compute (firstn 40 (skipn (40*52) HO)).
-Compute (firstn 40 (skipn (40*53) HO)).
-Compute (firstn 40 (skipn (40*54) HO)).
-
-Compute (firstn 40 (skipn (40*55) HO)).
-Compute (firstn 40 (skipn (40*56) HO)).
-Compute (firstn 40 (skipn (40*57) HO)).
-Compute (firstn 40 (skipn (40*58) HO)).
-Compute (firstn 40 (skipn (40*59) HO)).
-
-Compute (firstn 40 (skipn (40*60) HO)).
-Compute (firstn 40 (skipn (40*61) HO)).
-Compute (firstn 40 (skipn (40*62) HO)).
-Compute (firstn 40 (skipn (40*63) HO)).
-Compute (firstn 40 (skipn (40*64) HO)).
-
-Compute (firstn 40 (skipn (40*65) HO)).
-Compute (firstn 40 (skipn (40*66) HO)).
-Compute (firstn 40 (skipn (40*67) HO)).
-Compute (firstn 40 (skipn (40*68) HO)).
-Compute (firstn 40 (skipn (40*69) HO)).
-
-Compute (firstn 40 (skipn (40*70) HO)).
-Compute (firstn 40 (skipn (40*71) HO)).
-Compute (firstn 40 (skipn (40*72) HO)).
-Compute (firstn 40 (skipn (40*73) HO)).
-Compute (firstn 40 (skipn (40*74) HO)).
-
-Compute (firstn 40 (skipn (40*75) HO)).
-Compute (firstn 40 (skipn (40*76) HO)).
-Compute (firstn 40 (skipn (40*77) HO)).
-Compute (firstn 40 (skipn (40*78) HO)).
-Compute (firstn 40 (skipn (40*79) HO)).
-
-Compute (firstn 40 (skipn (40*80) HO)).
-Compute (firstn 40 (skipn (40*81) HO)).
-Compute (firstn 40 (skipn (40*82) HO)).
-Compute (firstn 40 (skipn (40*83) HO)).
-Compute (firstn 40 (skipn (40*84) HO)).
-
-Compute (firstn 40 (skipn (40*85) HO)).
-Compute (firstn 40 (skipn (40*86) HO)).
-Compute (firstn 40 (skipn (40*87) HO)).
-Compute (firstn 40 (skipn (40*88) HO)).
-Compute (firstn 40 (skipn (40*89) HO)).
-
-Compute (firstn 40 (skipn (40*90) HO)).
-Compute (firstn 40 (skipn (40*91) HO)).
-Compute (firstn 40 (skipn (40*92) HO)).
-Compute (firstn 40 (skipn (40*93) HO)).
-Compute (firstn 40 (skipn (40*94) HO)).
-
-Compute (firstn 40 (skipn (40*95) HO)).
-Compute (firstn 40 (skipn (40*96) HO)).
-Compute (firstn 40 (skipn (40*97) HO)).
-Compute (firstn 40 (skipn (40*98) HO)).
-Compute (firstn 40 (skipn (40*99) HO)).
-
-Compute (firstn 40 (skipn (40*100) HO)).
-Compute (firstn 40 (skipn (40*101) HO)).
-Compute (firstn 40 (skipn (40*102) HO)).
-Compute (firstn 40 (skipn (40*103) HO)).
-Compute (firstn 40 (skipn (40*104) HO)).
-
-Compute (firstn 40 (skipn (40*105) HO)).
-Compute (firstn 40 (skipn (40*106) HO)).
-Compute (firstn 40 (skipn (40*107) HO)).
-Compute (firstn 40 (skipn (40*108) HO)).
-Compute (firstn 40 (skipn (40*109) HO)).
-
-Compute (firstn 40 (skipn (40*110) HO)).
-Compute (firstn 40 (skipn (40*111) HO)).
-Compute (firstn 40 (skipn (40*112) HO)).
-Compute (firstn 40 (skipn (40*113) HO)).
-Compute (firstn 40 (skipn (40*114) HO)).
-
-Compute (firstn 40 (skipn (40*115) HO)).
-Compute (firstn 40 (skipn (40*116) HO)).
-Compute (firstn 40 (skipn (40*117) HO)).
-Compute (firstn 40 (skipn (40*118) HO)).
-Compute (firstn 40 (skipn (40*119) HO)).
-
-Compute (firstn 40 (skipn (40*120) HO)).
-Compute (firstn 40 (skipn (40*121) HO)).
-Compute (firstn 40 (skipn (40*122) HO)).
-Compute (firstn 40 (skipn (40*123) HO)).
-Compute (firstn 40 (skipn (40*124) HO)).
-
-Compute (firstn 40 (skipn (40*125) HO)).
-Compute (firstn 40 (skipn (40*126) HO)).
-Compute (firstn 40 (skipn (40*127) HO)).
-Compute (firstn 40 (skipn (40*128) HO)).
-Compute (firstn 40 (skipn (40*129) HO)).
-
-Compute (firstn 40 (skipn (40*130) HO)).
-Compute (firstn 40 (skipn (40*131) HO)).
-Compute (firstn 40 (skipn (40*132) HO)).
-Compute (firstn 40 (skipn (40*133) HO)).
-Compute (firstn 40 (skipn (40*134) HO)).
-
-Compute (firstn 40 (skipn (40*135) HO)).
-Compute (firstn 40 (skipn (40*136) HO)).
-Compute (firstn 40 (skipn (40*137) HO)).
-Compute (firstn 40 (skipn (40*138) HO)).
-Compute (firstn 40 (skipn (40*139) HO)).
-
-Compute (firstn 40 (skipn (40*140) HO)).
-Compute (firstn 40 (skipn (40*141) HO)).
-Compute (firstn 40 (skipn (40*142) HO)).
-Compute (firstn 40 (skipn (40*143) HO)).
-Compute (firstn 40 (skipn (40*144) HO)).
-
-Compute (firstn 40 (skipn (40*145) HO)).
-Compute (firstn 40 (skipn (40*146) HO)).
-Compute (firstn 40 (skipn (40*147) HO)).
-Compute (firstn 40 (skipn (40*148) HO)).
-Compute (firstn 40 (skipn (40*149) HO)).
-
-Compute (firstn 40 (skipn (40*150) HO)).
-Compute (firstn 40 (skipn (40*151) HO)).
-Compute (firstn 40 (skipn (40*152) HO)).
-Compute (firstn 40 (skipn (40*153) HO)).
-Compute (firstn 40 (skipn (40*154) HO)).
-
-Compute (firstn 40 (skipn (40*155) HO)).
-Compute (firstn 40 (skipn (40*156) HO)).
-Compute (firstn 40 (skipn (40*157) HO)).
-Compute (firstn 40 (skipn (40*158) HO)).
-Compute (firstn 40 (skipn (40*159) HO)).
-
-Compute (firstn 40 (skipn (40*160) HO)).
-Compute (firstn 40 (skipn (40*161) HO)).
-Compute (firstn 40 (skipn (40*162) HO)).
-Compute (firstn 40 (skipn (40*163) HO)).
-Compute (firstn 40 (skipn (40*164) HO)).
-
-Compute (firstn 40 (skipn (40*165) HO)).
-Compute (firstn 40 (skipn (40*166) HO)).
-Compute (firstn 40 (skipn (40*167) HO)).
-Compute (firstn 40 (skipn (40*168) HO)).
-Compute (firstn 40 (skipn (40*169) HO)).
-
-Compute (firstn 40 (skipn (40*170) HO)).
-Compute (firstn 40 (skipn (40*171) HO)).
-Compute (firstn 40 (skipn (40*172) HO)).
-Compute (firstn 40 (skipn (40*173) HO)).
-Compute (firstn 40 (skipn (40*174) HO)).
-
-Compute (firstn 40 (skipn (40*175) HO)).
-Compute (firstn 40 (skipn (40*176) HO)).
-Compute (firstn 40 (skipn (40*177) HO)).
-Compute (firstn 40 (skipn (40*178) HO)).
-Compute (firstn 40 (skipn (40*179) HO)).
-
-Compute (firstn 40 (skipn (40*180) HO)).
-Compute (firstn 40 (skipn (40*181) HO)).
-Compute (firstn 40 (skipn (40*182) HO)).
-Compute (firstn 40 (skipn (40*183) HO)).
-Compute (firstn 40 (skipn (40*184) HO)).
-
-Compute (firstn 40 (skipn (40*185) HO)).
-Compute (firstn 40 (skipn (40*186) HO)).
-Compute (firstn 40 (skipn (40*187) HO)).
-Compute (firstn 40 (skipn (40*188) HO)).
-Compute (firstn 40 (skipn (40*189) HO)).
-
-Compute (firstn 40 (skipn (40*190) HO)).
-Compute (firstn 40 (skipn (40*191) HO)).
-Compute (firstn 40 (skipn (40*192) HO)).
-Compute (firstn 40 (skipn (40*193) HO)).
-Compute (firstn 40 (skipn (40*194) HO)).
-
-Compute (firstn 40 (skipn (40*195) HO)).
-Compute (firstn 40 (skipn (40*196) HO)).
-Compute (firstn 40 (skipn (40*197) HO)).
-Compute (firstn 40 (skipn (40*198) HO)).
-Compute (firstn 40 (skipn (40*199) HO)).
-
-Compute (firstn 40 (skipn (40*200) HO)).
-Compute (firstn 40 (skipn (40*201) HO)).
-Compute (firstn 40 (skipn (40*202) HO)).
-Compute (firstn 40 (skipn (40*203) HO)).
-Compute (firstn 40 (skipn (40*204) HO)).
-
-Compute (firstn 40 (skipn (40*205) HO)).
-Compute (firstn 40 (skipn (40*206) HO)).
-Compute (firstn 40 (skipn (40*207) HO)).
-Compute (firstn 40 (skipn (40*208) HO)).
-Compute (firstn 40 (skipn (40*209) HO)).
-
-Compute (firstn 40 (skipn (40*210) HO)).
-Compute (firstn 40 (skipn (40*211) HO)).
-Compute (firstn 40 (skipn (40*212) HO)).
-Compute (firstn 40 (skipn (40*213) HO)).
-Compute (firstn 40 (skipn (40*214) HO)).
-Compute (firstn 40 (skipn (40*215) HO)).
-Compute (firstn 40 (skipn (40*216) HO)).
-Compute (firstn 40 (skipn (40*217) HO)).
-Compute (firstn 40 (skipn (40*218) HO)).
-Compute (firstn 40 (skipn (40*219) HO)).
-Compute (firstn 40 (skipn (40*220) HO)).
-Compute (firstn 40 (skipn (40*221) HO)).
-Compute (firstn 40 (skipn (40*222) HO)).
-Compute (firstn 40 (skipn (40*223) HO)).
-Compute (firstn 40 (skipn (40*224) HO)).
-Compute (firstn 40 (skipn (40*225) HO)).
-Compute (firstn 40 (skipn (40*226) HO)).
-Compute (firstn 40 (skipn (40*227) HO)).
-Compute (firstn 40 (skipn (40*228) HO)).
-Compute (firstn 40 (skipn (40*229) HO)).
-Compute (firstn 40 (skipn (40*230) HO)).
-Compute (firstn 40 (skipn (40*231) HO)).
-Compute (firstn 40 (skipn (40*232) HO)).
-Compute (firstn 40 (skipn (40*233) HO)).
-Compute (firstn 40 (skipn (40*234) HO)).
-Compute (firstn 40 (skipn (40*235) HO)).
-Compute (firstn 40 (skipn (40*236) HO)).
-Compute (firstn 40 (skipn (40*237) HO)).
-Compute (firstn 40 (skipn (40*238) HO)).
-Compute (firstn 40 (skipn (40*239) HO)).
-Compute (firstn 40 (skipn (40*240) HO)).
-Compute (firstn 40 (skipn (40*241) HO)).
-Compute (firstn 40 (skipn (40*242) HO)).
-Compute (firstn 40 (skipn (40*243) HO)).
-Compute (firstn 40 (skipn (40*244) HO)).
-Compute (firstn 40 (skipn (40*245) HO)).
-Compute (firstn 40 (skipn (40*246) HO)).
-Compute (firstn 40 (skipn (40*247) HO)).
-Compute (firstn 40 (skipn (40*248) HO)).
-Compute (firstn 40 (skipn (40*249) HO)).
-
-Compute (length_tailrec HO).
-
-Definition HO' := fold_list HO.
-Compute (HO').
-
-*)
-
-
-(*
-Time Definition Q := Eval vm_compute in SearchQueue_upds q3 decider_all 32.
-*)
 
 
 

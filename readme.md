@@ -30,7 +30,7 @@ See [Nathan-Fenner/bb-simple-n-gram-cps (github.com)](https://github.com/Nathan-
 
 We can save more information on the tape, for example, use a queue of fixed size or a LRU cache to save the update history of each position on the tape.  This is implemented by increasing the size of the charset $\Sigma$ without affect to the TM's haltness. The NGramCPS decider is improved a lot by this way.
 
-`NGramCPS_decider_impl1` use an fixed size queue for update history.
+`NGramCPS_decider_impl1` use a fixed size queue for update history.
 
 `NGramCPS_decider_impl2` doesn't use update history.
 
@@ -42,7 +42,7 @@ This decider is the special case of CTL deciders ([The 30 to 34 CTL holdouts fro
 
 If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegExp}$ , and forall reachable ExecState, it can reach an ExecState $0^\infty A(s,x)B0^\infty$ , exists $R_1,R_2\in\mathrm{RegExp}$ , $R_1,R_2$ matches $A,xB$ (or $Ax,B$) and $(R_1,s,R_2)\in S_1$ (or $(R_1,s,R_2)\in S_2$ ), then the TM will never halt.
 
-Regular expressions used in this decider (with parameters $n$ and $m$) are limited to be like $A_1A_2A_3\dots A_n$ and each $A_i$ is like $B^k$ or $B^mB^*$ , $B$ matches a fixed string of length $n$ , and $1\le k\le m-1$ .
+Regular expressions used in this decider (with parameters $n$ and $m$) are limited to be like $A_1A_2A_3\dots A_{n_0}$ and each $A_i$ is like $B^k$ or $B^mB^*$ , $B$ matches a fixed string of length $n$ , and $1\le k\le m-1$ .
 
 ## TNF_Node
 
@@ -54,5 +54,11 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-**However, after about 12h of searching, there are 82 non-trivial TMs left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+**However, after about 12h of searching, there are 78 non-trivial TMs left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+
+## decider_all
+
+Different deciders are arranged in a specific order to efficiently decide the haltness of most TMs.
+
+A list of about 8,000 TMs are mapped to specific deciders (and parameters). This avoids grid search of decider kind and parameters.
 
