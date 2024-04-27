@@ -54,7 +54,7 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-**However, after about 12h of searching, there are 78 non-trivial TMs left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+**However, after about 12h of searching, there are 77 non-trivial TMs left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
 
 ## decider_all
 

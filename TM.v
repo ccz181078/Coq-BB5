@@ -7208,7 +7208,7 @@ match x with
   end
 | NG_LRU len =>
   NGramCPS_LRU_decider len len 5000001
-| RWL len mnc => RepWL_ES_decider len mnc 320 40001
+| RWL len mnc => RepWL_ES_decider len mnc 320 150001
 | Ha => halt_decider_max
 | Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
 end.
@@ -15457,8 +15457,13 @@ Definition tm_NG0' :=
 (makeTM BR1 DL0 CR1 BL0 DR0 HR1 ER1 ER0 AL1 AR0,NG 0 20)::
 nil.
 
+Definition tm_RWL' :=
+(makeTM BR1 HR1 CR0 DR1 DL0 CR1 EL1 AR0 AR1 EL0,RWL 20 2)::
+nil.
+
 Definition check_tms(ls:list ((TM Σ)*DeciderType)):=
   map (fun (x:(TM Σ)*DeciderType)=> let (tm,d):=x in getDecider d tm) ls.
+
 
 Definition tm_list :=
   tm_RWL::
@@ -15466,7 +15471,7 @@ Definition tm_list :=
   tm_Ha::
   tm_Lp1::
   tm_NG_LRU::
-  tm_NG0'::
+  tm_NG0'::tm_RWL'::
   nil.
 
 
@@ -15951,7 +15956,7 @@ Definition q_200_def := q_suc q_199.
 Time Definition q_200 := Eval vm_compute in q_200_def.
 
 
-Compute (length (TNF_Node_list_to_N_list (snd q_200))). (* 78 *)
+Compute (length (TNF_Node_list_to_N_list (snd q_200))). (* 77 *)
 Compute (firstn 40 (TNF_Node_list_to_N_list (snd q_200))).
 Compute (skipn 40 (TNF_Node_list_to_N_list (snd q_200))).
 
