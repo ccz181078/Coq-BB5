@@ -44,6 +44,14 @@ If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegE
 
 Regular expressions used in this decider (with parameters $n$ and $m$) are limited to be like $A_1A_2A_3\dots A_{n_0}$ and each $A_i$ is like $B^k$ or $B^mB^*$ , $B$ matches a fixed string of length $n$ , and $1\le k\le m-1$ .
 
+## dfa_nfa_verifier
+
+This decider accepts a DFA as input, and constructs an NFA (the method is described in [Direct recognizer for L(TM/~) ](https://github.com/bbchallenge/bbchallenge-deciders/tree/main/decider-finite-automata-reduction)) to recognize all tape configuration that will halt. The decider then check whether initial tape configuration is accepted, if not, the TM will never halt.
+
+The searching of the DFA is not implemented. DFAs for 23 TMs are listed in the code.
+
+Some TMs write 0 at the first step can also be solved in this way, but it's not implemented yet.
+
 ## TNF_Node
 
 An TNF_Node records a TM in Tree Normal Form(TNF), and may be replaced with its succesors(update the visited halt transition to non-halt transition) if the TM halts or remove from the search queue if the TM doesn't halt.
@@ -54,7 +62,7 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-**However, after about 12h of searching, there are 77 non-trivial TMs left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+**However, after about 12h of searching, there are (77-23) non-trivial TMs((53-23) of them write 1 at the first step) left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
 
 ## decider_all
 
