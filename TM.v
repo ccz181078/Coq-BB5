@@ -7191,10 +7191,866 @@ Qed.
 End MacroMachine_secion.
 
 
+
+
+
+
+
+Section DFA_NFA_verifier.
+
+Section dfa_nfa_decider.
+
+Hypothesis U: Set.
+Hypothesis U0: U.
+Hypothesis U_enc: U->positive.
+Hypothesis U_enc_inj: is_inj U_enc.
+Hypothesis U_list:list U.
+Hypothesis U_list_spec:
+  forall s, In s U_list.
+Hypothesis maxT:nat.
+Hypothesis dfa: U->Σ->U.
+
+Definition U_eqb(u1 u2:U) := Pos.eqb (U_enc u1) (U_enc u2).
+Lemma U_eqb_spec:
+  forall u1 u2, if U_eqb u1 u2 then u1=u2 else u1<>u2.
+Proof.
+  intros.
+  unfold U_eqb.
+  destruct ((U_enc u1 =? U_enc u2)%positive) eqn:E.
+  - rewrite Pos.eqb_eq in E.
+    apply U_enc_inj,E.
+  - intro H. subst.
+    rewrite Pos.eqb_refl in E.
+    cg.
+Qed.
+
+Section genNFA.
+Hypothesis tm:TM Σ.
+
+Section verifyNFA.
+
+
+Hypothesis nfa: (option (St*U))->Σ->(option (St*U))->bool.
+Hypothesis nfa_acc: option (St*U) -> bool.
+
+
+
+Section NFA_NonHalt.
+
+Hypothesis nfa_h0:
+  forall {i0},
+  nfa None i0 None = true.
+
+Hypothesis nfa_h:
+  forall {s0 u0 i0},
+  tm s0 i0 = None ->
+  nfa (Some (s0,u0)) i0 None = true.
+
+Hypothesis nfa_r:
+  forall {s0 u0 i0 s1 i1},
+  tm s0 i0 = Some {| nxt:= s1; out:=i1; dir:=Dpos |} ->
+  nfa (Some (s0,u0)) i0 (Some (s1,dfa u0 i1)) = true.
+
+Hypothesis nfa_l:
+  forall {s0 i0 s1 u1 i1 i2 su2 su3},
+  tm s0 i0 = Some {| nxt:= s1; out:=i1; dir:=Dneg |} ->
+  nfa (Some (s1,u1)) i2 su2 = true ->
+  nfa su2 i1 su3 = true ->
+  nfa (Some (s0,dfa u1 i2)) i0 su3 = true.
+
+Hypothesis dfa_0:
+  dfa U0 Σ0 = U0.
+
+Inductive NFA_match: (option (St*U))->Word->Prop :=
+| NFA_match_O: NFA_match None nil
+| NFA_match_S v0 v1 i w: nfa v0 i v1 = true -> NFA_match v1 w -> NFA_match v0 (i::w)
+.
+
+Definition makeES' (l0 r0:Word)(m0:Σ)(s0:St):ExecState Σ :=
+  (s0,make_tape' half_tape_all0 l0 m0 r0 half_tape_all0).
+
+
+Fixpoint DFA_match(w:Word):U :=
+match w with
+| nil => U0
+| h::t => dfa (DFA_match t) h
+end.
+
+Definition ES_matched(l0 r0:Word)(m0:Σ)(s0:St):Prop :=
+  exists n0,
+  NFA_match (Some (s0,DFA_match l0)) ((m0::r0)++(repeat Σ0 n0)).
+
+
+Lemma NFA_match_None w:
+  NFA_match None w.
+Proof.
+  induction w.
+  - ctor.
+  - ector.
+    + apply nfa_h0.
+    + apply IHw.
+Qed.
+
+
+Lemma ES_matched_spec l0 r0 m0 s0:
+  Halts _ tm (ListES_toES (Build_ListES l0 r0 m0 s0)) ->
+  ES_matched l0 r0 m0 s0.
+Proof.
+  intros H.
+  destruct H as [n H].
+  gd H. gd s0. gd m0. gd r0. gd l0.
+  induction n.
+  - intros.
+    destruct H as [st' [Ha Hb]].
+    invst Ha. clear Ha.
+    cbn in Hb.
+    destruct (tm s0 m0) as [[s' d o]|] eqn:E. 1: cg.
+    unfold ES_matched.
+    eexists.
+    cbn.
+    ector.
+    + apply nfa_h,E.
+    + apply NFA_match_None.
+  - intros.
+    destruct H as [st' [Ha Hb]].
+    replace (S n) with (n+1) in Ha by lia.
+    destruct (Steps_split Ha) as [es' [H1a H1b]].
+    invst H1a.
+    invst H0. clear H0.
+    epose proof (ListES_step_spec tm (Build_ListES l0 r0 m0 s0)) as H3.
+    rewrite H2 in H3.
+    destruct (ListES_step tm (Build_ListES l0 r0 m0 s0)) eqn:E. 2: cg.
+    invst H3. clear H3.
+    cbn in E.
+    destruct (tm s0 m0) as [[s1 d o]|] eqn:E0. 2: cg.
+    destruct d.
+    + destruct l0 as [|m1 l0].
+      1,2: invst E; clear E;
+        eassert (X:_) by (
+          apply IHn;
+          esplit; split; eauto 1
+        );
+        unfold ES_matched;
+        unfold ES_matched in X;
+        destruct X as [n0 X];
+        cbn in X;
+        cbn;
+        invst X;
+        invst H4;
+        epose proof (nfa_l E0 H3 H5) as A;
+        try rewrite dfa_0 in A;
+        exists n0;
+        ector; eauto 1.
+    + destruct r0 as [|m1 r0].
+      1,2: invst E; clear E;
+        eassert (X:_) by (
+          apply IHn;
+          esplit; split; eauto 1
+        );
+        unfold ES_matched;
+        unfold ES_matched in X;
+        destruct X as [n0 X];
+        cbn in X;
+        cbn.
+      1: exists (S n0).
+      2: exists (n0).
+      1,2: ector; eauto 1;
+        eapply nfa_r; eauto 1.
+    Unshelve.
+    exact 0.
+Qed.
+
+Lemma ES_not_matched_NonHalt:
+  ~ES_matched nil nil Σ0 St0 ->
+  ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  intros H H0.
+  apply H.
+  apply ES_matched_spec.
+  rewrite ListES_toES_O.
+  apply H0.
+Qed.
+
+Hypothesis nfa_acc_0: nfa_acc (Some (St0,U0)) = true.
+Hypothesis nfa_acc_h: nfa_acc None = false.
+Hypothesis nfa_acc_closed:
+  forall {su0 su1},
+  nfa su0 Σ0 su1 = true ->
+  nfa_acc su0 = true ->
+  nfa_acc su1 = true.
+
+Lemma nfa_acc_spec:
+  forall su0,
+  nfa_acc su0 = true ->
+  forall n, ~ NFA_match su0 (repeat Σ0 n).
+Proof.
+  intros.
+  gd H. gd su0.
+  induction n.
+  - intros.
+    cbn.
+    intro H0.
+    invst H0. cg.
+  - intros.
+    intro H0.
+    cbn in H0.
+    invst H0.
+    apply (IHn v1 (nfa_acc_closed H4 H) H5).
+Qed.
+
+Lemma nfa_acc_closed_NonHalt:
+  ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  apply ES_not_matched_NonHalt.
+  unfold ES_matched.
+  intro H.
+  destruct H as [n0 H].
+  cbn in H.
+  replace (Σ0 :: repeat Σ0 n0) with (repeat Σ0 (S n0)) in H by reflexivity.
+  eapply nfa_acc_spec; eauto 1.
+Qed.
+
+End NFA_NonHalt.
+
+
+Lemma St_list_spec:
+  forall s, In s St_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Lemma Σ_list_spec:
+  forall s, In s Σ_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+
+Definition StU_list :=
+  concat (map (fun s => map (fun u => (s,u)) U_list) St_list).
+
+Definition oStU_list :=
+  None::(map Some StU_list).
+
+Lemma StU_list_spec:
+  forall s, In s StU_list.
+Proof.
+  intro s.
+  unfold StU_list.
+  rewrite in_concat.
+  destruct s as [s0 s1].
+  exists (map (fun u : U => (s0, u)) U_list).
+  rewrite in_map_iff.
+  repeat split.
+  - exists s0.
+    repeat split.
+    apply St_list_spec.
+  - rewrite in_map_iff.
+    exists s1.
+    repeat split.
+    apply U_list_spec.
+Qed.
+
+Lemma oStU_list_spec:
+  forall s, In s oStU_list.
+Proof.
+intro s.
+destruct s as [s|].
+- right.
+  rewrite in_map_iff.
+  exists s.
+  repeat split.
+  apply StU_list_spec.
+- left. reflexivity.
+Qed.
+
+Definition forallb_St f :=
+  forallb f St_list.
+
+Definition forallb_Σ f :=
+  forallb f Σ_list.
+
+Definition forallb_U f :=
+  forallb f U_list.
+
+Definition forallb_oStU f :=
+  forallb f oStU_list.
+
+Lemma forallb_St_spec f:
+  forallb_St f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_St.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,St_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Σ_spec f:
+  forallb_Σ f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Σ.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Σ_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_U_spec f:
+  forallb_U f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_U.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,U_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_oStU_spec f:
+  forallb_oStU f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_oStU.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,oStU_list_spec.
+  - apply H.
+Qed.
+
+Definition nfa_h0_dec:bool :=
+  forallb_Σ (fun i0 => nfa None i0 None).
+
+Lemma nfa_h0_dec_spec:
+  nfa_h0_dec = true ->
+  forall i0,
+  nfa None i0 None = true.
+Proof.
+  unfold nfa_h0_dec.
+  rewrite forallb_Σ_spec.
+  tauto.
+Qed.
+
+Definition nfa_h_dec:bool :=
+  forallb_St (fun s0 =>
+    forallb_U (fun u0 =>
+      forallb_Σ (fun i0 =>
+        match tm s0 i0 with
+        | None => nfa (Some (s0,u0)) i0 None
+        | _ => true
+        end))).
+
+Lemma nfa_h_dec_spec:
+  nfa_h_dec = true ->
+  forall s0 u0 i0,
+  tm s0 i0 = None ->
+  nfa (Some (s0,u0)) i0 None = true.
+Proof.
+  unfold nfa_h_dec.
+  rewrite forallb_St_spec.
+  intros.
+  specialize (H s0).
+  rewrite forallb_U_spec in H.
+  specialize (H u0).
+  rewrite forallb_Σ_spec in H.
+  specialize (H i0).
+  rewrite H0 in H.
+  apply H.
+Qed.
+
+Definition nfa_r_dec:bool :=
+  forallb_St (fun s0 =>
+  forallb_U (fun u0 =>
+  forallb_Σ (fun i0 =>
+  match tm s0 i0 with
+  | Some {| nxt:= s1; out:=i1; dir:=Dpos |} =>
+    nfa (Some (s0,u0)) i0 (Some (s1,dfa u0 i1))
+  | _ => true
+  end))).
+
+Lemma nfa_r_dec_spec:
+  nfa_r_dec = true ->
+  forall s0 u0 i0 s1 i1,
+  tm s0 i0 = Some {| nxt:= s1; out:=i1; dir:=Dpos |} ->
+  nfa (Some (s0,u0)) i0 (Some (s1,dfa u0 i1)) = true.
+Proof.
+  unfold nfa_r_dec.
+  rewrite forallb_St_spec.
+  intros.
+  specialize (H s0).
+  rewrite forallb_U_spec in H.
+  specialize (H u0).
+  rewrite forallb_Σ_spec in H.
+  specialize (H i0).
+  rewrite H0 in H.
+  apply H.
+Qed.
+
+Definition nfa_l_dec:bool :=
+  forallb_St (fun s0 =>
+  forallb_Σ (fun i0 =>
+  match tm s0 i0 with
+  | Some {| nxt:= s1; out:=i1; dir:=Dneg |} =>
+  forallb_U (fun u1 =>
+  forallb_Σ (fun i2 =>
+  forallb_oStU (fun su2 =>
+  forallb_oStU (fun su3 =>
+  if nfa (Some (s1,u1)) i2 su2 then
+  if nfa su2 i1 su3 then nfa (Some (s0,dfa u1 i2)) i0 su3 else true else true
+  ))))
+  | _ => true
+  end)).
+
+Lemma nfa_l_dec_spec:
+  nfa_l_dec = true ->
+  forall s0 i0 s1 u1 i1 i2 su2 su3,
+  tm s0 i0 = Some {| nxt:= s1; out:=i1; dir:=Dneg |} ->
+  nfa (Some (s1,u1)) i2 su2 = true ->
+  nfa su2 i1 su3 = true ->
+  nfa (Some (s0,dfa u1 i2)) i0 su3 = true.
+Proof.
+  unfold nfa_l_dec.
+  rewrite forallb_St_spec.
+  intros.
+  specialize (H s0).
+  rewrite forallb_Σ_spec in H.
+  specialize (H i0).
+  rewrite H0 in H.
+  rewrite forallb_U_spec in H.
+  specialize (H u1).
+  rewrite forallb_Σ_spec in H.
+  specialize (H i2).
+  rewrite forallb_oStU_spec in H.
+  specialize (H su2).
+  rewrite forallb_oStU_spec in H.
+  specialize (H su3).
+  rewrite H1 in H.
+  rewrite H2 in H.
+  apply H.
+Qed.
+
+
+Definition dfa_0_dec:=
+  U_eqb (dfa U0 Σ0) U0.
+
+Lemma dfa_0_dec_spec:
+  dfa_0_dec = true ->
+  dfa U0 Σ0 = U0.
+Proof.
+  unfold dfa_0_dec.
+  intro H.
+  pose proof (U_eqb_spec (dfa U0 Σ0) U0) as H0.
+  rewrite H in H0.
+  apply H0.
+Qed.
+
+
+Definition nfa_acc_0_dec:=
+  nfa_acc (Some (St0,U0)).
+
+Definition nfa_acc_h_dec:=
+  negb (nfa_acc None).
+
+Definition nfa_acc_closed_dec :=
+  forallb_oStU (fun su0 =>
+  forallb_oStU (fun su1 =>
+  if nfa su0 Σ0 su1 then
+  if nfa_acc su0 then nfa_acc su1 else true
+  else true
+  )).
+
+
+Lemma nfa_acc_0_dec_spec:
+  nfa_acc_0_dec = true ->
+  nfa_acc (Some (St0,U0)) = true.
+Proof.
+  unfold nfa_acc_0_dec.
+  tauto.
+Qed.
+
+Lemma nfa_acc_h_dec_spec:
+  nfa_acc_h_dec = true ->
+  nfa_acc None = false.
+Proof.
+  unfold nfa_acc_h_dec.
+  unfold negb.
+  destruct (nfa_acc None); cg.
+Qed.
+
+Lemma nfa_acc_closed_dec_spec:
+  nfa_acc_closed_dec = true ->
+  forall su0 su1,
+  nfa su0 Σ0 su1 = true ->
+  nfa_acc su0 = true ->
+  nfa_acc su1 = true.
+Proof.
+  unfold nfa_acc_closed_dec.
+  rewrite forallb_oStU_spec.
+  intros.
+  specialize (H su0).
+  rewrite forallb_oStU_spec in H.
+  specialize (H su1).
+  rewrite H0 in H.
+  rewrite H1 in H.
+  apply H.
+Qed.
+
+Definition all_cond_dec :=
+  nfa_h0_dec &&&
+  nfa_h_dec &&&
+  nfa_r_dec &&&
+  nfa_l_dec &&&
+  dfa_0_dec &&&
+  nfa_acc_0_dec &&&
+  nfa_acc_h_dec &&&
+  nfa_acc_closed_dec.
+
+Lemma shortcut_andb_spec(a b:bool):
+  (a &&& b) = (a&&b)%bool.
+Proof.
+  destruct a,b; reflexivity.
+Qed.
+
+Lemma all_cond_dec_spec:
+  all_cond_dec = true ->
+  ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  intro H.
+  unfold all_cond_dec in H.
+  repeat rewrite shortcut_andb_spec in H.
+  repeat rewrite Bool.andb_true_iff in H.
+  destruct H as [H0 [H1 [H2 [H3 [H4 [H5 [H6 H7]]]]]]].
+  apply nfa_acc_closed_NonHalt.
+  - apply nfa_h0_dec_spec,H0.
+  - apply nfa_h_dec_spec,H1.
+  - apply nfa_r_dec_spec,H2.
+  - apply nfa_l_dec_spec,H3.
+  - apply dfa_0_dec_spec,H4.
+  - apply nfa_acc_0_dec_spec,H5.
+  - apply nfa_acc_h_dec_spec,H6.
+  - apply nfa_acc_closed_dec_spec,H7.
+Qed.
+
+End verifyNFA.
+
+
+
+
+Definition pair_enc{T1 T2}(T1_enc:T1->positive)(T2_enc:T2->positive):(T1*T2)->positive :=
+  fun x =>
+  let (x1,x2):=x in
+  enc_pair (T1_enc x1,T2_enc x2).
+
+Lemma pair_enc_inj{T1 T2}(T1_enc:T1->positive)(T2_enc:T2->positive):
+  is_inj T1_enc ->
+  is_inj T2_enc ->
+  is_inj (pair_enc T1_enc T2_enc).
+Proof.
+  intros H1 H2 x1 x2 H.
+  unfold pair_enc in H.
+  destruct x1,x2.
+  pose proof (enc_pair_inj _ _ H).
+  invst H0.
+  f_equal; auto 2.
+Qed.
+
+Definition option_enc{T}(T_enc:T->positive):(option T)->positive :=
+  fun x =>
+  match x with
+  | None => xH
+  | Some x0 => (Pos.succ (T_enc x0))
+  end.
+
+Lemma option_enc_inj{T}(T_enc:T->positive):
+  is_inj T_enc ->
+  is_inj (option_enc T_enc).
+Proof.
+  intros H1 x1 x2 H.
+  destruct x1,x2.
+  - cbn in H.
+    assert (T_enc t = T_enc t0) by lia.
+    f_equal.
+    auto 2.
+  - cbn in H. lia.
+  - cbn in H. lia.
+  - reflexivity.
+Qed.
+
+Definition StU_enc: (St*U)->positive := pair_enc St_enc U_enc.
+
+Lemma StU_enc_inj: is_inj StU_enc.
+Proof.
+  apply pair_enc_inj.
+  - apply St_enc_inj.
+  - apply U_enc_inj.
+Qed.
+
+Definition oStU := option (St*U).
+
+Definition oStU_enc: oStU->positive := option_enc StU_enc.
+
+Lemma oStU_enc_inj: is_inj oStU_enc.
+Proof.
+  apply option_enc_inj.
+  apply StU_enc_inj.
+Qed.
+
+Definition nfa_entry := (oStU*Σ*oStU)%type.
+
+Definition nfa_entry_enc := pair_enc (pair_enc oStU_enc Σ_enc) oStU_enc.
+
+Lemma nfa_entry_enc_inj: is_inj nfa_entry_enc.
+Proof.
+  repeat apply pair_enc_inj.
+  1,3: apply oStU_enc_inj.
+  apply Σ_enc_inj.
+Qed.
+
+Definition nfa_t := PositiveMap.tree unit.
+
+Definition nfa_ins(x:nfa_entry)(s:nfa_t):nfa_t :=
+  PositiveMap.add (nfa_entry_enc x) tt s.
+
+Definition nfa_at(x:nfa_entry)(s:nfa_t):bool :=
+  match PositiveMap.find (nfa_entry_enc x) s with
+  | Some _ => true
+  | None => false
+  end.
+Definition nfa_ins'(x:nfa_entry)(s:nfa_t*bool):(nfa_t*bool) :=
+  let (s0,flag):=s in
+  (nfa_ins x s0,flag&&&nfa_at x s0).
+
+
+Fixpoint for_loop{T}{S}(f:S->T->S)(ls:list T)(s:S):S :=
+  match ls with
+  | nil => s
+  | h::t => for_loop f t (f s h)
+  end.
+
+Definition for_Σ{S} f:S->S := for_loop f Σ_list.
+Definition for_St{S} f:S->S := for_loop f St_list.
+Definition for_U{S} f:S->S := for_loop f U_list.
+Definition for_oStU{S} f:S->S := for_loop f oStU_list.
+
+
+Definition nfa_h0_rec:nfa_t->nfa_t :=
+  for_Σ (fun (s:nfa_t) i0 => nfa_ins ((None,i0,None)) s).
+
+Definition nfa_h_rec:nfa_t->nfa_t :=
+  for_St (fun s s0 =>
+  for_U (fun s u0 =>
+  for_Σ (fun s i0 =>
+  match tm s0 i0 with
+  | None => nfa_ins ((Some (s0,u0),i0,None)) s
+  | _ => s
+  end
+  ) s) s).
+
+Definition nfa_r_rec:nfa_t->nfa_t :=
+  for_St (fun s s0 =>
+  for_Σ (fun s i0 =>
+  match tm s0 i0 with
+  | Some {| nxt:= s1; out:=i1; dir:=Dpos |} =>
+    for_U (fun s u0 => nfa_ins ((Some (s0,u0)),i0,(Some (s1,dfa u0 i1))) s) s
+  | _ => s
+  end) s).
+
+Definition nfa_l_rec:(nfa_t*bool)->(nfa_t*bool) :=
+  for_St (fun s s0 =>
+  for_Σ (fun s i0 =>
+  match tm s0 i0 with
+  | Some {| nxt:= s1; out:=i1; dir:=Dneg |} =>
+    for_U (fun s u1 =>
+    for_Σ (fun s i2 =>
+    for_oStU (fun (s:nfa_t*bool) su2 =>
+    let (nfa,flag):=s in
+    if nfa_at (Some (s1,u1),i2,su2) nfa then
+      for_oStU (fun (s:nfa_t*bool) su3 =>
+      let (nfa,flag):=s in
+      if nfa_at (su2,i1,su3) nfa then
+      nfa_ins' ((Some (s0,dfa u1 i2)),i0,su3) s
+      else s
+      ) s
+    else s
+    ) s) s) s
+  | _ => s
+  end) s).
+
+
+Fixpoint do_until0{T}(f:T->(T*bool))(n:nat)(x:T):T :=
+match n with
+| O => x
+| S n0 =>
+  let (x',flag):=(f x) in
+  if flag then x' else (do_until0 f n0 x')
+end.
+
+
+Definition do_until{T}(f:T->(T*bool)):T->T :=
+  do_until0 f maxT.
+
+
+Definition nfa_rec:nfa_t :=
+  do_until (fun s => nfa_l_rec (s,true)) (nfa_r_rec (nfa_h_rec (nfa_h0_rec (PositiveMap.empty _)))).
+
+
+Definition nfa_acc_t := PositiveMap.tree unit.
+Definition nfa_acc_ins(x:oStU)(s:nfa_acc_t):nfa_acc_t := PositiveMap.add (oStU_enc x) tt s.
+Definition nfa_acc_at(x:oStU)(s:nfa_acc_t):bool := 
+match PositiveMap.find (oStU_enc x) s with
+| Some _ => true
+| None => false
+end.
+Definition nfa_acc_ins'(x:oStU)(s:nfa_acc_t*bool):(nfa_acc_t*bool) :=
+  let (s0,flag):=s in
+  (nfa_acc_ins x s0,flag&&&nfa_acc_at x s0).
+
+Definition nfa_acc_0_rec:nfa_acc_t->nfa_acc_t :=
+  nfa_acc_ins (Some (St0,U0)).
+
+Definition nfa_acc_closed_rec(nfa:nfa_t):((nfa_acc_t*bool))->((nfa_acc_t*bool)) :=
+  for_oStU (fun s su0 =>
+  for_oStU (fun (s:(nfa_acc_t*bool)) su1 =>
+  let (nfa_acc,flag):=s in
+  if nfa_at (su0,Σ0,su1) nfa then
+  if nfa_acc_at su0 nfa_acc then (nfa_acc_ins' su1 (nfa_acc,flag)) else s
+  else s) s).
+
+
+Definition nfa_acc_rec(nfa:nfa_t):nfa_acc_t :=
+  do_until (fun s => nfa_acc_closed_rec nfa (s,true)) (nfa_acc_0_rec (PositiveMap.empty _)).
+
+
+Definition dfa_nfa_decider :=
+  let nfa := nfa_rec in
+  let nfa_acc := nfa_acc_rec nfa in
+  if all_cond_dec (fun x1 x2 x3 => nfa_at (x1,x2,x3) nfa) (fun x => nfa_acc_at x nfa_acc) then Result_NonHalt
+  else Result_Unknown.
+End genNFA.
+
+
+Lemma dfa_nfa_decider_spec:
+  HaltDecider_WF (N.to_nat BB) dfa_nfa_decider.
+Proof.
+  unfold HaltDecider_WF.
+  intro tm.
+  destruct (dfa_nfa_decider tm) eqn:E.
+  - unfold dfa_nfa_decider in E.
+    destruct (all_cond_dec tm); cg.
+  - unfold dfa_nfa_decider in E.
+    destruct (all_cond_dec tm) eqn:E0; cg.
+    eapply all_cond_dec_spec.
+    apply E0.
+  - trivial.
+Qed.
+
+End dfa_nfa_decider.
+
+Inductive nat_n:nat->Set :=
+| nat_n_O n: nat_n n
+| nat_n_S n: nat_n n -> nat_n (S n)
+.
+
+
+Fixpoint nat_n_list(n:nat):list (nat_n n).
+  destruct n as [|n0].
+  - apply ((nat_n_O O)::nil).
+  - apply ((nat_n_O (S n0))::(map (fun x => nat_n_S n0 x) (nat_n_list n0))).
+Defined.
+
+Require Import Coq.Program.Equality.
+
+
+Lemma nat_n_list_spec n:
+  forall s, In s (nat_n_list n).
+Proof.
+  induction n.
+  - intros.
+    left.
+    dependent destruction s0.
+    reflexivity.
+  - intros.
+    dependent destruction s0.
+    + left. reflexivity.
+    + right. rewrite in_map_iff.
+      exists s0.
+      repeat split.
+      apply IHn.
+Qed.
+
+
+Fixpoint nat_n_to_nat(n:nat)(x:nat_n n):nat.
+  destruct x as [|x0].
+  - apply O.
+  - apply (S (nat_n_to_nat x0 x)).
+Defined.
+
+Lemma nat_n_to_nat_inj n: is_inj (nat_n_to_nat n).
+Proof.
+  unfold is_inj.
+  induction n.
+  - intros.
+    dependent destruction a.
+    dependent destruction b.
+    reflexivity.
+  - intros.
+    dependent destruction a.
+    + dependent destruction b; cbn in H.
+      * reflexivity.
+      * cg.
+    + dependent destruction b; cbn in H.
+      * cg.
+      * injection H.
+        intro H0.
+        specialize (IHn _ _ H0).
+        subst.
+        reflexivity.
+Qed.
+
+Definition nat_n_enc(n:nat)(x:nat_n n):positive := Pos.of_succ_nat (nat_n_to_nat n x).
+
+Lemma nat_n_enc_inj n: is_inj (nat_n_enc n).
+Proof.
+  intros x1 x2 H.
+  unfold nat_n_enc in H.
+  apply nat_n_to_nat_inj.
+  lia.
+Qed.
+
+Fixpoint nat_n_from_nat(n:nat)(x:nat):nat_n n.
+  destruct x as [|x0].
+  - apply nat_n_O.
+  - destruct n as [|n0].
+    + apply nat_n_O.
+    + apply nat_n_S.
+      apply (nat_n_from_nat n0 x0).
+Defined.
+
+
+Definition make_dfa(f:nat->Σ->nat)(n:nat)(u:nat_n n)(i:Σ) :=
+  nat_n_from_nat n (f (nat_n_to_nat _ u) i).
+
+Definition dfa_nfa_verifier(n:nat)(f:nat->Σ->nat):HaltDecider :=
+fun tm => (dfa_nfa_decider (nat_n n) (nat_n_O n) (nat_n_enc n) (nat_n_list n) 1000000 (make_dfa f n) tm).
+
+Lemma dfa_nfa_verifier_spec n f:
+  HaltDecider_WF (N.to_nat BB) (dfa_nfa_verifier n f).
+Proof.
+  unfold dfa_nfa_verifier.
+  apply dfa_nfa_decider_spec.
+  - apply nat_n_enc_inj.
+  - apply nat_n_list_spec.
+Qed.
+
+
+End DFA_NFA_verifier.
+
+
 Inductive DeciderType :=
 | NG(hlen len:nat)
 | NG_LRU(len:nat)
 | RWL(len m:nat)
+| DNV(n:nat)(f:nat->Σ->nat)
 | Ha
 | Lp1.
 
@@ -7209,6 +8065,7 @@ match x with
 | NG_LRU len =>
   NGramCPS_LRU_decider len len 5000001
 | RWL len mnc => RepWL_ES_decider len mnc 320 150001
+| DNV n f => dfa_nfa_verifier n f
 | Ha => halt_decider_max
 | Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
 end.
@@ -7222,6 +8079,7 @@ Proof.
     + apply NGramCPS_decider_impl1_spec.
   - apply NGramCPS_LRU_decider_spec.
   - apply RepWL_ES_decider_spec.
+  - apply dfa_nfa_verifier_spec.
   - apply halt_decider_max_spec.
   - apply loop1_decider_WF.
     unfold BB.
@@ -15461,9 +16319,96 @@ Definition tm_RWL' :=
 (makeTM BR1 HR1 CR0 DR1 DL0 CR1 EL1 AR0 AR1 EL0,RWL 20 2)::
 nil.
 
+
+Definition DFA_from_list(ls:list(nat*nat))(x:nat)(i:Σ) :=
+  let (a,b) := nth x ls (0,0) in
+  match i with
+  | Σ0 => a
+  | Σ1 => b
+  end.
+
+
+
+Definition tm_DNV :=
+(makeTM BR1 AR0 CL1 HR1 DL0 CL0 ER0 AR1 ER1 DL1,
+DNV 2 (DFA_from_list ((0,1)::(2,0)::(2,2)::nil)))::
+
+(makeTM BR1 CL1 AL1 BR1 DL1 AL0 ER1 DR0 HR1 BR0,
+DNV 12 (DFA_from_list ((0,1)::(2,3)::(4,5)::(4,6)::(4,4)::(4,7)::(4,8)::(4,9)::(4,10)::(4,11)::(4,3)::(4,12)::(4,7)::nil)))::
+
+(makeTM BR1 AL1 AL1 CR1 HR1 DR0 AL0 ER0 DL0 ER1,
+DNV 3 (DFA_from_list ((0,1)::(2,3)::(2,2)::(0,1)::nil)))::
+
+(makeTM BR1 HR1 CR0 BR0 CL1 DL0 AR1 EL0 AL0 EL0,
+DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,4)::(5,6)::(4,4)::(7,4)::(8,4)::(9,10)::(4,4)::(5,6)::(4,3)::nil)))::
+
+(makeTM BR1 AR1 CL1 DL0 HR1 DL1 ER1 EL1 AR0 BL0,
+DNV 9 (DFA_from_list ((0,1)::(2,3)::(4,5)::(6,0)::(4,4)::(4,7)::(4,8)::(4,2)::(4,9)::(4,6)::nil)))::
+
+(makeTM BR1 BL1 CR0 DL0 DR1 CR1 EL1 AL0 HR1 AL1,
+DNV 9 (DFA_from_list ((0,1)::(2,3)::(4,5)::(6,0)::(4,4)::(4,7)::(4,8)::(4,2)::(4,9)::(4,6)::nil)))::
+
+(makeTM BR1 AL1 CR1 DR1 AL0 ER0 HR1 CR0 CL0 ER1,
+DNV 3 (DFA_from_list ((0,1)::(2,3)::(2,2)::(0,1)::nil)))::
+
+(makeTM BR1 AR1 CL1 CL0 EL0 DR0 AR0 BL1 DL1 HR1,
+DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,5)::(5,5)::(6,7)::(5,5)::(5,5)::(8,9)::(5,5)::(10,4)::(4,5)::nil)))::
+
+(makeTM BR1 HR1 CR0 BR0 DL0 AL1 DL1 EL1 AL0 EL0,
+DNV 3 (DFA_from_list ((0,1)::(2,1)::(1,3)::(3,3)::nil)))::
+
+(makeTM BR1 DR0 CR1 HR1 DL1 EL1 ER1 DL1 AR1 CL0,
+DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,5)::(2,3)::(6,7)::(8,8)::(9,6)::(9,6)::(4,10)::(9,9)::(8,8)::nil)))::
+
+(makeTM BR1 AR0 CL1 HR1 DL0 CL0 ER0 AR1 ER1 AR0,
+DNV 2 (DFA_from_list ((0,1)::(2,0)::(2,2)::nil)))::
+
+(makeTM BR1 HR1 CL0 DR1 DL1 CL1 ER1 ER0 AR0 BL0,
+DNV 11 (DFA_from_list ((0,1)::(2,3)::(4,5)::(2,3)::(6,7)::(6,8)::(6,6)::(6,8)::(9,10)::(4,6)::(11,7)::(6,5)::nil)))::
+
+(makeTM BR1 BR0 CR0 DL0 DR1 HR1 EL0 AR1 AL1 EL1,
+DNV 10 (DFA_from_list ((0,1)::(2,1)::(3,4)::(5,6)::(5,7)::(5,5)::(5,7)::(8,9)::(3,5)::(10,6)::(5,4)::nil)))::
+
+(makeTM BR1 HR1 CR0 BR0 DL0 EL1 DL1 EL0 AL1 CR1,
+DNV 3 (DFA_from_list ((0,1)::(2,1)::(1,3)::(3,3)::nil)))::
+
+(makeTM BR1 CR1 CL1 BR1 DL1 AR0 EL1 BL0 AL1 HR1,
+DNV 8 (DFA_from_list ((0,1)::(2,1)::(3,4)::(5,6)::(7,2)::(5,5)::(5,5)::(3,8)::(7,2)::nil)))::
+
+(makeTM BR1 DL1 CL1 HR1 DL0 CL0 ER0 AR1 ER1 AR0,
+DNV 2 (DFA_from_list ((0,1)::(2,0)::(2,2)::nil)))::
+
+(makeTM BR1 AL1 CR1 EL0 DR1 AR0 ER1 HR1 AL1 BL1,
+DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,5)::(2,3)::(4,4)::(4,6)::(7,8)::(4,9)::(6,6)::(4,10)::(4,10)::nil)))::
+
+(makeTM BR1 HR1 CR0 BR0 DL0 EL1 DL1 EL0 AL1 EL0,
+DNV 3 (DFA_from_list ((0,1)::(2,1)::(1,3)::(3,3)::nil)))::
+
+(makeTM BR1 EL0 CR1 HR1 DR0 CR0 DL1 AL0 BL0 EL0,
+DNV 9 (DFA_from_list ((0,1)::(2,3)::(4,4)::(5,6)::(4,4)::(7,4)::(2,4)::(8,9)::(5,6)::(4,3)::nil)))::
+
+(makeTM BR1 AR0 CL1 HR1 CL0 DL0 ER1 BR0 ER0 AR1,
+DNV 3 (DFA_from_list ((0,1)::(2,3)::(1,0)::(3,3)::nil)))::
+
+(makeTM BR1 HR1 CL1 DL1 DR1 CL1 ER1 BL0 AR1 CR0,
+DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,5)::(2,3)::(6,4)::(6,7)::(6,6)::(8,9)::(6,10)::(7,7)::(6,4)::nil)))::
+
+(makeTM BR1 HR1 CR0 BR0 DL0 EL1 DL1 CR1 AL1 EL0,
+DNV 3 (DFA_from_list ((0,1)::(2,1)::(1,3)::(3,3)::nil)))::
+
+(makeTM BR1 DL0 CR1 ER0 DR1 HR1 EL1 AL1 AR1 EL1,
+DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,5)::(2,3)::(4,4)::(4,6)::(7,8)::(4,9)::(6,6)::(4,10)::(4,10)::nil)))::
+
+nil.
+
+
 Definition check_tms(ls:list ((TM Σ)*DeciderType)):=
   map (fun (x:(TM Σ)*DeciderType)=> let (tm,d):=x in getDecider d tm) ls.
 
+(*
+Time Definition check_res := Eval vm_compute in (check_tms (firstn 4 (skipn 0 tm_DNV))).
+Compute (filter (fun x => match x with Result_NonHalt => false | _ => true end) check_res).
+*)
 
 Definition tm_list :=
   tm_RWL::
@@ -15472,6 +16417,7 @@ Definition tm_list :=
   tm_Lp1::
   tm_NG_LRU::
   tm_NG0'::tm_RWL'::
+  tm_DNV::
   nil.
 
 
