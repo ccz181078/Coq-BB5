@@ -17311,7 +17311,7 @@ Definition tm_list :=
   tm_Lp1::
   tm_NG_LRU::
   tm_NG0'::tm_RWL'::
-  tm_DNV::
+  tm_DNV::tm_WA::
   nil.
 
 

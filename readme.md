@@ -50,7 +50,11 @@ This decider accepts a DFA as input, and constructs an NFA (the method is descri
 
 The searching of the DFA is not implemented. DFAs for 23 TMs are listed in the code.
 
-Some TMs write 0 at the first step can also be solved in this way, but it's not implemented yet.
+## MITM_WDFA_verifier
+
+This decider accepts two weighted DFA (as described in [Iijil1/MITMWFAR: Testing the feasability of using weighted automatons to describe non-regular languages that solve the halting problem for some turing machines (github.com)](https://github.com/Iijil1/MITMWFAR) ) as input, and use a method similar to RepWL_ES_decider to find a set of ExecState which is closed under step.
+
+The searching of the weighted DFA is not implemented. DFAs for 17 TMs are listed in the code.
 
 ## TNF_Node
 
@@ -62,11 +66,17 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-**However, after about 12h of searching, there are (77-23) non-trivial TMs((53-23) of them write 1 at the first step) left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+**However, after about 12h of searching, there are (77-23-17) non-trivial TMs((53-23-17=13) of them write 1 at the first step) left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
 
 ## decider_all
 
 Different deciders are arranged in a specific order to efficiently decide the haltness of most TMs.
 
 A list of about 8,000 TMs are mapped to specific deciders (and parameters). This avoids grid search of decider kind and parameters.
+
+## TODO
+
+24 unsolved TMs write 0 at the first step, they can be mapped to TMs that write 1 at the first step.
+
+The searching result is not proved (and need some trick to avoid compute twice when Qed).
 
