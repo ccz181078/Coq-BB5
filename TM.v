@@ -7427,6 +7427,17 @@ Proof.
   destruct s; cbn; tauto.
 Qed.
 
+Definition Dir_list := Dpos::Dneg::nil.
+
+Lemma Dir_list_spec:
+  forall s, In s Dir_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+
+
 
 Definition StU_list :=
   concat (map (fun s => map (fun u => (s,u)) U_list) St_list).
@@ -7472,6 +7483,9 @@ Definition forallb_St f :=
 Definition forallb_Σ f :=
   forallb f Σ_list.
 
+Definition forallb_Dir f :=
+  forallb f Dir_list.
+
 Definition forallb_U f :=
   forallb f U_list.
 
@@ -7495,6 +7509,16 @@ Proof.
   rewrite forallb_forall.
   split; intros.
   - apply H,Σ_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Dir_spec f:
+  forallb_Dir f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Dir.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Dir_list_spec.
   - apply H.
 Qed.
 
@@ -7827,6 +7851,7 @@ Fixpoint for_loop{T}{S}(f:S->T->S)(ls:list T)(s:S):S :=
   | h::t => for_loop f t (f s h)
   end.
 
+Definition for_Dir{S} f:S->S := for_loop f Dir_list.
 Definition for_Σ{S} f:S->S := for_loop f Σ_list.
 Definition for_St{S} f:S->S := for_loop f St_list.
 Definition for_U{S} f:S->S := for_loop f U_list.
@@ -7929,6 +7954,7 @@ Definition dfa_nfa_decider :=
 End genNFA.
 
 
+
 Lemma dfa_nfa_decider_spec:
   HaltDecider_WF (N.to_nat BB) dfa_nfa_decider.
 Proof.
@@ -7943,6 +7969,191 @@ Proof.
     apply E0.
   - trivial.
 Qed.
+
+Section WDFA.
+
+Hypothesis wdfa:U->Σ->(U*Z).
+
+Fixpoint WDFA_match(ls:Word):U*Z :=
+match ls with
+| nil => (U0,Z0)
+| h::t => let (u,z) := WDFA_match t in
+  let (u',a) := wdfa u h in
+  (u',(z+a)%Z)
+end.
+
+Definition WDFA_pop(u0:U) :=
+  concat
+  (map (fun i0 =>
+  map (fun u1 => (u1,i0,snd (wdfa u1 i0))) (filter (fun u1 => U_eqb (fst (wdfa u1 i0)) u0) U_list))
+  Σ_list).
+
+Lemma WDFA_pop_spec u0:
+  forall u1 i0 d1,
+  wdfa u1 i0 = (u0,d1) ->
+  In (u1,i0,d1) (WDFA_pop u0).
+Proof.
+  intros.
+  unfold WDFA_pop.
+  rewrite in_concat.
+  eexists.
+  split.
+  - rewrite in_map_iff.
+    exists i0.
+    split.
+    2: apply Σ_list_spec.
+    reflexivity.
+  - rewrite in_map_iff.
+    exists u1.
+    split.
+    + rewrite H.
+      reflexivity.
+    + rewrite filter_In.
+      split.
+      1: apply U_list_spec.
+      rewrite H.
+      cbn.
+      pose proof (U_eqb_spec u0 u0).
+      destruct (U_eqb u0 u0); cg.
+Qed.
+
+Definition wdfa_0:=
+  wdfa U0 Σ0 = (U0,Z0).
+
+Definition wdfa_0_dec :=
+  let (u0,z0):=wdfa U0 Σ0 in
+  U_eqb u0 U0 &&&
+  Z.eqb z0 Z0.
+
+Lemma wdfa_0_dec_spec:
+  wdfa_0_dec = true ->
+  wdfa_0.
+Proof.
+  unfold wdfa_0_dec,wdfa_0.
+  destruct (wdfa U0 Σ0).
+  intro H.
+  rewrite shortcut_andb_spec in H.
+  rewrite Bool.andb_true_iff in H.
+  destruct H as [H H0].
+  f_equal.
+  - pose proof (U_eqb_spec u U0).
+    rewrite H in H1.
+    apply H1.
+  - lia.
+Qed.
+
+Section WDFA_sgn.
+
+Hypothesis wdfa_sgn: Dir->U->bool.
+Definition wdfa_sgn_closed:=
+  forall d0 u0,
+  wdfa_sgn d0 u0 = true ->
+  forall u1 i0 d1,
+  wdfa u1 i0 = (u0,d1) ->
+  ((d1*(Dir_to_Z d0)>=0)%Z /\
+   wdfa_sgn d0 u1 = true).
+
+Lemma wdfa_sgn_spec:
+  wdfa_sgn_closed ->
+  forall ls u0 d1,
+  WDFA_match ls = (u0,d1) ->
+  forall d0,
+  wdfa_sgn d0 u0 = true ->
+  (d1*(Dir_to_Z d0)>=0)%Z.
+Proof.
+  unfold wdfa_sgn_closed.
+  intros H0 ls.
+  induction ls.
+  - cbn; intros.
+    invst H. clear H.
+    cbn. lia.
+  - cbn; intros.
+    destruct (WDFA_match ls) as (u0',d1') eqn:E.
+    specialize (IHls _ _ eq_refl).
+    destruct (wdfa u0' a) as (u',a') eqn:E0.
+    invst H. clear H.
+    specialize (H0 _ _ H1 _ _ _ E0).
+    destruct H0 as [H0a H0b].
+    specialize (IHls _ H0b).
+    destruct d0; cbn; cbn in IHls,H0a; lia.
+Qed.
+
+Definition wdfa_sgn_closed_dec :=
+  forallb_Dir (fun d0 =>
+  forallb_U (fun u0 =>
+  if wdfa_sgn d0 u0 then
+  forallb_U (fun u1 =>
+  forallb_Σ (fun i0 =>
+  let (u0',d1) := wdfa u1 i0 in
+  if U_eqb u0' u0 then
+  (d1*(Dir_to_Z d0) >=? 0)%Z &&&
+  wdfa_sgn d0 u1
+  else true))
+  else true)).
+
+Lemma wdfa_sgn_closed_dec_spec :
+  wdfa_sgn_closed_dec = true ->
+  wdfa_sgn_closed.
+Proof.
+  unfold wdfa_sgn_closed_dec.
+  unfold wdfa_sgn_closed.
+  rewrite forallb_Dir_spec.
+  intros.
+  specialize (H d0).
+  rewrite forallb_U_spec in H.
+  specialize (H u0).
+  rewrite H0 in H.
+  rewrite forallb_U_spec in H.
+  specialize (H u1).
+  rewrite forallb_Σ_spec in H.
+  specialize (H i0).
+  rewrite H1 in H.
+  pose proof (U_eqb_spec u0 u0).
+  destruct (U_eqb u0 u0). 2: cg.
+  rewrite shortcut_andb_spec in H.
+  rewrite Bool.andb_true_iff in H.
+  split.
+  2: apply H.
+  lia.
+Qed.
+
+End WDFA_sgn.
+
+
+Definition wdfa_sgn_t := PositiveMap.tree unit.
+
+Definition wdfa_sgn_ins(x:U)(s:wdfa_sgn_t):wdfa_sgn_t :=
+  PositiveMap.add (U_enc x) tt s.
+
+Definition wdfa_sgn_at(x:U)(s:wdfa_sgn_t):bool :=
+  match PositiveMap.find (U_enc x) s with
+  | Some _ => true
+  | None => false
+  end.
+Definition wdfa_sgn_ins'(x:U)(s:wdfa_sgn_t*bool):(wdfa_sgn_t*bool) :=
+  let (s0,flag):=s in
+  (wdfa_sgn_ins x s0,flag&&&wdfa_sgn_at x s0).
+
+Definition wdfa_sgn_rec0(d0:Dir) :=
+  for_U (fun s u0 =>
+  for_Σ (fun s i0 =>
+  let (u1,d1):=wdfa u0 i0 in
+  if (d1*(Dir_to_Z d0)>=?0)%Z &&& (negb (wdfa_sgn_at u0 (fst s))) then s
+  else wdfa_sgn_ins' u1 s) s).
+
+Definition wdfa_sgn_rec1(d0:Dir) :=
+  do_until (fun s => wdfa_sgn_rec0 d0 (s,true)) (PositiveMap.empty _).
+
+Definition wdfa_sgn_rec: Dir->U->bool :=
+  let spos := wdfa_sgn_rec1 Dpos in
+  let sneg := wdfa_sgn_rec1 Dneg in
+  fun d0 =>
+  match d0 with
+  | Dpos => fun u0 => negb (wdfa_sgn_at u0 spos)
+  | Dneg => fun u0 => negb (wdfa_sgn_at u0 sneg)
+  end.
+
+End WDFA.
 
 End dfa_nfa_decider.
 
@@ -8046,11 +8257,597 @@ Qed.
 End DFA_NFA_verifier.
 
 
+Section MITMWFAR.
+
+Section MITMWFAR_0.
+
+Hypothesis n_l:nat.
+Hypothesis n_r:nat.
+Definition U_l := nat_n n_l.
+Definition U_r := nat_n n_r.
+Definition U0_l := nat_n_O n_l.
+Definition U0_r := nat_n_O n_r.
+
+Definition U_l_enc := nat_n_enc n_l.
+Definition U_r_enc := nat_n_enc n_r.
+Definition U_l_enc_inj := nat_n_enc_inj n_l.
+Definition U_r_enc_inj := nat_n_enc_inj n_r.
+
+Definition U_l_list := nat_n_list n_l.
+Definition U_r_list := nat_n_list n_r.
+
+
+Hypothesis wdfa_l:U_l->Σ->(U_l*Z).
+Hypothesis wdfa_r:U_r->Σ->(U_r*Z).
+
+Hypothesis wdfa_l_0: wdfa_0 U_l U0_l wdfa_l.
+Hypothesis wdfa_r_0: wdfa_0 U_r U0_r wdfa_r.
+
+Hypothesis wdfa_sgn_l:Dir->U_l->bool.
+Hypothesis wdfa_sgn_r:Dir->U_r->bool.
+
+Hypothesis wdfa_sgn_l_closed: wdfa_sgn_closed U_l wdfa_l wdfa_sgn_l.
+Hypothesis wdfa_sgn_r_closed: wdfa_sgn_closed U_r wdfa_r wdfa_sgn_r.
+
+Definition wdfa_sgn_l_spec := wdfa_sgn_spec U_l U0_l wdfa_l wdfa_sgn_l wdfa_sgn_l_closed.
+Definition wdfa_sgn_r_spec := wdfa_sgn_spec U_r U0_r wdfa_r wdfa_sgn_r wdfa_sgn_r_closed.
+
+Definition Z_enc(x:Z):positive :=
+match x with
+| Z0 => xH
+| Zpos x0 => xI x0
+| Zneg x0 => xO x0
+end.
+
+Lemma Z_enc_inj: is_inj Z_enc.
+Proof.
+  intros x1 x2 H.
+  unfold Z_enc in H.
+  destruct x1,x2; cg.
+Qed.
+
+Definition oDir_to_Z(x:option Dir) :=
+match x with
+| None => Z0
+| Some x0 => Dir_to_Z x0
+end.
+
+Definition MITM_WDFA_ES := (U_l*U_r*Σ*St*Z*(option Dir))%type.
+
+Definition MITM_WDFA_ES_enc:MITM_WDFA_ES->positive :=
+  (pair_enc (pair_enc (pair_enc (pair_enc (pair_enc U_l_enc U_r_enc) Σ_enc) St_enc) Z_enc) (option_enc Dir_enc)).
+Lemma MITM_WDFA_ES_enc_inj: is_inj MITM_WDFA_ES_enc.
+Proof.
+  unfold MITM_WDFA_ES_enc.
+  repeat apply pair_enc_inj.
+  - apply U_l_enc_inj.
+  - apply U_r_enc_inj.
+  - apply Σ_enc_inj.
+  - apply St_enc_inj.
+  - apply Z_enc_inj.
+  - apply option_enc_inj,Dir_enc_inj.
+Qed.
+
+
+Definition In_MITM_WDFA_ES(es:ExecState Σ)(es1:MITM_WDFA_ES):Prop :=
+  exists es0:ListES,
+  es = ListES_toES es0 /\
+  let (l0,r0,m0,s0):=es0 in
+  let '(l1,r1,m1,s1,d1,g1):=es1 in
+  exists (dl:Z) (dr:Z) (c1:N),
+  (d1+(oDir_to_Z g1)*(Z.of_N c1) = dl+dr)%Z /\
+  WDFA_match U_l U0_l wdfa_l l0 = (l1,dl) /\
+  WDFA_match U_r U0_r wdfa_r r0 = (r1,dr) /\
+  m0 = m1 /\
+  s0 = s1.
+
+Definition MITM_WDFA_InitES:MITM_WDFA_ES :=
+  (U0_l,U0_r,Σ0,St0,Z0,None).
+
+Lemma In_MITM_WDFA_InitES:
+  In_MITM_WDFA_ES (InitES Σ Σ0) MITM_WDFA_InitES.
+Proof.
+  eexists.
+  split.
+  1: symmetry; apply ListES_toES_O.
+  cbn.
+  exists Z0. exists Z0. exists N0.
+  repeat split.
+Qed.
+
+Lemma shortcut_orb_spec:
+  forall a b : bool, (a ||| b) = (a || b)%bool.
+Proof.
+  intros a b.
+  destruct a,b; reflexivity.
+Qed.
+
+Definition MITM_WDFA_ES_good(es:MITM_WDFA_ES):bool :=
+  let '(l1,r1,m1,s1,d1,g1):=es in
+  negb (
+  ((d1>?0 &&& (oDir_to_Z g1)>=?0)%Z&&&(wdfa_sgn_l Dneg l1)&&&(wdfa_sgn_r Dneg r1)) |||
+  ((d1<?0 &&& (oDir_to_Z g1)<=?0)%Z&&&(wdfa_sgn_l Dpos l1)&&&(wdfa_sgn_r Dpos r1))).
+
+Lemma MITM_WDFA_ES_good_spec es es0:
+  In_MITM_WDFA_ES es0 es ->
+  MITM_WDFA_ES_good es = true.
+Proof.
+  unfold In_MITM_WDFA_ES,MITM_WDFA_ES_good.
+  destruct es as [[[[[l1 r1] m1] s1] d1] g1].
+  repeat rewrite shortcut_andb_spec.
+  repeat rewrite shortcut_orb_spec.
+  intro H.
+  destruct H as [es1 [Ha Hb]].
+  destruct es1 as [l0 r0 m0 s0].
+  destruct Hb as [dl [dr [c1 [Hb1 [Hb2 [Hb3 [Hb4 Hb5]]]]]]].
+  subst.
+  rewrite Bool.negb_true_iff.
+  rewrite Bool.orb_false_iff.
+  repeat rewrite Bool.andb_false_iff.
+  split.
+  - destruct ((d1 >? 0)%Z) eqn:E. 2: tauto.
+    destruct (oDir_to_Z g1 >=? 0)%Z eqn:E0. 2: tauto.
+    right.
+    destruct (wdfa_sgn_l Dneg l1) eqn:E1; cbn. 2: tauto.
+    destruct (wdfa_sgn_r Dneg r1) eqn:E2; cbn. 2: tauto.
+    pose proof (wdfa_sgn_l_spec _ _ _ Hb2 _ E1) as X1.
+    pose proof (wdfa_sgn_r_spec _ _ _ Hb3 _ E2) as X2.
+    cbn in X1,X2.
+    lia.
+  - destruct ((d1 <? 0)%Z) eqn:E. 2: tauto.
+    destruct (oDir_to_Z g1 <=? 0)%Z eqn:E0. 2: tauto.
+    right.
+    destruct (wdfa_sgn_l Dpos l1) eqn:E1; cbn. 2: tauto.
+    destruct (wdfa_sgn_r Dpos r1) eqn:E2; cbn. 2: tauto.
+    pose proof (wdfa_sgn_l_spec _ _ _ Hb2 _ E1) as X1.
+    pose proof (wdfa_sgn_r_spec _ _ _ Hb3 _ E2) as X2.
+    cbn in X1,X2.
+    lia.
+Qed.
+
+Lemma MITM_WDFA_ES_generalize_1 {es0 l1 r1 m1 s1 d1 g}:
+  In_MITM_WDFA_ES es0 (l1,r1,m1,s1,d1,None) ->
+  In_MITM_WDFA_ES es0 (l1,r1,m1,s1,d1,Some g).
+Proof.
+  unfold In_MITM_WDFA_ES.
+  intro H.
+  destruct H as [es1 [Ha Hb]].
+  exists es1.
+  split; auto 1.
+  destruct es1 as [l0 r0 m0 s0].
+  destruct Hb as [dl [dr [c1 [Hb Hc]]]].
+  exists dl. exists dr. exists N0.
+  cbn in Hb.
+  cbn.
+  rewrite Z.mul_0_r.
+  tauto.
+Qed.
+
+Lemma MITM_WDFA_ES_generalize_2 {es0 l1 r1 m1 s1 d1 g}:
+  In_MITM_WDFA_ES es0 (l1,r1,m1,s1,d1,Some g) ->
+  In_MITM_WDFA_ES es0 (l1,r1,m1,s1,(d1-(oDir_to_Z (Some g)))%Z,Some g).
+Proof.
+  unfold In_MITM_WDFA_ES.
+  intro H.
+  destruct H as [es1 [Ha Hb]].
+  exists es1.
+  split; auto 1.
+  destruct es1 as [l0 r0 m0 s0].
+  destruct Hb as [dl [dr [c1 [Hb Hc]]]].
+  exists dl. exists dr. exists (c1+1)%N.
+  cbn in Hb.
+  cbn.
+  repeat split; try tauto.
+  lia.
+Qed.
+
+Lemma MITM_WDFA_ES_split {es0 l1 r1 m1 s1 d1 g}:
+  In_MITM_WDFA_ES es0 (l1,r1,m1,s1,d1,Some g) ->
+  (In_MITM_WDFA_ES es0 (l1,r1,m1,s1,d1,None) \/
+   In_MITM_WDFA_ES es0 (l1,r1,m1,s1,(d1+(oDir_to_Z (Some g)))%Z,Some g)).
+Proof.
+  unfold In_MITM_WDFA_ES.
+  intro H.
+  destruct H as [es1 [Ha Hb]].
+  destruct es1 as [l0 r0 m0 s0].
+  destruct Hb as [dl [dr [c1 [Hb Hc]]]].
+  destruct c1 as [|c1].
+  - left.
+    eexists.
+    split.
+    1: apply Ha.
+    cbn.
+    exists dl. exists dr. exists N0.
+    cbn in Hb.
+    rewrite Z.mul_0_r in Hb.
+    tauto.
+  - right.
+    eexists.
+    split.
+    1: apply Ha.
+    cbn.
+    exists dl. exists dr.
+    exists ((Npos c1)-1)%N.
+    cbn in Hb.
+    split. 2: tauto.
+    destruct g; unfold Dir_to_Z; unfold Dir_to_Z in Hb; lia.
+Qed.
+
+Hypothesis max_d:Z.
+
+Definition MITM_WDFA_ES_simplify(es:MITM_WDFA_ES):list MITM_WDFA_ES :=
+let '(l1,r1,m1,s1,d1,g):=es in
+match g with
+| None =>
+  if ((Z.abs d1) >=? max_d)%Z then
+    match d1 with
+    | Zpos _ => (l1,r1,m1,s1,d1,Some Dpos)::nil
+    | Zneg _ => (l1,r1,m1,s1,d1,Some Dneg)::nil
+    | Z0 => es::nil
+    end
+  else es::nil
+| Some g0 =>
+  match ((Z.abs d1) - max_d)%Z with
+  | Zpos _ => (l1,r1,m1,s1,(d1-(oDir_to_Z g))%Z,g)::nil
+  | Zneg _ => (l1,r1,m1,s1,d1,None)::(l1,r1,m1,s1,(d1+(oDir_to_Z g))%Z,g)::nil
+  | Z0 => es::nil
+  end
+end.
+
+Lemma MITM_WDFA_ES_simplify_spec {es es0}:
+  In_MITM_WDFA_ES es0 es ->
+  exists es', In_MITM_WDFA_ES es0 es' /\ In es' (MITM_WDFA_ES_simplify es).
+Proof.
+  unfold MITM_WDFA_ES_simplify.
+  destruct es as [[[[[l1 r1] m1] s1] d1] g1].
+  destruct g1 as [g1|].
+  - destruct ((Z.abs d1 - max_d)%Z).
+    + intro H.
+      eexists.
+      split. 1: apply H.
+      left. reflexivity.
+    + intro H.
+      eexists.
+      split. 2: left; reflexivity.
+      apply MITM_WDFA_ES_generalize_2,H.
+    + intro H.
+      destruct (MITM_WDFA_ES_split H) as [H0|H0].
+      * eexists.
+        split. 2: left; reflexivity.
+        auto 1.
+      * eexists.
+        split. 2: right; left; reflexivity.
+        auto 1.
+  - destruct ((Z.abs d1 >=? max_d)%Z).
+    + destruct d1.
+      * intro H.
+        eexists.
+        split. 2: left; reflexivity.
+        auto 1.
+      * intro H.
+        eexists.
+        split. 2: left; reflexivity.
+        apply MITM_WDFA_ES_generalize_1,H.
+      * intro H.
+        eexists.
+        split. 2: left; reflexivity.
+        apply MITM_WDFA_ES_generalize_1,H.
+    + intro H.
+      eexists.
+      split. 2: left; reflexivity.
+      auto 1.
+Qed.
+
+Definition MITM_WDFA_ES_filter(ls:list MITM_WDFA_ES):list MITM_WDFA_ES :=
+  concat (map MITM_WDFA_ES_simplify (filter MITM_WDFA_ES_good ls)).
+
+
+Lemma MITM_WDFA_ES_filter_spec es es0 ls:
+  In_MITM_WDFA_ES es0 es ->
+  In es ls ->
+  exists es', In_MITM_WDFA_ES es0 es' /\ In es' (MITM_WDFA_ES_filter ls).
+Proof.
+  intros H H0.
+  unfold MITM_WDFA_ES_filter.
+  destruct (MITM_WDFA_ES_simplify_spec H) as [es' [H1 H2]].
+  exists es'.
+  split; auto 1.
+  rewrite in_concat.
+  eexists.
+  split. 2: apply H2.
+  rewrite in_map_iff.
+  eexists.
+  split. 1: reflexivity.
+  rewrite filter_In.
+  split. 1: auto 1.
+  eapply MITM_WDFA_ES_good_spec,H.
+Qed.
+
+
+
+Definition pop_l := (WDFA_pop U_l U_l_enc U_l_list wdfa_l).
+Definition pop_r := (WDFA_pop U_r U_r_enc U_r_list wdfa_r).
+
+Definition MITM_WDFA_ES_step(tm:TM Σ)(es:MITM_WDFA_ES):option (list MITM_WDFA_ES) :=
+let '(l1,r1,m1,s1,d1,g1):=es in
+match tm s1 m1 with
+| None => None
+| Some {| nxt:=s2; dir:=d2; out:=m2 |} =>
+  Some
+  match d2 with
+  | Dpos =>
+    let (l1',dl):=wdfa_l l1 m2 in
+    MITM_WDFA_ES_filter
+    (map (fun x => let '(r1',m3,dr):=x in (l1',r1',m3,s2,(d1+dl-dr)%Z,g1)) (pop_r r1))
+  | Dneg =>
+    let (r1',dr):=wdfa_r r1 m2 in
+    MITM_WDFA_ES_filter
+    (map (fun x => let '(l1',m3,dl):=x in (l1',r1',m3,s2,(d1+dr-dl)%Z,g1)) (pop_l l1))
+  end
+end.
+
+
+Lemma MITM_WDFA_ES_step_spec0 tm x:
+  match MITM_WDFA_ES_step tm x with
+  | Some ls =>
+      forall st0,
+      In_MITM_WDFA_ES st0 x ->
+      exists n st1,
+        Steps Σ tm (1 + n) st0 st1 /\ exists x1, In_MITM_WDFA_ES st1 x1 /\ In x1 ls
+  | None => True
+  end.
+Proof.
+  unfold MITM_WDFA_ES_step.
+  destruct x as [[[[[l1 r1] m1] s1] d1] g1].
+  destruct (tm s1 m1) as [[s2 d2 m2]|] eqn:E.
+  2: trivial.
+  intros st0 H.
+  exists 0.
+  unfold In_MITM_WDFA_ES in H.
+  destruct H as [[l0 r0 m0 s0] [Ha [dl [dr [c1 [Hb [Hc [Hd [He Hf]]]]]]]]].
+  subst.
+  remember (ListES_step tm (Build_ListES l0 r0 m1 s1)) as st1.
+  pose proof Heqst1 as Heqst1'.
+  cbn in Heqst1.
+  rewrite E in Heqst1.
+  destruct st1 as [st1|]. 2: cg.
+  injection Heqst1. clear Heqst1. intro Heqst1.
+  exists (ListES_toES st1).
+  destruct d2.
+  {
+    destruct l0 as [|m4 l0].
+    - cbn in Hc.
+      invst Hc. clear Hc.
+      destruct (wdfa_r r1 m2) as [u' a0] eqn:E2.
+      split.
+      {
+        ector. 1: ector.
+        rewrite ListES_step_spec,<-Heqst1'.
+        reflexivity.
+      }
+      eapply MITM_WDFA_ES_filter_spec with (es:=(_,_,_,_,_,_)).
+      + unfold In_MITM_WDFA_ES.
+        eexists.
+        split.
+        1: reflexivity.
+        cbn.
+        rewrite Hd,E2.
+        exists Z0. exists (dr + a0)%Z. exists c1.
+        repeat split.
+        assert (A:((d1+a0) + oDir_to_Z g1 * Z.of_N c1)%Z = (0 + (dr+a0))%Z) by lia.
+        apply A.
+      + rewrite in_map_iff.
+        eexists (_,_,Z0).
+        split.
+        -- rewrite Z.sub_0_r. reflexivity.
+        -- unfold pop_l.
+           apply WDFA_pop_spec; auto 1.
+           ++ apply U0_l.
+           ++ apply U_l_enc_inj.
+           ++ apply nat_n_list_spec.
+    - subst st1.
+      cbn in Hc.
+      destruct (WDFA_match U_l U0_l wdfa_l l0) as [l1' dl'] eqn:E0.
+      destruct (wdfa_l l1' m4) as [u' a] eqn:E1.
+      inversion Hc. subst u'. subst dl. clear Hc.
+      destruct (wdfa_r r1 m2) as [u' a0] eqn:E2.
+      split.
+      {
+        ector. 1: ector.
+        rewrite ListES_step_spec,<-Heqst1'.
+        reflexivity.
+      }
+      eapply MITM_WDFA_ES_filter_spec with (es:=(_,_,_,_,_,_)).
+      + unfold In_MITM_WDFA_ES.
+        eexists.
+        split.
+        1: reflexivity.
+        cbn.
+        rewrite E0,Hd,E2.
+        exists dl'. exists (dr + a0)%Z. exists c1.
+        repeat split.
+        assert (A:((d1+a0-a) + oDir_to_Z g1 * Z.of_N c1)%Z = (dl' + (dr+a0))%Z) by lia.
+        apply A.
+      + rewrite in_map_iff.
+        eexists (_,_,a).
+        split.
+        -- reflexivity.
+        -- unfold pop_l.
+           apply WDFA_pop_spec; auto 1.
+           ++ apply U_l_enc_inj.
+           ++ apply nat_n_list_spec.
+  }
+  {
+    destruct r0 as [|m4 r0].
+    - cbn in Hd.
+      invst Hd. clear Hd.
+      destruct (wdfa_l l1 m2) as [u' a0] eqn:E2.
+      split.
+      {
+        ector. 1: ector.
+        rewrite ListES_step_spec,<-Heqst1'.
+        reflexivity.
+      }
+      eapply MITM_WDFA_ES_filter_spec with (es:=(_,_,_,_,_,_)).
+      + unfold In_MITM_WDFA_ES.
+        eexists.
+        split.
+        1: reflexivity.
+        cbn.
+        rewrite Hc,E2.
+        exists (dl + a0)%Z. exists Z0. exists c1.
+        repeat split.
+        assert (A:((d1+a0) + oDir_to_Z g1 * Z.of_N c1)%Z = (dl+a0+0)%Z) by lia.
+        apply A.
+      + rewrite in_map_iff.
+        eexists (_,_,Z0).
+        split.
+        -- rewrite Z.sub_0_r. reflexivity.
+        -- unfold pop_r.
+           apply WDFA_pop_spec; auto 1.
+           ++ apply U0_r.
+           ++ apply U_r_enc_inj.
+           ++ apply nat_n_list_spec.
+    - subst st1.
+      cbn in Hd.
+      destruct (WDFA_match U_r U0_r wdfa_r r0) as [r1' dr'] eqn:E0.
+      destruct (wdfa_r r1' m4) as [u' a] eqn:E1.
+      inversion Hd. subst u'. subst dr. clear Hd.
+      destruct (wdfa_l l1 m2) as [u' a0] eqn:E2.
+      split.
+      {
+        ector. 1: ector.
+        rewrite ListES_step_spec,<-Heqst1'.
+        reflexivity.
+      }
+      eapply MITM_WDFA_ES_filter_spec with (es:=(_,_,_,_,_,_)).
+      + unfold In_MITM_WDFA_ES.
+        eexists.
+        split.
+        1: reflexivity.
+        cbn.
+        rewrite E0,Hc,E2.
+        exists (dl + a0)%Z. exists dr'. exists c1.
+        repeat split.
+        assert (A:((d1+a0-a) + oDir_to_Z g1 * Z.of_N c1)%Z = (dl+a0+dr')%Z) by lia.
+        apply A.
+      + rewrite in_map_iff.
+        eexists (_,_,a).
+        split.
+        -- reflexivity.
+        -- unfold pop_r.
+           apply WDFA_pop_spec; auto 1.
+           ++ apply U_r_enc_inj.
+           ++ apply nat_n_list_spec.
+  }
+Qed.
+
+
+Lemma MITM_WDFA_ES_step_spec tm x:
+  match MITM_WDFA_ES_step tm x with
+  | Some ls =>
+      forall st0,
+      In_MITM_WDFA_ES st0 x ->
+      exists n st1 x1,
+        Steps Σ tm (1 + n) st0 st1 /\ In_MITM_WDFA_ES st1 x1 /\ In x1 ls
+  | None => True
+  end.
+Proof.
+  pose proof (MITM_WDFA_ES_step_spec0 tm x) as H.
+  destruct (MITM_WDFA_ES_step tm x).
+  2: trivial.
+  intros st0 H0.
+  specialize (H st0 H0).
+  destruct H as [n [st1 [Ha [x1 Hb]]]].
+  exists n. exists st1. exists x1.
+  tauto.
+Qed.
+
+Definition MITM_WDFA_ES_decider0:nat->HaltDecider :=
+  (T_decider _ MITM_WDFA_ES_enc MITM_WDFA_InitES MITM_WDFA_ES_step).
+
+Definition MITM_WDFA_ES_decider0_spec :=
+  (T_decider_spec _ _ MITM_WDFA_ES_enc_inj In_MITM_WDFA_ES _ In_MITM_WDFA_InitES _ MITM_WDFA_ES_step_spec).
+
+End MITMWFAR_0.
+
+
+Definition make_wdfa(f:nat->Σ->(nat*Z))(n:nat)(u:nat_n n)(i:Σ) :=
+  let (u0,a):=(f (nat_n_to_nat _ u) i) in
+  (nat_n_from_nat n u0,a).
+
+
+
+Definition WDFA_from_list(ls:list(nat*Z*nat*Z))(x:nat)(i:Σ):nat*Z :=
+  let '(a0,a1,b0,b1) := nth x ls (O,Z0,O,Z0) in
+  match i with
+  | Σ0 => (a0,a1)
+  | Σ1 => (b0,b1)
+  end.
+
+
+
+
+Definition MITM_WDFA_verifier
+  (max_d:Z)
+  (n_l:nat)(wdfa_l:nat->Σ->(nat*Z))
+  (n_r:nat)(wdfa_r:nat->Σ->(nat*Z))
+  (n:nat)
+  (tm:TM Σ):HaltDecideResult :=
+  let wdfa_l':=make_wdfa wdfa_l n_l in
+  let wdfa_r':=make_wdfa wdfa_r n_r in
+  let wdfa_sgn_l:=wdfa_sgn_rec (nat_n n_l) (nat_n_enc n_l) (nat_n_list n_l) n wdfa_l' in
+  let wdfa_sgn_r:=wdfa_sgn_rec (nat_n n_r) (nat_n_enc n_r) (nat_n_list n_r) n wdfa_r' in
+  if
+  (wdfa_0_dec (nat_n n_l) (nat_n_O n_l) (nat_n_enc n_l) wdfa_l') &&&
+  (wdfa_0_dec (nat_n n_r) (nat_n_O n_r) (nat_n_enc n_r) wdfa_r') &&&
+  (wdfa_sgn_closed_dec (nat_n n_l) (nat_n_enc n_l) (nat_n_list n_l) wdfa_l' wdfa_sgn_l) &&&
+  (wdfa_sgn_closed_dec (nat_n n_r) (nat_n_enc n_r) (nat_n_list n_r) wdfa_r' wdfa_sgn_r)
+  then
+  MITM_WDFA_ES_decider0 n_l n_r wdfa_l' wdfa_r' wdfa_sgn_l wdfa_sgn_r max_d n tm
+  else
+  Result_Unknown.
+
+Lemma MITM_WDFA_verifier_spec max_d n_l wdfa_l n_r wdfa_r n:
+  HaltDecider_WF (N.to_nat BB) (MITM_WDFA_verifier max_d n_l wdfa_l n_r wdfa_r n).
+Proof.
+  unfold HaltDecider_WF.
+  intros.
+  unfold MITM_WDFA_verifier.
+  repeat rewrite shortcut_andb_spec.
+  destruct (wdfa_0_dec (nat_n n_l) (nat_n_O n_l) (nat_n_enc n_l) (make_wdfa wdfa_l n_l)) eqn:E0.
+  2: cbn; trivial.
+  destruct (wdfa_0_dec (nat_n n_r) (nat_n_O n_r) (nat_n_enc n_r) (make_wdfa wdfa_r n_r)) eqn:E1.
+  2: cbn; trivial.
+  destruct (wdfa_sgn_closed_dec (nat_n n_l)) eqn:E2.
+  2: cbn; trivial.
+  destruct (wdfa_sgn_closed_dec (nat_n n_r)) eqn:E3.
+  2: cbn; trivial.
+  cbn.
+  eapply MITM_WDFA_ES_decider0_spec; eauto 1.
+  - eapply wdfa_0_dec_spec; eauto 1.
+    apply nat_n_enc_inj.
+  - eapply wdfa_0_dec_spec; eauto 1.
+    apply nat_n_enc_inj.
+  - eapply wdfa_sgn_closed_dec_spec; eauto 1.
+    + apply nat_n_O.
+    + apply nat_n_enc_inj.
+    + apply nat_n_list_spec.
+  - eapply wdfa_sgn_closed_dec_spec; eauto 1.
+    + apply nat_n_O.
+    + apply nat_n_enc_inj.
+    + apply nat_n_list_spec.
+Qed.
+
+End MITMWFAR.
+
+
 Inductive DeciderType :=
 | NG(hlen len:nat)
 | NG_LRU(len:nat)
 | RWL(len m:nat)
 | DNV(n:nat)(f:nat->Σ->nat)
+| WA(max_d:Z)(n_l:nat)(f_l:nat->Σ->(nat*Z))(n_r:nat)(f_r:nat->Σ->(nat*Z))
 | Ha
 | Lp1.
 
@@ -8066,6 +8863,7 @@ match x with
   NGramCPS_LRU_decider len len 5000001
 | RWL len mnc => RepWL_ES_decider len mnc 320 150001
 | DNV n f => dfa_nfa_verifier n f
+| WA max_d n_l f_l n_r f_r => MITM_WDFA_verifier max_d n_l f_l n_r f_r 10000000
 | Ha => halt_decider_max
 | Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
 end.
@@ -8080,6 +8878,7 @@ Proof.
   - apply NGramCPS_LRU_decider_spec.
   - apply RepWL_ES_decider_spec.
   - apply dfa_nfa_verifier_spec.
+  - apply MITM_WDFA_verifier_spec.
   - apply halt_decider_max_spec.
   - apply loop1_decider_WF.
     unfold BB.
@@ -16402,13 +17201,108 @@ DNV 10 (DFA_from_list ((0,1)::(2,3)::(4,5)::(2,3)::(4,4)::(4,6)::(7,8)::(4,9)::(
 nil.
 
 
+Notation "( a , b ; c , d )" := (a%nat,b%Z,c%nat,d%Z).
+
+Definition tm_WA :=
+
+(makeTM BR1 HR1 CR0 CL1 DR1 CR1 EL1 DL1 AR0 EL0,
+WA 2
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 HR1 CR0 BL1 DR1 CR1 EL1 DL1 AR0 EL0,
+WA 2
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 HR1 CR0 CR1 DR1 CR1 EL1 DL1 AR0 EL0,
+WA 2
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,-1)::(1,0;1,0)::(0,0;2,0)::nil)))::
+
+(makeTM BR1 HR1 CR0 CR1 DR1 BR1 EL1 DL1 AR0 EL0,
+WA 2
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,-1)::(1,0;1,0)::(0,0;2,0)::nil)))::
+
+(makeTM BR1 AR1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 AR1,
+WA 3
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 AR1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 AL1,
+WA 3
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 AR1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 EL1,
+WA 3
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;2,0)::(1,0;2,1)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 ER1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 AR1,
+WA 3
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 AR1 CL1 EL1 DR0 CL0 ER1 HR1 AR0 BL1,
+WA 3
+4 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;4,0)::(1,0;2,0)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 HR1 CR0 DL1 DR1 CR1 EL1 BL1 AR0 EL0,
+WA 2
+4 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;4,0)::(1,0;2,1)::(1,0;2,0)::nil))
+2 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(0,-1;2,0)::nil)))::
+
+(makeTM BR1 ER1 CL1 BL1 DR0 CL0 EL1 HR1 AR0 AR1,
+WA 2
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,1;3,0)::(1,0;2,0)::nil))
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;2,0)::(2,0;2,-1)::nil)))::
+
+(makeTM BR1 HR1 CL0 CL1 DL1 BL1 ER1 DR1 AL0 ER0,
+WA 2
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;2,0)::(2,0;2,1)::nil))
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,-1;3,0)::(1,0;2,0)::nil)))::
+
+(makeTM BR1 CL1 CL1 AR1 EL0 DL0 AR0 DR1 HR1 CL0,
+WA 2
+4 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(4,0;3,0)::(4,1;2,0)::(1,0;2,0)::nil))
+3 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;2,-1)::(2,0;2,0)::nil)))::
+
+(makeTM BR1 CL1 BL1 AR1 EL0 DL0 AR0 DR1 HR1 CL0,
+WA 2
+7 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;4,0)::(1,0;7,0)::(5,1;6,0)::(1,0;7,0)::(3,0;4,0)::(3,0;4,0)::nil))
+6 (WDFA_from_list ((0,0;2,0)::(1,0;1,0)::(3,0;4,-1)::(5,0;6,0)::(3,0;4,-1)::(3,0;4,-1)::(3,0;4,-1)::nil)))::
+
+(makeTM BR1 CR0 CL1 EL0 DL0 BL0 AR1 HR1 BL1 DR0,
+WA 1
+57 (WDFA_from_list ((0,0;1,0)::(2,0;3,0)::(4,0;5,0)::(6,0;6,0)::(7,0;8,0)::(9,0;10,0)::(6,0;6,0)::(11,0;12,0)::(13,0;14,0)::(6,0;15,0)::(16,0;17,0)::(4,-1;18,0)::(19,0;20,0)::(6,0;6,0)::(21,0;22,0)::(23,0;24,0)::(6,0;25,0)::(6,0;6,0)::(26,0;27,0)::(6,0;6,0)::(28,0;29,0)::(6,0;30,0)::(6,0;6,0)::(6,0;1,0)::(6,0;6,0)::(31,0;32,0)::(6,0;33,0)::(34,0;35,0)::(6,0;36,0)::(6,0;6,0)::(37,0;38,0)::(6,0;39,0)::(6,0;6,0)::(40,0;41,0)::(6,-2;42,0)::(6,0;6,0)::(43,0;44,0)::(6,0;45,0)::(6,0;6,0)::(46,0;47,0)::(6,0;7,0)::(6,0;6,0)::(48,0;49,0)::(6,0;50,0)::(6,0;6,0)::(8,0;51,0)::(6,0;52,0)::(6,0;6,0)::(6,-2;53,0)::(6,0;6,0)::(12,0;54,0)::(6,0;6,0)::(16,0;17,0)::(55,0;56,0)::(6,0;6,0)::(6,-2;57,0)::(6,0;6,0)::(34,0;35,0)::nil))
+36 (WDFA_from_list ((0,0;1,0)::(2,0;3,0)::(4,0;5,0)::(6,0;7,1)::(8,0;9,0)::(10,0;11,0)::(12,0;11,0)::(13,0;1,0)::(11,0;11,0)::(14,0;11,0)::(15,0;16,0)::(11,0;11,0)::(17,0;18,0)::(19,0;11,0)::(20,0;21,0)::(11,0;11,0)::(7,0;11,0)::(11,0;11,0)::(22,0;11,0)::(23,0;24,0)::(11,0;11,0)::(25,0;11,0)::(26,0;27,0)::(11,0;11,0)::(28,0;11,0)::(29,0;2,0)::(11,0;11,0)::(30,0;11,0)::(31,0;32,0)::(11,0;11,0)::(33,0;6,0)::(11,0;11,0)::(34,0;11,0)::(11,0;11,0)::(35,0;36,0)::(11,0;11,0)::(19,0;11,0)::nil)))::
+
+(makeTM BR1 ER0 CR0 AR0 DL1 HR1 AL1 BL0 AR1 CL0,
+WA 2
+47 (WDFA_from_list ((0,0;1,0)::(2,0;3,0)::(4,0;5,0)::(6,0;7,0)::(8,0;9,0)::(10,0;11,0)::(12,0;11,0)::(13,1;1,1)::(11,0;11,0)::(14,0;11,0)::(15,0;16,0)::(11,0;11,0)::(17,0;18,0)::(19,0;20,0)::(21,0;22,0)::(11,0;11,0)::(23,0;11,0)::(11,0;11,0)::(24,0;11,0)::(25,0;26,0)::(27,0;11,0)::(11,0;11,0)::(28,0;29,0)::(30,0;20,0)::(31,0;32,0)::(11,0;11,0)::(33,0;11,0)::(34,0;5,0)::(35,0;36,0)::(37,0;11,0)::(11,0;11,0)::(11,0;11,0)::(38,0;11,0)::(39,0;40,0)::(11,0;11,0)::(11,0;11,0)::(41,0;11,0)::(11,0;11,0)::(42,0;43,0)::(11,0;11,0)::(44,0;11,0)::(8,0;9,0)::(11,0;11,0)::(12,0;11,0)::(45,0;46,0)::(11,0;11,0)::(47,0;11,0)::(25,0;26,0)::nil))
+64 (WDFA_from_list ((0,0;1,0)::(2,0;3,0)::(4,0;5,0)::(6,0;7,0)::(8,0;9,0)::(10,0;11,0)::(12,0;13,0)::(12,0;12,0)::(14,-1;15,0)::(16,0;17,0)::(12,0;18,0)::(19,0;20,0)::(12,0;12,0)::(21,0;22,0)::(4,0;23,0)::(24,0;25,0)::(12,0;12,0)::(26,0;27,0)::(28,0;29,0)::(12,0;30,0)::(12,0;12,0)::(12,0;31,0)::(12,0;12,0)::(32,0;33,0)::(12,0;34,0)::(35,0;36,0)::(12,0;37,0)::(12,0;12,0)::(12,0;38,0)::(12,0;12,0)::(39,0;40,0)::(41,0;42,0)::(12,0;12,0)::(19,0;20,0)::(43,0;44,0)::(12,-2;45,0)::(12,0;12,0)::(46,0;47,0)::(48,0;49,0)::(12,0;50,0)::(12,0;12,0)::(12,0;51,0)::(12,0;12,0)::(12,0;4,0)::(12,0;12,0)::(52,0;53,0)::(12,0;54,0)::(12,0;12,0)::(12,0;55,0)::(12,0;12,0)::(23,0;56,0)::(6,0;7,0)::(12,-2;57,0)::(12,0;12,0)::(58,0;59,0)::(60,0;61,0)::(12,0;12,0)::(62,0;63,0)::(12,0;17,0)::(12,0;12,0)::(12,0;18,0)::(12,0;12,0)::(12,-2;64,0)::(12,0;12,0)::(35,0;36,0)::nil)))::
+
+(makeTM BR1 DL0 CR1 AR0 DR0 BR0 EL1 HR1 BL1 CL0,
+WA 2
+49 (WDFA_from_list ((0,0;1,0)::(2,0;3,0)::(4,0;5,0)::(6,0;7,0)::(8,0;9,0)::(10,0;11,0)::(12,0;11,0)::(13,1;1,1)::(11,0;11,0)::(14,0;11,0)::(15,0;16,0)::(11,0;11,0)::(17,0;18,0)::(19,0;20,0)::(21,0;22,0)::(11,0;11,0)::(23,0;11,0)::(11,0;11,0)::(24,0;11,0)::(25,0;26,0)::(27,0;11,0)::(11,0;11,0)::(28,0;29,0)::(30,0;20,0)::(31,0;32,0)::(11,0;11,0)::(33,0;11,0)::(34,0;5,0)::(35,0;36,0)::(37,0;11,0)::(11,0;11,0)::(11,0;11,0)::(38,0;11,0)::(39,0;40,0)::(11,0;11,0)::(11,0;11,0)::(4,0;5,0)::(41,0;42,0)::(43,0;44,0)::(11,0;11,0)::(45,0;11,0)::(11,0;11,0)::(46,0;11,0)::(11,0;11,0)::(12,0;11,0)::(47,0;48,0)::(11,0;11,0)::(11,0;11,0)::(49,0;11,0)::(25,0;26,0)::nil))
+69 (WDFA_from_list ((0,0;1,0)::(2,0;3,0)::(4,0;5,0)::(6,0;6,0)::(7,0;8,0)::(9,0;10,0)::(6,0;6,0)::(11,0;12,0)::(13,0;14,0)::(15,0;16,0)::(17,0;18,0)::(19,0;20,0)::(21,0;22,0)::(6,0;23,0)::(16,0;24,0)::(25,0;26,0)::(27,0;28,0)::(6,0;2,0)::(6,0;6,0)::(7,-1;29,0)::(30,0;31,0)::(6,0;6,0)::(26,0;32,0)::(17,0;18,0)::(6,0;6,0)::(9,-1;33,0)::(34,0;35,0)::(6,0;6,0)::(36,0;37,0)::(38,0;39,0)::(6,0;6,0)::(40,0;41,0)::(6,0;6,0)::(42,0;43,0)::(6,0;6,0)::(44,0;45,0)::(6,0;46,0)::(6,0;6,0)::(6,0;47,0)::(48,0;49,0)::(6,0;50,0)::(6,0;6,0)::(6,0;11,0)::(51,0;52,0)::(6,0;53,0)::(6,0;6,0)::(54,0;55,0)::(56,0;57,0)::(6,-2;58,0)::(6,0;6,0)::(51,0;52,0)::(6,-2;59,0)::(6,0;6,0)::(12,0;60,0)::(6,0;61,0)::(6,0;6,0)::(6,0;11,0)::(6,0;6,0)::(62,0;63,0)::(64,0;65,0)::(6,0;6,0)::(16,0;24,0)::(6,-2;66,0)::(6,0;6,0)::(6,-2;31,0)::(6,0;6,0)::(67,0;68,0)::(6,-2;69,0)::(6,0;6,0)::(48,0;49,0)::nil)))::
+
+nil.
+
+
 Definition check_tms(ls:list ((TM Σ)*DeciderType)):=
   map (fun (x:(TM Σ)*DeciderType)=> let (tm,d):=x in getDecider d tm) ls.
 
 (*
-Time Definition check_res := Eval vm_compute in (check_tms (firstn 4 (skipn 0 tm_DNV))).
+Compute (length tm_WA).
+Time Definition check_res := Eval vm_compute in (check_tms ((tm_WA))).
 Compute (filter (fun x => match x with Result_NonHalt => false | _ => true end) check_res).
+Compute check_res.
 *)
+
 
 Definition tm_list :=
   tm_RWL::
