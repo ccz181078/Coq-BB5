@@ -5751,6 +5751,73 @@ Proof.
   apply H2.
 Qed.
 
+
+Fixpoint ListES_Steps(tm:TM Σ)(n:nat)(es:ListES):option ListES:=
+match n with
+| O => Some es
+| S n0 =>
+  match tm es.(s) es.(m) with
+  | None => None
+  | Some tr =>
+    ListES_Steps tm n0 (ListES_step' tr es)
+  end
+end.
+
+Lemma ListES_Steps_spec tm n es:
+  match ListES_Steps tm n es with
+  | Some es0 => Steps _ tm n (ListES_toES es) (ListES_toES es0)
+  | None => True
+  end.
+Proof.
+  gd es.
+  induction n.
+  1: intro; cbn; ctor.
+  intro.
+  cbn.
+  destruct (tm (s es) (m es)) as [tr|] eqn:E.
+  2: trivial.
+  destruct es as [l0 r0 m0 s0].
+  cbn in E.
+  epose proof (ListES_step'_spec tm l0 r0 m0 s0) as H.
+  rewrite E in H.
+  specialize (IHn (ListES_step' tr {| l := l0; r := r0; m := m0; s := s0 |})).
+  destruct (ListES_Steps tm n (ListES_step' tr {| l := l0; r := r0; m := m0; s := s0 |})).
+  2: trivial.
+  replace (S n) with (n+1) by lia.
+  eapply Steps_trans.
+  2: apply IHn.
+  ector; eauto 1.
+  ctor.
+Qed.
+
+Definition halt_time_verifier(tm:TM Σ)(n:nat):bool :=
+  match ListES_Steps tm n {| l := nil; r := nil; m := Σ0; s := St0 |} with
+  | Some {| l:=_; r:=_; m:=m0; s:=s0 |} =>
+    match tm s0 m0 with
+    | None => true
+    | _ => false
+    end
+  | None => false
+  end.
+
+Lemma halt_time_verifier_spec tm n:
+  halt_time_verifier tm n = true ->
+  HaltsAt _ tm n (InitES Σ Σ0).
+Proof.
+  unfold halt_time_verifier,HaltsAt.
+  intro H.
+  pose proof (ListES_Steps_spec tm n {| l := nil; r := nil; m := Σ0; s := St0 |}).
+  destruct (ListES_Steps tm n {| l := nil; r := nil; m := Σ0; s := St0 |}).
+  2: cg.
+  rewrite ListES_toES_O in H0.
+  eexists.
+  split.
+  - apply H0.
+  - destruct l0 as [l0 r0 m0 s0].
+    cbn.
+    destruct (tm s0 m0); cg.
+Qed.
+
 Definition BB:N := 47176869.
 
 Fixpoint nat_eqb_N(n:nat)(m:N) :=
@@ -5790,6 +5857,18 @@ Proof.
   1: apply le_refl.
   symmetry.
   apply nat_eqb_N_spec.
+  vm_compute.
+  reflexivity.
+Time Qed.
+
+Definition BB5_champion := (makeTM BR1 CL1 CR1 BR1 DR1 EL0 AL1 DL1 HR1 AL0).
+
+Lemma BB5_lower_bound:
+  exists tm,
+  HaltsAt _ tm (N.to_nat BB) (InitES Σ Σ0).
+Proof.
+  exists BB5_champion.
+  apply halt_time_verifier_spec.
   vm_compute.
   reflexivity.
 Time Qed.
@@ -17612,7 +17691,7 @@ Qed.
 
 Definition q0 := root_q_upd1_simplified.
 
-Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 20).
+Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 8).
 
 Definition q_0 := q0.
 
@@ -18295,7 +18374,7 @@ Proof.
 Qed.
 
 
-Theorem BB5_upperbound:
+Lemma BB5_upperbound:
   forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB.
 Proof.
   intros tm n0.
@@ -18303,7 +18382,18 @@ Proof.
   trivial.
 Qed.
 
-Print Assumptions BB5_upperbound.
+Lemma BB5_value:
+  (forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB) /\
+  (exists tm, HaltsAt Σ tm (N.to_nat BB) (InitES Σ Σ0)).
+Proof.
+  split.
+  - intros tm n0.
+    apply allTM_HTUB.
+    trivial.
+  - apply BB5_lower_bound.
+Qed.
+
+Print Assumptions BB5_value.
 End MacroMachine.
 
 
