@@ -8842,6 +8842,212 @@ Qed.
 End MITMWFAR.
 
 
+Definition TM_to_rev_NF(tm:TM Σ) :=
+match tm St0 Σ0 with
+| Some {| nxt:=_; dir:=Dneg; out:=_ |} => TM_rev _ tm
+| _ => tm
+end.
+
+Fixpoint TM_to_TNF_NF(tm:TM Σ)(s:St)(es:ListES)(T:nat) :=
+match T with
+| O => tm
+| S T0 =>
+  match ListES_step tm es with
+  | None => tm
+  | Some es0 =>
+    let (l0,r0,m0,s0):=es0 in
+    if (St_to_nat s) <? (St_to_nat s0) then
+      let s' := St_suc s in
+      if St_eqb s' s0 then
+        TM_to_TNF_NF tm s' es0 T0
+      else
+        TM_to_TNF_NF (TM_swap _ s' s0 tm) s' (Build_ListES l0 r0 m0 s') T0
+    else
+      TM_to_TNF_NF tm s es0 T0
+  end
+end.
+
+Fixpoint TM_to_write_nonzero_first(tm:TM Σ)(T:nat) :=
+match T with
+| O => tm
+| S T0 =>
+  match tm St0 Σ0 with
+  | Some {| nxt:=s'; dir:=d; out:=Σ0 |} =>
+    if St_eqb St0 s' then tm
+    else TM_to_write_nonzero_first (TM_swap _ St0 s' tm) T0
+  | _ => tm
+  end
+end.
+
+Definition TM_to_NF(tm:TM Σ) :=
+  TM_simplify (TM_to_rev_NF (TM_simplify (TM_to_TNF_NF (TM_simplify (TM_to_write_nonzero_first tm 100)) St0 (Build_ListES nil nil Σ0 St0) 110))).
+
+Lemma TM_to_rev_NF_spec tm:
+  NonHalt _ tm (InitES Σ Σ0) <-> NonHalt _ (TM_to_rev_NF tm) (InitES Σ Σ0).
+Proof.
+  unfold TM_to_rev_NF.
+  destruct (tm St0 Σ0) as [[s' [|] o]|].
+  2,3: tauto.
+  Search TM_rev.
+  unfold NonHalt.
+  split; intros.
+  - specialize (H n).
+    destruct H as [st' H].
+    eexists.
+    rewrite Steps_rev.
+    rewrite InitES_rev.
+    rewrite <-ExecState_rev_rev in H.
+    apply H.
+  - specialize (H n).
+    destruct H as [st' H].
+    eexists.
+    rewrite Steps_rev in H.
+    rewrite InitES_rev in H.
+    apply H.
+Qed.
+
+Lemma TM_to_TNF_NF_spec tm s es T:
+  NonHalt _ tm (InitES Σ Σ0) <-> NonHalt _ (TM_to_TNF_NF tm s es T) (InitES Σ Σ0).
+Proof.
+  gd es. gd s. gd tm.
+  induction T; intros.
+  1: cbn; tauto.
+  unfold TM_to_TNF_NF. fold TM_to_TNF_NF.
+  destruct (ListES_step tm es) as [[l0 r0 m0 s1]|].
+  2: tauto.
+  destruct (St_to_nat s0 <? St_to_nat s1) eqn:E.
+  2: apply IHT.
+  destruct (St_eqb (St_suc s0) s1) eqn:E0.
+  1: apply IHT.
+  rewrite <-IHT.
+  assert (E1:(St_suc s0)<>St0) by (destruct s0; cbn; cg).
+  assert (E2:s1 <> St0) by (intro X; subst; cbn in E; cg).
+  assert (E3:St_suc s0 <> s1) by (intro X; subst; St_eq_dec (St_suc s0) (St_suc s0); cg).
+  unfold NonHalt.
+  split; intros.
+  - specialize (H n).
+    destruct H as [st' H].
+    eexists.
+    rewrite Steps_swap. 2: auto 1.
+    cbn.
+    unfold St_swap.
+    St_eq_dec (St_suc s0) St0; cg.
+    St_eq_dec s1 St0; cg.
+    unfold InitES in H.
+    erewrite <-ExecState_swap_swap in H.
+    1: apply H.
+    auto 1.
+  - specialize (H n).
+    destruct H as [st' H].
+    eexists.
+    rewrite Steps_swap in H. 2: auto 1.
+    cbn in H.
+    unfold St_swap in H.
+    St_eq_dec (St_suc s0) St0; cg.
+    St_eq_dec s1 St0; cg.
+    unfold InitES.
+    apply H.
+Qed.
+
+Lemma TM_to_write_nonzero_first_spec tm T:
+  NonHalt _ tm (InitES Σ Σ0) <-> NonHalt _ (TM_to_write_nonzero_first tm T) (InitES Σ Σ0).
+Proof.
+  gd tm.
+  induction T; intros.
+  1: cbn; tauto.
+  unfold TM_to_write_nonzero_first. fold TM_to_write_nonzero_first.
+  destruct (tm St0 Σ0) as [[s' d o]|] eqn:E.
+  2: tauto.
+  destruct o; try tauto.
+  St_eq_dec St0 s'.
+  1: tauto.
+  rename H into E0.
+  rewrite <-IHT.
+  unfold NonHalt.
+  assert (E1:forall n st',
+  Steps Σ tm (S n) (InitES Σ Σ0) st' <->
+  Steps Σ (TM_swap Σ St0 s' tm) n (InitES Σ Σ0) (ExecState_swap _ St0 s' st')). {
+  intro n.
+  induction n.
+  - intros.
+    split; intro.
+    + invst H.
+      invst H1.
+      cbn in H3.
+      rewrite E in H3.
+      invst H3.
+      cbn.
+      unfold St_swap.
+      St_eq_dec St0 s'; cg.
+      St_eq_dec s' s'; cg.
+      unfold InitES.
+      replace (mov Σ (upd Σ (fun _ : Z => Σ0) Σ0) d) with (fun _:Z => Σ0).
+      1: ctor.
+      fext.
+      unfold mov,upd.
+      destruct ((x + Dir_to_Z d =? 0)%Z); reflexivity.
+    + ector.
+      1: ctor.
+      invst H.
+      unfold InitES in H1.
+      destruct st' as [s0 t0].
+      cbn in H1.
+      invst H1.
+      cbn.
+      rewrite E.
+      f_equal.
+      f_equal.
+      2: unfold mov,upd; fext; destruct ((x + Dir_to_Z d =? 0)%Z); reflexivity.
+      unfold St_swap in H2.
+      St_eq_dec St0 s0; cg.
+      St_eq_dec s' s0; cg.
+  - intros.
+    split; intro.
+    + invst H.
+      rewrite IHn in H1.
+      ector; eauto 1.
+      rewrite step_swap. 2: auto 1.
+      rewrite ExecState_swap_swap. 2: auto 1.
+      rewrite ExecState_swap_swap. 2: auto 1.
+      apply H3.
+    + invst H.
+      ector.
+      * rewrite IHn.
+        erewrite <-ExecState_swap_swap in H1.
+        1: apply H1.
+        auto 1.
+      * rewrite step_swap in H3. 2: auto 1.
+        rewrite ExecState_swap_swap in H3; auto 1.
+  }
+  split; intros.
+  - specialize (H (S n)).
+    destruct H as [st' H].
+    rewrite E1 in H.
+    eexists.
+    apply H.
+  - specialize (H (Nat.pred n)).
+    destruct H as [st' H].
+    destruct n.
+    + eexists. ector.
+    + eexists.
+      rewrite E1.
+      erewrite <-ExecState_swap_swap in H.
+      1: apply H.
+      auto 1.
+Qed.
+
+Lemma TM_to_NF_spec tm:
+  NonHalt _ tm (InitES Σ Σ0) <-> NonHalt _ (TM_to_NF tm) (InitES Σ Σ0).
+Proof.
+  unfold TM_to_NF.
+  repeat rewrite TM_simplify_spec.
+  rewrite <-TM_to_rev_NF_spec.
+  rewrite <-TM_to_TNF_NF_spec.
+  rewrite <-TM_to_write_nonzero_first_spec.
+  tauto.
+Qed.
+
+
 Inductive DeciderType :=
 | NG(hlen len:nat)
 | NG_LRU(len:nat)
@@ -17351,7 +17557,29 @@ Proof.
   apply getDecider_spec.
 Qed.
 
+Definition NF_decider(dec:HaltDecider)(tm:TM Σ):HaltDecideResult :=
+  match dec (TM_to_NF tm) with
+  | Result_NonHalt => Result_NonHalt
+  | _ => Result_Unknown
+  end.
 
+Lemma NF_decider_spec dec n:
+  HaltDecider_WF n dec ->
+  HaltDecider_WF n (NF_decider dec).
+Proof.
+  unfold HaltDecider_WF,NF_decider.
+  intro H.
+  intro tm.
+  specialize (H (TM_to_NF tm)).
+  destruct (dec (TM_to_NF tm)).
+  1,3: trivial.
+  unfold HaltsFromInit.
+  unfold HaltsFromInit in H.
+  rewrite <-NonHalt_iff.
+  rewrite <-NonHalt_iff in H.
+  rewrite <-TM_to_NF_spec in H.
+  apply H.
+Qed.
 
 Definition decider_all :=
   (HaltDecider_list
@@ -17360,6 +17588,7 @@ decider9::decider10::
 decider11::decider12::
 decider13::decider14::
 table_based_decider::
+(NF_decider table_based_decider)::
 nil)).
 
 Lemma decider_all_spec: HaltDecider_WF (N.to_nat BB) decider_all.
@@ -17372,9 +17601,104 @@ Proof.
   - apply loop1_decider_WF.
     unfold BB. lia.
   - apply table_based_decider_spec.
+  - apply NF_decider_spec,table_based_decider_spec.
   - unfold HaltDecider_nil,HaltDecider_WF.
     intro. trivial.
 Qed.
+
+
+Definition holdouts_82 :=
+(makeTM BR1 HR1 CR0 DL1 DR1 CR1 EL1 BL1 AR0 EL0)::
+(makeTM BR1 AR0 CL1 HR1 DL0 CL0 ER0 AR1 ER1 DL1)::
+(makeTM BR1 CL1 AL1 BR1 DL1 AL0 ER1 DR0 HR1 BR0)::
+(makeTM BR1 AR1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 AL1)::
+(makeTM BR1 AL1 AL1 CR1 HR1 DR0 AL0 ER0 DL0 ER1)::
+(makeTM BR0 AR0 CL1 HR1 DL0 CL0 DR1 ER0 BL1 AR0)::
+(makeTM BR0 AL0 CR1 HR1 DR0 CL1 ER1 DR1 AL1 EL1)::
+(makeTM BR1 AR1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 EL1)::
+(makeTM BR1 ER1 CL1 BL1 DR0 CL0 EL1 HR1 AR0 AR1)::
+(makeTM BR1 DL0 CR1 BL0 DR0 HR1 ER1 BL0 AL1 AR0)::
+(makeTM BR0 BL1 CR1 BR1 DL1 CL1 ER0 DL0 AR1 HR1)::
+(makeTM BR1 AR1 CL1 DL0 HR1 DL1 ER1 EL1 AR0 BL0)::
+(makeTM BR1 CR0 CL1 EL0 DL0 BL0 AR1 HR1 BL1 DR0)::
+(makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 ER1)::
+(makeTM BR1 BL0 CL1 ER0 DL1 CR0 EL0 HR1 AL1 AL0)::
+(makeTM BR1 BL1 CR0 DL0 DR1 CR1 EL1 AL0 HR1 AL1)::
+(makeTM BR0 EL0 CL1 BR1 AL1 DL1 HR1 AL0 AR0 EL1)::
+(makeTM BR0 AL0 CR1 HR1 DR0 EL1 ER1 DR1 AL1 CL1)::
+(makeTM BR1 HR1 CR0 CL1 DR1 CR1 EL1 DL1 AR0 EL0)::
+(makeTM BR1 HR1 CR0 DR1 DL0 CR1 EL1 AR0 AR1 EL0)::
+(makeTM BR0 CL0 CR1 BR1 DL1 EL0 HR1 EL1 AR1 AL1)::
+(makeTM BR0 CL1 CR1 BR1 DL1 DL0 EL0 AR0 AL1 HR1)::
+(makeTM BR0 AL0 CR1 HR1 DR0 DL1 ER1 DR1 AL1 EL1)::
+(makeTM BR0 AL1 CR0 AL0 DL1 CR1 CR1 EL1 HR1 BL0)::
+(makeTM BR1 AL1 CL0 ER0 HR1 DL1 AR1 CL0 AR1 ER1)::
+(makeTM BR1 DL0 CR1 AR0 DR0 BR0 EL1 HR1 BL1 CL0)::
+(makeTM BR1 HR1 CR0 BR0 DL0 AL1 DL1 EL1 AL0 EL0)::
+(makeTM BR1 ER1 CL1 BR1 AR0 DL0 BL1 DL1 HR1 AR0)::
+(makeTM BR1 AR1 CR1 BL1 DL0 AR0 AR1 EL1 HR1 DL0)::
+(makeTM BR1 DR0 CR1 HR1 DL1 EL1 ER1 DL1 AR1 CL0)::
+(makeTM BR1 HR1 CR0 BL1 DR1 CR1 EL1 DL1 AR0 EL0)::
+(makeTM BR1 AR0 CL1 HR1 DL0 CL0 ER0 AR1 ER1 AR0)::
+(makeTM BR0 EL0 CL1 BR1 BR1 DL1 HR1 AL0 AR0 EL1)::
+(makeTM BR1 AR0 CL0 AR1 ER1 DL1 CL1 DL0 HR1 BR0)::
+(makeTM BR0 AL1 CR0 AL0 DL1 CR1 BL1 EL1 HR1 BL0)::
+(makeTM BR1 HR1 CL0 DR1 DL1 CL1 ER1 ER0 AR0 BL0)::
+(makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AR1)::
+(makeTM BR1 HR1 CR1 BL1 DL1 ER1 BL1 DL0 AR1 CR0)::
+(makeTM BR1 BR0 CR0 DL0 DR1 HR1 EL0 AR1 AL1 EL1)::
+(makeTM BR1 HR1 CR0 CR1 DR1 CR1 EL1 DL1 AR0 EL0)::
+(makeTM BR0 AL0 CL1 HR1 DR0 DR1 ER1 CR1 AL1 EL1)::
+(makeTM BR1 HR1 CR0 BR0 DL0 EL1 DL1 EL0 AL1 CR1)::
+(makeTM BR1 CR1 CL1 BR1 DL1 AR0 EL1 BL0 AL1 HR1)::
+(makeTM BR1 EL0 CR1 BR1 DR1 CL1 EL0 BR0 HR1 AL1)::
+(makeTM BR0 BR1 CR1 BR1 DL1 CL1 ER0 DL0 AR1 HR1)::
+(makeTM BR1 DL1 CL1 HR1 DL0 CL0 ER0 AR1 ER1 AR0)::
+(makeTM BR1 CL1 CL1 AR1 EL0 DL0 AR0 DR1 HR1 CL0)::
+(makeTM BR1 AL1 CR1 EL0 DR1 AR0 ER1 HR1 AL1 BL1)::
+(makeTM BR1 HR1 CL0 ER1 DL0 CL1 AR1 BL1 BR0 AR0)::
+(makeTM BR1 HR1 CR0 BR0 CL1 DL0 AR1 EL0 AL0 EL0)::
+(makeTM BR1 HR1 CL0 CL1 DL1 BL1 ER1 DR1 AL0 ER0)::
+(makeTM BR1 DL0 CR1 BL0 DR0 HR1 ER1 ER0 AL1 AR0)::
+(makeTM BR0 CL0 CR1 HR1 DL0 ER1 EL1 DL1 AR1 AR0)::
+(makeTM BR1 CL1 BL1 AR1 EL0 DL0 AR0 DR1 HR1 CL0)::
+(makeTM BR0 CL1 CR1 BR1 DL1 AL1 ER0 DL0 AR1 HR1)::
+(makeTM BR1 DR1 CL1 CR0 AR1 DL1 ER0 BL0 HR1 CR1)::
+(makeTM BR0 AL1 CR1 BR1 DL1 CL1 ER0 DL0 AR1 HR1)::
+(makeTM BR0 AL0 CR1 HR1 DR0 DR1 ER1 CR1 AL1 EL1)::
+(makeTM BR1 HR1 CR0 BR0 DL0 EL1 DL1 EL0 AL1 EL0)::
+(makeTM BR1 HR1 CR0 CR1 DR1 BR1 EL1 DL1 AR0 EL0)::
+(makeTM BR1 ER0 CR0 AR0 DL1 HR1 AL1 BL0 AR1 CL0)::
+(makeTM BR1 AL0 CR0 HR1 DR1 DR0 EL1 ER0 AR1 CL0)::
+(makeTM BR0 AR1 CR1 DL1 DL1 BR1 EL0 AL0 HR1 DL0)::
+(makeTM BR1 EL0 CR1 HR1 DR0 CR0 DL1 AL0 BL0 EL0)::
+(makeTM BR1 AR0 CL1 HR1 CL0 DL0 ER1 BR0 ER0 AR1)::
+(makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AL0)::
+(makeTM BR1 HR1 CL1 DL1 DR1 CL1 ER1 BL0 AR1 CR0)::
+(makeTM BR0 AR1 CR1 DL1 CL1 BR1 EL0 AL0 HR1 DL0)::
+(makeTM BR1 DL1 CR1 BR0 AL1 CR1 EL1 AL0 CL1 HR1)::
+(makeTM BR0 AL0 CR1 HR1 DR0 DR1 ER1 DR1 AL1 EL1)::
+(makeTM BR1 HR1 CR0 BR0 DL0 EL1 DL1 CR1 AL1 EL0)::
+(makeTM BR1 AR1 CL1 CL0 EL0 DR0 AR0 BL1 DL1 HR1)::
+(makeTM BR1 ER1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 AR1)::
+(makeTM BR1 AR1 CL1 BL1 DR0 CL0 ER1 HR1 AR0 AR1)::
+(makeTM BR0 AR0 CL1 HR1 DL0 CL0 ER0 BR1 ER1 AR1)::
+(makeTM BR1 DL0 CR1 ER0 DR1 HR1 EL1 AL1 AR1 EL1)::
+(makeTM BR1 AL1 CR1 DR1 AL0 ER0 HR1 CR0 CL0 ER1)::
+(makeTM BR0 BR1 CR1 AR1 DL1 CL1 ER0 DL0 AL1 HR1)::
+(makeTM BR0 BR1 CR1 AR1 DL1 CL1 ER0 DL0 AR1 HR1)::
+(makeTM BR1 AL1 CL0 ER0 HR1 DL1 AL1 CL0 AR1 ER1)::
+(makeTM BR1 AR1 CL1 EL1 DR0 CL0 ER1 HR1 AR0 BL1)::
+(makeTM BR0 DL0 CR1 ER1 AL1 CR1 CL1 DL1 HR1 BR0)::
+nil.
+
+Time Definition res := Eval vm_compute in (map (fun x => (TM_to_N x,decider_all x)) holdouts_82).
+
+
+Definition res' := ((filter (fun x => match x with (_,Result_Unknown) => true | _ => false end) res)).
+Compute (map fst res').
+
+
 
 Definition q0 := root_q_upd1_simplified.
 Definition q1 := (SearchQueue_bfs q0 decider2).

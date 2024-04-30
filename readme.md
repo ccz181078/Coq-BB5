@@ -66,7 +66,7 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-**However, after about 12h of searching, there are (77-23-17) non-trivial TMs((53-23-17=13) of them write 1 at the first step) left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+**However, after about 12h of searching, there are 14 non-trivial TMs(13 of them write 1 at the first step) left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
 
 ## decider_all
 
@@ -76,7 +76,7 @@ A list of about 8,000 TMs are mapped to specific deciders (and parameters). This
 
 ## TODO
 
-24 unsolved TMs write 0 at the first step, they can be mapped to TMs that write 1 at the first step.
-
 The searching result is not proved (and need some trick to avoid compute twice when Qed).
+
+Merge 13 individual TM's proof of nonhalt.
 
