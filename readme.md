@@ -76,9 +76,7 @@ A list of about 8,000 TMs are mapped to specific deciders (and parameters). This
 
 ## TODO
 
-The searching result is not proved (and need some trick to avoid compute twice when Qed).
-
-Merge 13 individual TM's proof of nonhalt.
+Merge 13 individual TM's proof of nonhalt, now they are axioms.
 
 ## Used Axioms
 

@@ -3,6 +3,7 @@ Require Import ZArith.
 From Coq Require Import Logic.FunctionalExtensionality.
 Require Import Lia.
 From Coq Require Import FSets.FMapPositive.
+Require Import Coq.Program.Equality.
 
 Ltac invst H := inversion H; subst.
 Ltac ctor := constructor.
@@ -116,7 +117,20 @@ Qed.
 
 
 
+Notation "x &&& y" := (if x then y else false) (at level 80, right associativity).
+Notation "x ||| y" := (if x then true else y) (at level 85, right associativity).
 
+Lemma andb_shortcut_spec(a b:bool):
+  (a&&&b) = (a&&b)%bool.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma orb_shortcut_spec(a b:bool):
+  (a|||b) = (a||b)%bool.
+Proof.
+  reflexivity.
+Qed.
 
 
 
@@ -320,6 +334,8 @@ Ltac eq_dec eqb_spec eqb s1 s2 :=
 Ltac St_eq_dec s1 s2 :=
   eq_dec St_eqb_spec St_eqb s1 s2.
 
+
+
 Inductive Σ:Set :=
 | Σ0
 | Σ1.
@@ -409,6 +425,88 @@ match d with
 | Dneg => Dpos
 | Dpos => Dneg
 end.
+
+Definition Dir_eqb(d1 d2:Dir):bool :=
+match d1,d2 with
+| Dpos,Dpos | Dneg,Dneg => true
+| _,_ => false
+end.
+
+Lemma Dir_eqb_spec d1 d2:
+  if Dir_eqb d1 d2 then d1=d2 else d1<>d2.
+Proof.
+  destruct d1,d2; cbn; cg.
+Qed.
+
+Ltac Dir_eq_dec s1 s2 :=
+  eq_dec Dir_eqb_spec Dir_eqb s1 s2.
+
+
+
+
+Definition St_list:= St0::St1::St2::St3::St4::nil.
+Definition Σ_list:= Σ0::Σ1::nil.
+Definition Dir_list := Dpos::Dneg::nil.
+
+Lemma St_list_spec:
+  forall s, In s St_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Lemma Σ_list_spec:
+  forall s, In s Σ_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Lemma Dir_list_spec:
+  forall s, In s Dir_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Definition forallb_St f :=
+  forallb f St_list.
+
+Definition forallb_Σ f :=
+  forallb f Σ_list.
+
+Definition forallb_Dir f :=
+  forallb f Dir_list.
+
+Lemma forallb_St_spec f:
+  forallb_St f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_St.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,St_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Σ_spec f:
+  forallb_Σ f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Σ.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Σ_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Dir_spec f:
+  forallb_Dir f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Dir.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Dir_list_spec.
+  - apply H.
+Qed.
 
 
 
@@ -1623,9 +1721,6 @@ match s,i with
 end.
 
 Section TNF.
-
-Definition St_list:= St0::St1::St2::St3::St4::nil.
-Definition Σ_list:= Σ0::Σ1::nil.
 
 Fixpoint list_nat_sum(ls:list nat):nat :=
 match ls with
@@ -4947,9 +5042,6 @@ Proof.
   destruct (tm s0 m0) as [[s1 d o]|]; reflexivity.
 Qed.
 
-Notation "x &&& y" := (if x then y else false) (at level 80, right associativity).
-Notation "x ||| y" := (if x then true else y) (at level 85, right associativity).
-
 Fixpoint verify_loop1(h0 h1:ListES*Z)(ls0 ls1:list (ListES*Z))(n:nat)(dpos:Z):bool :=
   let (es0,d0):=h0 in
   let (es1,d1):=h1 in
@@ -5034,18 +5126,6 @@ Proof.
   cbn. destruct n; lia.
 Qed.
 
-Lemma andb_shortcut_spec(a b:bool):
-  (a&&&b) = (a&&b)%bool.
-Proof.
-  reflexivity.
-Qed.
-
-Lemma orb_shortcut_spec(a b:bool):
-  (a|||b) = (a||b)%bool.
-Proof.
-  reflexivity.
-Qed.
-
 Lemma skipn_S {T} {n} {h:T} {t ls}:
   h::t = skipn n ls ->
   t = skipn (S n) ls.
@@ -5116,8 +5196,7 @@ Proof.
   f_equal. apply IHn1.
 Qed.
 
-Ltac Σ_eq_dec s1 s2 :=
-  eq_dec Σ_eqb_spec Σ_eqb s1 s2.
+
 
 Lemma sidpos_history_period_S {h0 ls0 ls1 ls2 l0 l1 z z0 N T}:
   (l0, z) :: ls1 = skipn N (h0 :: ls0) ->
@@ -5340,6 +5419,9 @@ Proof.
       destruct n; reflexivity.
   }
 Qed.
+
+Ltac Σ_eq_dec s1 s2 :=
+  eq_dec Σ_eqb_spec Σ_eqb s1 s2.
 
 Lemma verify_loop1_spec tm h1 h2 ls1 ls2 n d:
   (exists h0 ls0 n0 n1,
@@ -6465,17 +6547,7 @@ Qed.
 
 Hypothesis WordUpdate_MAXT:nat.
 
-Definition Dir_eqb(d1 d2:Dir):bool :=
-match d1,d2 with
-| Dpos,Dpos | Dneg,Dneg => true
-| _,_ => false
-end.
 
-Lemma Dir_eqb_spec d1 d2:
-  if Dir_eqb d1 d2 then d1=d2 else d1<>d2.
-Proof.
-  destruct d1,d2; cbn; cg.
-Qed.
 
 Definition WordUpdate(tm:TM Σ)(s0:St)(w0:Word)(sgn0:Dir):option (St*Word*bool) :=
 match w0 with
@@ -7492,28 +7564,7 @@ Qed.
 End NFA_NonHalt.
 
 
-Lemma St_list_spec:
-  forall s, In s St_list.
-Proof.
-  intro s.
-  destruct s; cbn; tauto.
-Qed.
 
-Lemma Σ_list_spec:
-  forall s, In s Σ_list.
-Proof.
-  intro s.
-  destruct s; cbn; tauto.
-Qed.
-
-Definition Dir_list := Dpos::Dneg::nil.
-
-Lemma Dir_list_spec:
-  forall s, In s Dir_list.
-Proof.
-  intro s.
-  destruct s; cbn; tauto.
-Qed.
 
 
 
@@ -7556,50 +7607,13 @@ destruct s as [s|].
 - left. reflexivity.
 Qed.
 
-Definition forallb_St f :=
-  forallb f St_list.
-
-Definition forallb_Σ f :=
-  forallb f Σ_list.
-
-Definition forallb_Dir f :=
-  forallb f Dir_list.
-
 Definition forallb_U f :=
   forallb f U_list.
 
 Definition forallb_oStU f :=
   forallb f oStU_list.
 
-Lemma forallb_St_spec f:
-  forallb_St f = true <-> forall s, f s = true.
-Proof.
-  unfold forallb_St.
-  rewrite forallb_forall.
-  split; intros.
-  - apply H,St_list_spec.
-  - apply H.
-Qed.
 
-Lemma forallb_Σ_spec f:
-  forallb_Σ f = true <-> forall s, f s = true.
-Proof.
-  unfold forallb_Σ.
-  rewrite forallb_forall.
-  split; intros.
-  - apply H,Σ_list_spec.
-  - apply H.
-Qed.
-
-Lemma forallb_Dir_spec f:
-  forallb_Dir f = true <-> forall s, f s = true.
-Proof.
-  unfold forallb_Dir.
-  rewrite forallb_forall.
-  split; intros.
-  - apply H,Dir_list_spec.
-  - apply H.
-Qed.
 
 Lemma forallb_U_spec f:
   forallb_U f = true <-> forall s, f s = true.
@@ -8248,7 +8262,6 @@ Fixpoint nat_n_list(n:nat):list (nat_n n).
   - apply ((nat_n_O (S n0))::(map (fun x => nat_n_S n0 x) (nat_n_list n0))).
 Defined.
 
-Require Import Coq.Program.Equality.
 
 
 Lemma nat_n_list_spec n:
@@ -8721,7 +8734,6 @@ Proof.
         -- rewrite Z.sub_0_r. reflexivity.
         -- unfold pop_l.
            apply WDFA_pop_spec; auto 1.
-           ++ apply U0_l.
            ++ apply U_l_enc_inj.
            ++ apply nat_n_list_spec.
     - subst st1.
@@ -8784,7 +8796,6 @@ Proof.
         -- rewrite Z.sub_0_r. reflexivity.
         -- unfold pop_r.
            apply WDFA_pop_spec; auto 1.
-           ++ apply U0_r.
            ++ apply U_r_enc_inj.
            ++ apply nat_n_list_spec.
     - subst st1.
@@ -8909,11 +8920,9 @@ Proof.
   - eapply wdfa_0_dec_spec; eauto 1.
     apply nat_n_enc_inj.
   - eapply wdfa_sgn_closed_dec_spec; eauto 1.
-    + apply nat_n_O.
     + apply nat_n_enc_inj.
     + apply nat_n_list_spec.
   - eapply wdfa_sgn_closed_dec_spec; eauto 1.
-    + apply nat_n_O.
     + apply nat_n_enc_inj.
     + apply nat_n_list_spec.
 Qed.
@@ -9127,6 +9136,146 @@ Proof.
 Qed.
 
 
+Definition Finned1 := makeTM BR1 EL0 CR1 BR1 DR1 CL1 EL0 BR0 HR1 AL1.
+Definition Finned2 := makeTM BR1 AR1 CR1 BL1 DL0 AR0 AR1 EL1 HR1 DL0.
+Definition Finned3 := makeTM BR1 ER1 CL1 BR1 AR0 DL0 BL1 DL1 HR1 AR0.
+Definition Finned4 := makeTM BR1 AL1 CL0 ER0 HR1 DL1 AR1 CL0 AR1 ER1.
+Definition Finned5 := makeTM BR1 AL1 CL0 ER0 HR1 DL1 AL1 CL0 AR1 ER1.
+Definition Skelet1 := makeTM BR1 DR1 CL1 CR0 AR1 DL1 ER0 BL0 HR1 CR1.
+Definition Skelet10 := makeTM BR1 AR0 CL0 AR1 ER1 DL1 CL1 DL0 HR1 BR0.
+Definition Skelet15 := makeTM BR1 HR1 CR1 BL1 DL1 ER1 BL1 DL0 AR1 CR0.
+Definition Skelet17 := makeTM BR1 HR1 CL0 ER1 DL0 CL1 AR1 BL1 BR0 AR0.
+Definition Skelet26 := makeTM BR1 DL1 CR1 BR0 AL1 CR1 EL1 AL0 CL1 HR1.
+Definition Skelet33 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 ER1.
+Definition Skelet34 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AR1.
+Definition Skelet35 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AL0.
+
+Definition tm_holdouts_13 :=
+  Finned1::Finned2::Finned3::Finned4::Finned5::
+  Skelet1::Skelet10::Skelet15::Skelet17::Skelet26::Skelet33::Skelet34::Skelet35::
+  nil.
+
+Axiom tm_holdouts_13_spec:
+  forall tm, In tm tm_holdouts_13 -> ~HaltsFromInit Σ Σ0 tm.
+
+Definition Trans_eqb(tr1 tr2:Trans Σ):bool :=
+  let (s1,d1,o1):=tr1 in
+  let (s2,d2,o2):=tr2 in
+  St_eqb s1 s2 &&&
+  Dir_eqb d1 d2 &&&
+  Σ_eqb o1 o2.
+
+Lemma Trans_eqb_spec tr1 tr2:
+  if Trans_eqb tr1 tr2 then tr1=tr2 else tr1<>tr2.
+Proof.
+  destruct tr1 as [s1 d1 o1].
+  destruct tr2 as [s2 d2 o2].
+  cbn.
+  repeat rewrite shortcut_andb_spec.
+  St_eq_dec s1 s2.
+  - Dir_eq_dec d1 d2.
+    + Σ_eq_dec o1 o2.
+      * cbn. cg.
+      * cbn. cg.
+    + cbn. cg.
+  - cbn. cg.
+Qed.
+
+Ltac Trans_eq_dec s1 s2 := eq_dec Trans_eqb_spec Trans_eqb s1 s2.
+
+Definition option_eqb {T}(f:T->T->bool) (t1 t2:option T):bool :=
+match t1,t2 with
+| Some c1,Some c2 => f c1 c2
+| None,None => true
+| _,_ => false
+end.
+
+Lemma option_eqb_spec {T}(f:T->T->bool)(f_spec:forall t1 t2, if f t1 t2 then t1=t2 else t1<>t2) a1 a2:
+  if option_eqb f a1 a2 then a1=a2 else a1<>a2.
+Proof.
+  destruct a1 as [a1|];
+  destruct a2 as [a2|].
+  - cbn.
+    specialize (f_spec a1 a2).
+    destruct (f a1 a2); cg.
+  - cbn. cg.
+  - cbn. cg.
+  - cbn. cg.
+Qed.
+
+Ltac option_eq_dec f f_spec o1 o2 := eq_dec (option_eqb_spec f f_spec) (option_eqb f) o1 o2.
+
+Definition tm_eqb(tm0 tm1:TM Σ):bool :=
+  forallb_St (fun s0 =>
+  forallb_Σ (fun i0 =>
+  option_eqb Trans_eqb (tm0 s0 i0) (tm1 s0 i0))).
+
+Lemma tm_eqb_spec (tm0 tm1:TM Σ):
+  if tm_eqb tm0 tm1 then tm0=tm1 else tm0<>tm1.
+Proof.
+  unfold tm_eqb.
+  destruct (
+    forallb_St (fun s0 =>
+    forallb_Σ (fun i0 =>
+    option_eqb Trans_eqb (tm0 s0 i0) (tm1 s0 i0)))) eqn:E.
+  - fext.
+    fext.
+    rewrite forallb_St_spec in E.
+    specialize (E x).
+    rewrite forallb_Σ_spec in E.
+    specialize (E x0).
+    option_eq_dec Trans_eqb Trans_eqb_spec (tm0 x x0) (tm1 x x0); cg.
+  - intro X. subst.
+    assert (forallb_St
+        (fun s0 : St => forallb_Σ (fun i0 : Σ => option_eqb Trans_eqb (tm1 s0 i0) (tm1 s0 i0))) = true). {
+      rewrite forallb_St_spec.
+      intro s0.
+      rewrite forallb_Σ_spec.
+      intro i0.
+      option_eq_dec Trans_eqb Trans_eqb_spec (tm1 s0 i0) (tm1 s0 i0); cg.
+    }
+    cg.
+Qed.
+
+Fixpoint find_tm(tm:TM Σ)(ls:list (TM Σ)):bool :=
+match ls with
+| nil => false
+| h::t => tm_eqb tm h ||| find_tm tm t
+end.
+
+Lemma find_tm_spec tm ls:
+  find_tm tm ls = true ->
+  In tm ls.
+Proof.
+  induction ls.
+  1: cbn; cg.
+  unfold find_tm. fold find_tm.
+  intro H.
+  rewrite shortcut_orb_spec in H.
+  rewrite Bool.orb_true_iff in H.
+  destruct H as [H|H].
+  - left.
+    pose proof (tm_eqb_spec tm a).
+    destruct (tm_eqb tm a); cg.
+  - right.
+    apply IHls,H.
+Qed.
+
+Definition holdout_checker tm := if find_tm tm tm_holdouts_13 then Result_NonHalt else Result_Unknown.
+
+Lemma holdout_checker_spec n: HaltDecider_WF n holdout_checker.
+Proof.
+  unfold HaltDecider_WF.
+  intro tm.
+  unfold holdout_checker.
+  pose proof (find_tm_spec tm tm_holdouts_13) as H.
+  destruct (find_tm tm tm_holdouts_13).
+  2: trivial.
+  specialize (H eq_refl).
+  apply tm_holdouts_13_spec,H.
+Qed.
+
+
 Inductive DeciderType :=
 | NG(hlen len:nat)
 | NG_LRU(len:nat)
@@ -9134,7 +9283,8 @@ Inductive DeciderType :=
 | DNV(n:nat)(f:nat->Σ->nat)
 | WA(max_d:Z)(n_l:nat)(f_l:nat->Σ->(nat*Z))(n_r:nat)(f_r:nat->Σ->(nat*Z))
 | Ha
-| Lp1.
+| Lp1
+| Holdout.
 
 
 Definition getDecider(x:DeciderType) :=
@@ -9151,6 +9301,7 @@ match x with
 | WA max_d n_l f_l n_r f_r => MITM_WDFA_verifier max_d n_l f_l n_r f_r 10000000
 | Ha => halt_decider_max
 | Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
+| Holdout => holdout_checker
 end.
 
 Lemma getDecider_spec x:
@@ -9178,6 +9329,7 @@ Proof.
     apply nat_eqb_N_spec.
     vm_compute.
     reflexivity.
+  - apply holdout_checker_spec.
 Qed.
 
 
@@ -17578,6 +17730,9 @@ WA 2
 nil.
 
 
+
+
+
 Definition check_tms(ls:list ((TM Σ)*DeciderType)):=
   map (fun (x:(TM Σ)*DeciderType)=> let (tm,d):=x in getDecider d tm) ls.
 
@@ -17597,6 +17752,7 @@ Definition tm_list :=
   tm_NG_LRU::
   tm_NG0'::tm_RWL'::
   tm_DNV::tm_WA::
+  (map (fun tm => (tm,Holdout)) tm_holdouts_13)::
   nil.
 
 
@@ -17691,7 +17847,7 @@ Qed.
 
 Definition q0 := root_q_upd1_simplified.
 
-Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 8).
+Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 20).
 
 Definition q_0 := q0.
 
@@ -18340,7 +18496,8 @@ Qed.
 Lemma q_200_empty:
   q_200 = (nil,nil).
 Proof.
-Admitted.
+  reflexivity.
+Qed.
 
 Lemma root_HTUB:
   TNF_Node_HTUB (N.to_nat BB) root.
