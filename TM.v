@@ -17607,27 +17607,16 @@ Proof.
 Qed.
 
 
-Print Assumptions decider_all_spec
 
 
 
 Definition q0 := root_q_upd1_simplified.
-Definition q1 := (SearchQueue_bfs q0 decider2).
-Definition q2 := (SearchQueue_bfs q1 decider2).
-Definition q3 := (SearchQueue_bfs q2 decider2).
-Compute (List.length (fst q3)).
-Compute (TNF_Node_list_to_N_list (firstn 5 ((fst q3)))).
-
-Definition q_i(n:nat) := SearchQueue_init (nth n (fst q3) root).
-
-Definition test_i (n:nat) := (SearchQueue_upds
-  (q_i n)
-  decider_all
-  30).
 
 Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 20).
 
 Definition q_0 := q0.
+
+
 
 Definition q_1_def := q_suc q_0.
 Time Definition q_1 := Eval vm_compute in q_1_def.
@@ -18031,13 +18020,290 @@ Definition q_200_def := q_suc q_199.
 Time Definition q_200 := Eval vm_compute in q_200_def.
 
 
-Compute (length (TNF_Node_list_to_N_list (snd q_200))). (* 77 *)
-Compute (firstn 40 (TNF_Node_list_to_N_list (snd q_200))).
-Compute (skipn 40 (TNF_Node_list_to_N_list (snd q_200))).
+Lemma iter_S{A}(f:A->A)(x x0:A) n:
+  x0 = Nat.iter n f x ->
+  f x0 = Nat.iter (S n) f x.
+Proof.
+  intro H.
+  rewrite H.
+  reflexivity.
+Qed.
+
+Ltac q_rw q_x q_x_def :=
+  assert (H:q_x = q_x_def) by (vm_cast_no_check (eq_refl q_x));
+  rewrite H; unfold q_x_def; clear H; apply iter_S.
+
+Lemma q_200_spec: q_200 = Nat.iter 200 q_suc q_0.
+q_rw q_200 q_200_def.
+q_rw q_199 q_199_def.
+q_rw q_198 q_198_def.
+q_rw q_197 q_197_def.
+q_rw q_196 q_196_def.
+q_rw q_195 q_195_def.
+q_rw q_194 q_194_def.
+q_rw q_193 q_193_def.
+q_rw q_192 q_192_def.
+q_rw q_191 q_191_def.
+q_rw q_190 q_190_def.
+q_rw q_189 q_189_def.
+q_rw q_188 q_188_def.
+q_rw q_187 q_187_def.
+q_rw q_186 q_186_def.
+q_rw q_185 q_185_def.
+q_rw q_184 q_184_def.
+q_rw q_183 q_183_def.
+q_rw q_182 q_182_def.
+q_rw q_181 q_181_def.
+q_rw q_180 q_180_def.
+q_rw q_179 q_179_def.
+q_rw q_178 q_178_def.
+q_rw q_177 q_177_def.
+q_rw q_176 q_176_def.
+q_rw q_175 q_175_def.
+q_rw q_174 q_174_def.
+q_rw q_173 q_173_def.
+q_rw q_172 q_172_def.
+q_rw q_171 q_171_def.
+q_rw q_170 q_170_def.
+q_rw q_169 q_169_def.
+q_rw q_168 q_168_def.
+q_rw q_167 q_167_def.
+q_rw q_166 q_166_def.
+q_rw q_165 q_165_def.
+q_rw q_164 q_164_def.
+q_rw q_163 q_163_def.
+q_rw q_162 q_162_def.
+q_rw q_161 q_161_def.
+q_rw q_160 q_160_def.
+q_rw q_159 q_159_def.
+q_rw q_158 q_158_def.
+q_rw q_157 q_157_def.
+q_rw q_156 q_156_def.
+q_rw q_155 q_155_def.
+q_rw q_154 q_154_def.
+q_rw q_153 q_153_def.
+q_rw q_152 q_152_def.
+q_rw q_151 q_151_def.
+q_rw q_150 q_150_def.
+q_rw q_149 q_149_def.
+q_rw q_148 q_148_def.
+q_rw q_147 q_147_def.
+q_rw q_146 q_146_def.
+q_rw q_145 q_145_def.
+q_rw q_144 q_144_def.
+q_rw q_143 q_143_def.
+q_rw q_142 q_142_def.
+q_rw q_141 q_141_def.
+q_rw q_140 q_140_def.
+q_rw q_139 q_139_def.
+q_rw q_138 q_138_def.
+q_rw q_137 q_137_def.
+q_rw q_136 q_136_def.
+q_rw q_135 q_135_def.
+q_rw q_134 q_134_def.
+q_rw q_133 q_133_def.
+q_rw q_132 q_132_def.
+q_rw q_131 q_131_def.
+q_rw q_130 q_130_def.
+q_rw q_129 q_129_def.
+q_rw q_128 q_128_def.
+q_rw q_127 q_127_def.
+q_rw q_126 q_126_def.
+q_rw q_125 q_125_def.
+q_rw q_124 q_124_def.
+q_rw q_123 q_123_def.
+q_rw q_122 q_122_def.
+q_rw q_121 q_121_def.
+q_rw q_120 q_120_def.
+q_rw q_119 q_119_def.
+q_rw q_118 q_118_def.
+q_rw q_117 q_117_def.
+q_rw q_116 q_116_def.
+q_rw q_115 q_115_def.
+q_rw q_114 q_114_def.
+q_rw q_113 q_113_def.
+q_rw q_112 q_112_def.
+q_rw q_111 q_111_def.
+q_rw q_110 q_110_def.
+q_rw q_109 q_109_def.
+q_rw q_108 q_108_def.
+q_rw q_107 q_107_def.
+q_rw q_106 q_106_def.
+q_rw q_105 q_105_def.
+q_rw q_104 q_104_def.
+q_rw q_103 q_103_def.
+q_rw q_102 q_102_def.
+q_rw q_101 q_101_def.
+q_rw q_100 q_100_def.
+q_rw q_99 q_99_def.
+q_rw q_98 q_98_def.
+q_rw q_97 q_97_def.
+q_rw q_96 q_96_def.
+q_rw q_95 q_95_def.
+q_rw q_94 q_94_def.
+q_rw q_93 q_93_def.
+q_rw q_92 q_92_def.
+q_rw q_91 q_91_def.
+q_rw q_90 q_90_def.
+q_rw q_89 q_89_def.
+q_rw q_88 q_88_def.
+q_rw q_87 q_87_def.
+q_rw q_86 q_86_def.
+q_rw q_85 q_85_def.
+q_rw q_84 q_84_def.
+q_rw q_83 q_83_def.
+q_rw q_82 q_82_def.
+q_rw q_81 q_81_def.
+q_rw q_80 q_80_def.
+q_rw q_79 q_79_def.
+q_rw q_78 q_78_def.
+q_rw q_77 q_77_def.
+q_rw q_76 q_76_def.
+q_rw q_75 q_75_def.
+q_rw q_74 q_74_def.
+q_rw q_73 q_73_def.
+q_rw q_72 q_72_def.
+q_rw q_71 q_71_def.
+q_rw q_70 q_70_def.
+q_rw q_69 q_69_def.
+q_rw q_68 q_68_def.
+q_rw q_67 q_67_def.
+q_rw q_66 q_66_def.
+q_rw q_65 q_65_def.
+q_rw q_64 q_64_def.
+q_rw q_63 q_63_def.
+q_rw q_62 q_62_def.
+q_rw q_61 q_61_def.
+q_rw q_60 q_60_def.
+q_rw q_59 q_59_def.
+q_rw q_58 q_58_def.
+q_rw q_57 q_57_def.
+q_rw q_56 q_56_def.
+q_rw q_55 q_55_def.
+q_rw q_54 q_54_def.
+q_rw q_53 q_53_def.
+q_rw q_52 q_52_def.
+q_rw q_51 q_51_def.
+q_rw q_50 q_50_def.
+q_rw q_49 q_49_def.
+q_rw q_48 q_48_def.
+q_rw q_47 q_47_def.
+q_rw q_46 q_46_def.
+q_rw q_45 q_45_def.
+q_rw q_44 q_44_def.
+q_rw q_43 q_43_def.
+q_rw q_42 q_42_def.
+q_rw q_41 q_41_def.
+q_rw q_40 q_40_def.
+q_rw q_39 q_39_def.
+q_rw q_38 q_38_def.
+q_rw q_37 q_37_def.
+q_rw q_36 q_36_def.
+q_rw q_35 q_35_def.
+q_rw q_34 q_34_def.
+q_rw q_33 q_33_def.
+q_rw q_32 q_32_def.
+q_rw q_31 q_31_def.
+q_rw q_30 q_30_def.
+q_rw q_29 q_29_def.
+q_rw q_28 q_28_def.
+q_rw q_27 q_27_def.
+q_rw q_26 q_26_def.
+q_rw q_25 q_25_def.
+q_rw q_24 q_24_def.
+q_rw q_23 q_23_def.
+q_rw q_22 q_22_def.
+q_rw q_21 q_21_def.
+q_rw q_20 q_20_def.
+q_rw q_19 q_19_def.
+q_rw q_18 q_18_def.
+q_rw q_17 q_17_def.
+q_rw q_16 q_16_def.
+q_rw q_15 q_15_def.
+q_rw q_14 q_14_def.
+q_rw q_13 q_13_def.
+q_rw q_12 q_12_def.
+q_rw q_11 q_11_def.
+q_rw q_10 q_10_def.
+q_rw q_9 q_9_def.
+q_rw q_8 q_8_def.
+q_rw q_7 q_7_def.
+q_rw q_6 q_6_def.
+q_rw q_5 q_5_def.
+q_rw q_4 q_4_def.
+q_rw q_3 q_3_def.
+q_rw q_2 q_2_def.
+q_rw q_1 q_1_def.
+reflexivity.
+Time Qed.
 
 
+Lemma q_200_WF:
+  SearchQueue_WF (N.to_nat BB) q_200 root.
+Proof.
+  rewrite q_200_spec.
+  generalize 200.
+  intro n.
+  induction n.
+  - replace (Nat.iter 0 q_suc q_0) with q_0 by reflexivity.
+    unfold q_0,q0.
+    apply root_q_upd1_simplified_WF.
+  - replace (Nat.iter (S n) q_suc q_0) with (q_suc (Nat.iter n q_suc q_0)) by (apply iter_S; reflexivity).
+    remember (Nat.iter n q_suc q_0) as q.
+    clear Heqq.
+    unfold q_suc.
+    apply SearchQueue_upds_spec.
+    + apply IHn.
+    + apply decider_all_spec.
+Qed.
 
 
+Lemma q_200_empty:
+  q_200 = (nil,nil).
+Proof.
+Admitted.
+
+Lemma root_HTUB:
+  TNF_Node_HTUB (N.to_nat BB) root.
+Proof.
+  epose proof q_200_WF.
+  unfold SearchQueue_WF in H.
+  rewrite q_200_empty in H.
+  apply H.
+  cbn.
+  intros.
+  contradiction.
+Qed.
+
+Lemma TM0_HTUB:
+  HaltTimeUpperBound Σ (N.to_nat BB) (InitES Σ Σ0) (LE Σ (TM0 Σ)).
+Proof.
+  apply root_HTUB.
+Qed.
+
+Lemma allTM_HTUB:
+  HaltTimeUpperBound Σ (N.to_nat BB) (InitES Σ Σ0) (fun _ => True).
+Proof.
+  unfold HaltTimeUpperBound.
+  intros.
+  eapply TM0_HTUB.
+  2: apply H0.
+  unfold LE.
+  intros.
+  right.
+  reflexivity.
+Qed.
+
+
+Theorem BB5_upperbound:
+  forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB.
+Proof.
+  intros tm n0.
+  apply allTM_HTUB.
+  trivial.
+Qed.
+
+Print Assumptions BB5_upperbound.
 End MacroMachine.
 
 
