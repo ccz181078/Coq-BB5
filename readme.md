@@ -80,3 +80,20 @@ The searching result is not proved (and need some trick to avoid compute twice w
 
 Merge 13 individual TM's proof of nonhalt.
 
+## Used Axioms
+
+```
+functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Eqdep.Eq_rect_eq.eq_rect_eq
+  : forall (U : Type) (p : U) (Q : U -> Type) (x : Q p) (h : p = p), x = eq_rect p Q x p h
+LEM : forall P : Prop, P \/ ~ P
+```
+
+`Eqdep.Eq_rect_eq.eq_rect_eq` is for proving some properties of the bounded natural number type `nat_n` (used by tactics like `dependent destruction`).
+
+`functional_extensionality_dep` is used to simplify the equality between `TM` and between `ExecState` since they are represented by functions, removing this axiom will make setoid everywhere.
+
+`LEM` can simplify some case analysis, and is easy to remove if needed.
+
