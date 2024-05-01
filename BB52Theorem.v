@@ -5,6 +5,8 @@ Require Import Lia.
 Require Import FSets.FMapPositive.
 Require Import Coq.Program.Equality.
 
+Set Warnings "-abstract-large-number".
+
 Ltac invst H := inversion H; subst.
 Ltac ctor := constructor.
 Ltac ector := econstructor.
@@ -4859,7 +4861,6 @@ Proof.
   clear X1c. clear X1d.
   clear X2c. clear X2d.
   cbn in X1b,X2b.
-  Search t2.
   assert (m'0=m'1). {
     rewrite H17 in H11.
     pose proof (fext_inv Z0 H11).
@@ -5265,7 +5266,6 @@ Proof.
   ector; eauto 1.
 Qed.
 
-Check Steps_split.
 
 Lemma MoveDist_split {tm n1 n2 st st0 d}:
   MoveDist tm (n1+n2) st st0 d ->
@@ -8976,7 +8976,6 @@ Proof.
   unfold TM_to_rev_NF.
   destruct (tm St0 Σ0) as [[s' [|] o]|].
   2,3: tauto.
-  Search TM_rev.
   unfold NonHalt.
   split; intros.
   - specialize (H n).
@@ -9153,7 +9152,7 @@ Definition Skelet35 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AL0.
 
 From BusyCoq Require Import
   Finned1 Finned2 Finned3 Finned4 Finned5
-  Skelet10 Skelet15 Skelet26 Skelet33 Skelet34 Skelet35.
+  Skelet1 Skelet10 Skelet15 Skelet26 Skelet33 Skelet34 Skelet35.
 Module Translation.
 Import Individual52.Individual52.Permute.Flip.Compute.TM.
 
@@ -9486,8 +9485,11 @@ Proof.
   translate_nonhalt Skelet35.tm Skelet35.nonhalt.
 Qed.
 
-Axiom Skelet1_nonhalt:
+Lemma Skelet1_nonhalt:
   ~HaltsFromInit Σ Σ0 Skelet1.
+Proof.
+  translate_nonhalt Skelet1.tm Skelet1.nonhalt.
+Qed.
 
 Axiom Skelet17_nonhalt:
   ~HaltsFromInit Σ Σ0 Skelet17.
@@ -9652,13 +9654,12 @@ Proof.
   apply tm_holdouts_13_spec,H.
 Qed.
 
-
 Inductive DeciderType :=
 | NG(hlen len:nat)
 | NG_LRU(len:nat)
 | RWL(len m:nat)
 | DNV(n:nat)(f:nat->Σ->nat)
-| WA(max_d:Z)(n_l:nat)(f_l:nat->Σ->(nat*Z))(n_r:nat)(f_r:nat->Σ->(nat*Z))
+| WA(max_d:BinNums.Z)(n_l:nat)(f_l:nat->Σ->(nat*BinNums.Z))(n_r:nat)(f_r:nat->Σ->(nat*BinNums.Z))
 | Ha
 | Lp1
 | Holdout.

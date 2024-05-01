@@ -74,6 +74,8 @@ The searching of the weighted DFA is not implemented. DFAs for 17 TMs are listed
 
 This module translates theorems of nonhalt from the proof in BusyCoq/verify.
 
+Skelet1.v takes about 10min.
+
 ## TNF_Node
 
 An TNF_Node records a TM in Tree Normal Form(TNF), and may be replaced with its succesors(update the visited halt transition to non-halt transition) if the TM halts or remove from the search queue if the TM doesn't halt.
@@ -88,7 +90,7 @@ After using some symmetries (move right at the first step; all unused states are
 
 There are some repeated code like `Time Definition q_183 := Eval vm_compute in q_183_def.` . This is used to split the searching process into multiple smaller steps (without this you will wait for hours without any feedback).
 
-**It takes about 12h to clear the search queue. 2 TMs' non-halt are axiom now, so the proof is incomplete. **
+**It takes about 12h to clear the search queue. The non-halt of Skelet17 is axiom now, so the proof is incomplete. **
 
 ## decider_all
 
@@ -98,7 +100,7 @@ A list of about 8,000 TMs are mapped to specific deciders (and parameters). This
 
 ## TODO
 
-Add Skelet1 and Skelet17's proof of nonhalt, now they are axioms.
+Skelet17's proof of nonhalt.
 
 ## Used Axioms
 
