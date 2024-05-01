@@ -20,6 +20,12 @@ Here we write an ExecState as a string, $0^\infty A(s,x)B0^\infty$ means current
 
 $X\rightsquigarrow^+Y$ means $Y$ is reachable from $X$ after some steps (but not 0 step).
 
+`loop1_decider` is the implementation of this method. It simulate the TM execution for $2^k$ steps, and checks whether the (state,input) history has a suffix that repeats at least twice and is case 2 or case 3.
+
+`halt_decider` is a weaker version, only checks for case 1 (halts), and saves a lot of memory because the history ExecState are no longer useful. TMs halts in 4100~47,176,870 steps are listed in `tm_Ha` and decided by this decider.
+
+`halt_verifier` is similar to `halt_decider` , but verify whether the number of steps before halting is the desired value. The lower bound of BB(5) is proved by this verifier.
+
 ## NGramCPS decider
 
 The idea of this decider is simple:
@@ -28,13 +34,15 @@ If we have finite sets $L,R\in\mathcal{P}(\Sigma^n)$ and $M\in\mathcal{P}(St\tim
 
 See [Nathan-Fenner/bb-simple-n-gram-cps (github.com)](https://github.com/Nathan-Fenner/bb-simple-n-gram-cps) for more details.
 
-We can save more information on the tape, for example, use a queue of fixed size or a LRU cache to save the update history of each position on the tape.  This is implemented by increasing the size of the charset $\Sigma$ without affect to the TM's haltness. The NGramCPS decider is improved a lot by this way.
+We can record more information on the tape, for example, use a queue of fixed size or a LRU cache to save the update history of each position on the tape.  This is implemented by increasing the size of the charset $\Sigma$ without affect to the TM's haltness. The NGramCPS decider is improved a lot by this way.
 
-`NGramCPS_decider_impl1` use a fixed size queue for update history.
+`NGramCPS_decider_impl1` use a fixed size queue for update history (i.e. record the last k updates where k is a constant).
 
-`NGramCPS_decider_impl2` doesn't use update history.
+`NGramCPS_decider_impl2` doesn't use update history (and it's faster).
 
-`NGramCPS_LRU_decider` use an LRU cache for update history.
+`NGramCPS_LRU_decider` use an LRU cache (i.e. maintain a list of $St\times Σ$ , and for each update $(s,i)$ (current (state,input)) , remove it from the list and push it to the front of the list) for update history.
+
+We use `PositiveMap.tree` (and sometimes together with a list) as the data structure of a finite set/map. `PositiveMap.tree` needs `positive` (bit-string) keys, so some functions named `..._enc` are used to encode elements of other type as bit-string.
 
 ## RepWL_ES_decider
 
@@ -44,17 +52,21 @@ If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegE
 
 Regular expressions used in this decider (with parameters $n$ and $m$) are limited to be like $A_1A_2A_3\dots A_{n_0}$ and each $A_i$ is like $B^k$ or $B^mB^*$ , $B$ matches a fixed string of length $n$ , and $1\le k\le m-1$ .
 
+For example, when n=2, m=3, the tape will be divide into blocks of length n, and erase the information of more than m repeats, like `...00000101010111 <A 10101111110000...` =>  `...00 00 01 01 01 01 11 <A 10 10 11 11 11 00 00...` => `(01)^3+ (11)^1 <A (10)^2 (11)^3+`  , here `01^3+`  matches `01^3, 01^4, 01^5, ...`  and `11 <A 10` (directed head notation) means `1(A,1)10` .
+
+For an abstracted ExecState represented as $\mathrm{RegExp}\times St\times \mathrm{RegExp}$ , we can run it for a macro-step (until the head leave current block (or timeout)). The decider will extend $S_1,S_2$ in this way until they are closed under macro-step (or timeout). The two regular expressions in an abstracted ExecState can be viewed as two stacks, a macro-step pops a block from a stack, and then push the updated block into a stack. Pop is like `(01)^3+ => (01,(01)^3+),(01,(01)^2);  (01)^2 => (01,(01)^1);  (01)^1 => (01,) ` , push is the reversed procedure of pop.
+
 ## dfa_nfa_verifier
 
 This decider accepts a DFA as input, and constructs an NFA (the method is described in [Direct recognizer for L(TM/~) ](https://github.com/bbchallenge/bbchallenge-deciders/tree/main/decider-finite-automata-reduction)) to recognize all tape configuration that will halt. The decider then check whether initial tape configuration is accepted, if not, the TM will never halt.
 
-The searching of the DFA is not implemented. DFAs for 23 TMs are listed in the code.
+The searching of the DFA is not implemented. DFAs for 23 TMs are listed in `tm_DNV`.
 
 ## MITM_WDFA_verifier
 
 This decider accepts two weighted DFA (as described in [Iijil1/MITMWFAR: Testing the feasability of using weighted automatons to describe non-regular languages that solve the halting problem for some turing machines (github.com)](https://github.com/Iijil1/MITMWFAR) ) as input, and use a method similar to RepWL_ES_decider to find a set of ExecState which is closed under step.
 
-The searching of the weighted DFA is not implemented. DFAs for 17 TMs are listed in the code.
+The searching of the weighted DFA is not implemented. DFAs for 17 TMs are listed in `tm_WA`.
 
 ## TNF_Node
 
@@ -66,11 +78,15 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-**However, after about 12h of searching, there are 14 non-trivial TMs(13 of them write 1 at the first step) left in the search queue that cannot be decided by the three deciders above, so the proof is incomplete. **
+After using some symmetries (move right at the first step; all unused states are equal) to reduce the search space, there are about 1.6e8 TMs to be decided. Writes 1 at the first step is not used because it may change halting time, and only 1/3 speedup. If a TM writes 0 at the first step, it may be normalized to write 1 at the first step ( implemented in `TM_to_NF` ) and re-run some of the deciders for proving non-halt.
+
+There are some repeated code like `Time Definition q_183 := Eval vm_compute in q_183_def.` . This is used to split the searching process into multiple smaller steps (without this you will wait for hours without any feedback).
+
+**It takes about 12h to clear the search queue. 13 TMs' non-halt are axiom now, so the proof is incomplete. **
 
 ## decider_all
 
-Different deciders are arranged in a specific order to efficiently decide the haltness of most TMs.
+Different deciders are arranged in a specific order to decide most TMs efficiently.
 
 A list of about 8,000 TMs are mapped to specific deciders (and parameters). This avoids grid search of decider kind and parameters.
 
