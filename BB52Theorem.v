@@ -1266,10 +1266,12 @@ Qed.
 
 End rev.
 
+End TM.
+
 Lemma Trans_swap_id s1 s2 t:
-  nxt t <> s1 ->
-  nxt t <> s2 ->
-  t = Trans_swap s1 s2 t.
+  nxt Σ t <> s1 ->
+  nxt Σ t <> s2 ->
+  t = Trans_swap Σ s1 s2 t.
 Proof.
   intros.
   destruct t.
@@ -1281,17 +1283,85 @@ Proof.
   St_eq_dec s2 nxt0; subst; try cg.
 Qed.
 
-Definition UnusedState(tm:TM)(s:St): Prop :=
+Definition UnusedState(tm:TM Σ)(s:St): Prop :=
   (forall s0 i,
     match tm s0 i with
     | None => True
-    | Some tr => nxt tr <> s
+    | Some tr => nxt Σ tr <> s
     end) /\
   (forall i, tm s i = None) /\
   s <> St0.
 
+Definition isUnusedState tm s: bool :=
+  forallb_St (fun s0 =>
+  forallb_Σ (fun i =>
+  match tm s0 i with
+  | None => true
+  | Some tr => negb (St_eqb (nxt Σ tr) s)
+  end)) &&&
+  forallb_Σ (fun i => match tm s i with None => true | _ => false end) &&&
+  negb (St_eqb s St0).
+
+Lemma isUnusedState_spec tm s:
+  if isUnusedState tm s then UnusedState tm s else ~UnusedState tm s.
+Proof.
+  unfold isUnusedState.
+  repeat rewrite andb_shortcut_spec.
+  destruct forallb_St eqn:E.
+  - destruct forallb_Σ eqn:E0.
+    + St_eq_dec s St0.
+      * cbn.
+        intro H0.
+        destruct H0 as [Ha [Hb Hc]].
+        cg.
+      * cbn.
+        repeat split; auto 1.
+        -- intros.
+           rewrite forallb_St_spec in E.
+           specialize (E s0).
+           rewrite forallb_Σ_spec in E.
+           specialize (E i).
+           destruct (tm s0 i). 2: trivial.
+           St_eq_dec (nxt _ t) s; cbn in E; cg.
+        -- intros.
+           rewrite forallb_Σ_spec in E0.
+           specialize (E0 i).
+           destruct (tm s i); cg.
+    + cbn.
+      intro H.
+      destruct H as [Ha [Hb Hc]].
+      assert (forallb_Σ (fun i : Σ => match tm s i with
+                             | Some _ => false
+                             | None => true
+                             end) = true). {
+        rewrite forallb_Σ_spec.
+        intro i.
+        rewrite Hb.
+        reflexivity.
+      } cg.
+  - cbn.
+    intros H.
+    destruct H as [Ha [Hb Hc]].
+    assert (forallb_St
+      (fun s0 : St =>
+       forallb_Σ
+         (fun i : Σ =>
+          match tm s0 i with
+          | Some tr => negb (St_eqb (nxt Σ tr) s)
+          | None => true
+          end)) = true). {
+      rewrite forallb_St_spec.
+      intro s0.
+      rewrite forallb_Σ_spec.
+      intro i.
+      specialize (Ha s0 i).
+      destruct (tm s0 i); cg.
+      St_eq_dec (nxt _ t) s; cbn; cg.
+    } cg.
+Qed.
+
 Lemma step_UnusedState {tm s0 t0 s t}:
-  step tm (s0, t0) = Some (s, t) ->
+  step Σ tm (s0, t0) = Some (s, t) ->
   ~ UnusedState tm s.
 Proof.
   intros. intro.
@@ -1304,7 +1374,7 @@ Qed.
 
 
 Lemma Steps_UnusedState {tm n s t}:
-  Steps tm n InitES (s,t) ->
+  Steps Σ tm n (InitES Σ Σ0) (s,t) ->
   ~ UnusedState tm s.
 Proof.
   intro H.
@@ -1319,15 +1389,17 @@ Proof.
     eapply step_UnusedState,H3.
 Qed.
 
+Ltac Σ_eq_dec s1 s2 :=
+  eq_dec Σ_eqb_spec Σ_eqb s1 s2.
 
-Lemma HaltTimeUpperBound_LE_HaltsAtES_UnusedState tm n s t:
-  HaltsAt tm n InitES ->
-  Steps tm n InitES (s,t) ->
+Lemma HaltTimeUpperBound_LE_HaltsAtES_UnusedState{tm n s t bb}:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
   forall s1 s2 d o,
     UnusedState tm s1 ->
     UnusedState tm s2 ->
-    HaltTimeUpperBound InitES (LE (TM_upd tm s (t Z0) (Some {| nxt:=s1; dir:=d; out:=o |}))) ->
-    HaltTimeUpperBound InitES (LE (TM_upd tm s (t Z0) (Some {| nxt:=s2; dir:=d; out:=o |}))).
+    HaltTimeUpperBound _ bb (InitES Σ Σ0) (LE Σ (TM_upd Σ Σ_eqb tm s (t Z0) (Some {| nxt:=s1; dir:=d; out:=o |}))) ->
+    HaltTimeUpperBound _ bb (InitES Σ Σ0) (LE Σ (TM_upd Σ Σ_eqb tm s (t Z0) (Some {| nxt:=s2; dir:=d; out:=o |}))).
 Proof.
   intros.
   St_eq_dec s1 s2; rename H4 into n0.
@@ -1337,9 +1409,9 @@ Proof.
   assert (U2:s2<>s) by (intro X; subst; contradiction).
   destruct H1 as [H1a [H1b H1c]].
   destruct H2 as [H2a [H2b H2c]].
-  assert (H':TM_swap s1 s2
-        (TM_upd tm s (t 0%Z) (Some {| nxt := s1; dir := d; out := o |})) =
-        (TM_upd tm s (t 0%Z) (Some {| nxt := s2; dir := d; out := o |}))). {
+  assert (H':TM_swap Σ s1 s2
+        (TM_upd Σ Σ_eqb tm s (t 0%Z) (Some {| nxt := s1; dir := d; out := o |})) =
+        (TM_upd Σ Σ_eqb tm s (t 0%Z) (Some {| nxt := s2; dir := d; out := o |}))). {
     fext. fext.
     unfold TM_upd,TM_swap,option_Trans_swap. cbn.
     unfold St_swap. cbn.
@@ -1381,11 +1453,11 @@ Proof.
   apply HaltTimeUpperBound_LE_swap_InitES; assumption.
 Qed.
 
-Definition TM0: TM :=
+Definition TM0: TM Σ :=
   fun x i => None.
 
 Lemma TM0_LE:
-  forall tm, LE TM0 tm.
+  forall tm, LE Σ TM0 tm.
 Proof.
   intros.
   unfold LE.
@@ -1405,33 +1477,31 @@ split; intro.
 - repeat split; auto 1.
 Qed.
 
-
-Axiom LEM:
-  forall P:Prop, P\/~P.
-
 Lemma UnusedState_dec tm s:
   (UnusedState tm s)\/(~UnusedState tm s).
 Proof.
-  apply LEM.
+  pose proof (isUnusedState_spec tm s).
+  destruct (isUnusedState tm s); tauto.
 Qed.
 
-Lemma HaltTimeUpperBound_LE_HaltAtES_MergeUnusedState tm n s t (P:St->Prop):
-  HaltsAt tm n InitES ->
-  Steps tm n InitES (s,t) ->
+Lemma HaltTimeUpperBound_LE_HaltAtES_MergeUnusedState tm n s t (P:St->Prop) BB:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
   n<=BB ->
   ((exists s0, P s0 /\ UnusedState tm s0) \/
    (forall s0, ~UnusedState tm s0)) ->
   (forall s0, ~UnusedState tm s0 -> P s0) ->
   (forall tr,
-    P (nxt tr) ->
-    HaltTimeUpperBound InitES (LE (TM_upd tm s (t Z0) (Some tr)))) ->
-  HaltTimeUpperBound InitES (LE tm).
+    P (nxt _ tr) ->
+    HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)))) ->
+  HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ tm).
 Proof.
   intros.
   destruct H2 as [H2|H2].
   - eapply HaltTimeUpperBound_LE_Halt; eauto 1.
+    1: apply Σ_eqb_spec.
     intro.
-    destruct (UnusedState_dec tm (nxt tr)) as [H5|H5].
+    destruct (UnusedState_dec tm (nxt _ tr)) as [H5|H5].
     + destruct H2 as [s0 [H2a H2b]].
       destruct tr as [s1 d1 o1].
       cbn in H5.
@@ -1443,6 +1513,7 @@ Proof.
       * apply H4,H2a.
     + apply H4,H3,H5.
   - eapply HaltTimeUpperBound_LE_Halt; eauto 1.
+    1: apply Σ_eqb_spec.
     intro. apply H4,H3,H2.
 Qed.
 
@@ -1502,15 +1573,15 @@ Definition UnusedState_ptr tm s1:=
   ((forall s0, ~UnusedState tm s0) /\ forall s0, St_le s1 s0).
 
 
-Lemma HaltTimeUpperBound_LE_HaltAtES_UnusedState_ptr {tm n s t s1}:
-  HaltsAt tm n InitES ->
-  Steps tm n InitES (s,t) ->
+Lemma HaltTimeUpperBound_LE_HaltAtES_UnusedState_ptr {tm n s t s1 BB}:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
   n<=BB ->
   UnusedState_ptr tm s1 ->
   (forall tr,
-    St_le s1 (nxt tr) ->
-    HaltTimeUpperBound InitES (LE (TM_upd tm s (t Z0) (Some tr)))) ->
-  HaltTimeUpperBound InitES (LE tm).
+    St_le s1 (nxt _ tr) ->
+    HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)))) ->
+  HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ tm).
 Proof.
   intros.
   destruct H2 as [H2|H2].
@@ -1527,13 +1598,13 @@ Proof.
 Qed.
 
 Lemma HaltsAtES_Trans {tm n st s t}:
-  HaltsAt tm n st ->
-  Steps tm n st (s, t) ->
+  HaltsAt Σ tm n st ->
+  Steps Σ tm n st (s, t) ->
   tm s (t Z0) = None.
 Proof.
   intros.
   destruct H as [[s0 t0] [Ha Hb]].
-  pose proof (Steps_unique Ha H0) as H.
+  pose proof (Steps_unique _ Ha H0) as H.
   invst H.
   unfold step in Hb.
   destruct (tm s (t Z0)); cg.
@@ -1541,10 +1612,10 @@ Proof.
 Qed.
 
 Lemma UnusedState_upd {tm n s t tr s1}:
-  HaltsAt tm n InitES ->
-  Steps tm n InitES (s,t) ->
-  UnusedState (TM_upd tm s (t Z0) (Some tr)) s1 <->
-  (UnusedState tm s1 /\ s1<>nxt tr).
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
+  UnusedState (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)) s1 <->
+  (UnusedState tm s1 /\ s1<>nxt _ tr).
 Proof.
 intros.
 split.
@@ -1594,19 +1665,19 @@ split.
 Qed.
 
 Lemma UnusedState_ptr_upd {tm n s t s1 tr}:
-  HaltsAt tm n InitES ->
-  Steps tm n InitES (s,t) ->
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
   UnusedState_ptr tm s1 ->
-  St_le s1 (nxt tr) ->
-  UnusedState_ptr (TM_upd tm s (t Z0) (Some tr)) (if St_eqb s1 (nxt tr) then (St_suc s1) else s1).
+  St_le s1 (nxt _ tr) ->
+  UnusedState_ptr (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)) (if St_eqb s1 (nxt _ tr) then (St_suc s1) else s1).
 Proof.
 intros.
-St_eq_dec s1 (nxt tr).
+St_eq_dec s1 (nxt _ tr).
 - unfold UnusedState_ptr.
   unfold UnusedState_ptr in H1.
   destruct H1 as [H1|[H1a H1b]].
   + subst. clear H2.
-    St_eq_dec (nxt tr) (St_suc (nxt tr)).
+    St_eq_dec (nxt _ tr) (St_suc (nxt _ tr)).
     * pose proof (St_suc_eq _ H2).
       rewrite <-H2.
       right.
@@ -1626,7 +1697,7 @@ St_eq_dec s1 (nxt tr).
       rewrite H1.
       pose proof (St_suc_neq _ H2).
       unfold St_le.
-      assert (E0:s0 = nxt tr <-> St_to_nat s0 = St_to_nat (nxt tr)). {
+      assert (E0:s0 = nxt _ tr <-> St_to_nat s0 = St_to_nat (nxt _ tr)). {
         split; intro.
         - cg.
         - apply St_to_nat_inj,H4.
@@ -1641,16 +1712,16 @@ St_eq_dec s1 (nxt tr).
       destruct H' as [H' _]. apply H'.
     * intro. subst.
       specialize (H1b s0).
-      pose proof (St_suc_le (nxt tr)) as H1.
+      pose proof (St_suc_le (nxt _ tr)) as H1.
       unfold St_le.
       unfold St_le in H1,H1b.
       lia.
 - unfold UnusedState_ptr.
   unfold UnusedState_ptr in H1.
   destruct H1 as [H1|[H1a H1b]].
-  + assert (E:~St_le (nxt tr) s1). {
+  + assert (E:~St_le (nxt _ tr) s1). {
       unfold St_le. unfold St_le in H2.
-      assert (St_to_nat (s1) <> St_to_nat (nxt tr)) by (intro X; apply H3,St_to_nat_inj,X).
+      assert (St_to_nat (s1) <> St_to_nat (nxt _ tr)) by (intro X; apply H3,St_to_nat_inj,X).
       lia.
     }
     left.
@@ -1667,7 +1738,6 @@ St_eq_dec s1 (nxt tr).
     intro H'. eapply H1a. apply H'.
 Qed.
 
-End TM.
 
 
 
@@ -1794,7 +1864,7 @@ Definition TNF_Node_WF(x:TNF_Node):Prop :=
   let (tm,cnt,ptr) := x in
   cnt = CountHaltTrans tm /\
   cnt <> 0 /\
-  UnusedState_ptr Σ tm ptr.
+  UnusedState_ptr tm ptr.
 
 Definition Trans_list:=
 {| nxt:=St0; dir:=Dneg; out:=Σ0 |}::
@@ -1922,7 +1992,7 @@ Proof.
     unfold TNF_Node_expand in H3.
     nat_eq_dec cnt 1.
     1: destruct H3.
-    epose proof (HaltsAtES_Trans _ H H0) as H5.
+    epose proof (HaltsAtES_Trans H H0) as H5.
     destruct H2 as [H2a [H2b H2c]].
     rewrite in_map_iff in H3.
     destruct H3 as [tr [H3a H3b]].
@@ -1936,7 +2006,6 @@ Proof.
       intro H7. rewrite H7. reflexivity.
     + destruct cnt; cg. unfold Nat.pred. cg.
     + eapply UnusedState_ptr_upd; eauto 1.
-      1: apply Σ_eqb_spec.
       rewrite filter_In in H3b.
       destruct H3b as [_ H3b].
       St_le_dec ptr (nxt _ tr); cg.
@@ -1944,13 +2013,12 @@ Proof.
     intros.
     destruct H2 as [H2a [H2b H2c]].
     eapply HaltTimeUpperBound_LE_HaltAtES_UnusedState_ptr; eauto 1.
-    1: apply Σ_eqb_spec.
     intros.
     unfold TNF_Node_expand in H3.
     nat_eq_dec cnt 1.
     + apply HaltTimeUpperBound_LE_NonHalt.
       apply CountHaltTrans_0_NonHalt.
-      epose proof (HaltsAtES_Trans _ H H0) as H5.
+      epose proof (HaltsAtES_Trans H H0) as H5.
       epose proof (CountHaltTrans_upd tr H5) as H6. cg.
     + specialize (H3 (TNF_Node_upd {| TNF_tm := tm; TNF_cnt := cnt; TNF_ptr := ptr |} s (t 0%Z) tr)).
       rewrite <-TM_upd'_spec.
@@ -2227,7 +2295,7 @@ Proof.
   apply SearchQueue_upds_bfs_spec; auto 1.
 Qed.
 
-Definition root := {| TNF_tm:=TM0 Σ; TNF_cnt:=CountHaltTrans (TM0 Σ); TNF_ptr:=St1 |}.
+Definition root := {| TNF_tm:=TM0; TNF_cnt:=CountHaltTrans (TM0); TNF_ptr:=St1 |}.
 
 Lemma root_WF: TNF_Node_WF root.
 Proof.
@@ -6009,8 +6077,8 @@ Definition root_q_upd1_simplified:SearchQueue:=
   (filter first_trans_is_R (fst root_q_upd1), nil).
 
 Lemma TM_rev_upd'_TM0 s0 o0:
-  (TM_upd' (TM0 Σ) St0 Σ0 (Some {| nxt := s0; dir := Dneg; out := o0 |})) =
-  (TM_rev Σ (TM_upd' (TM0 Σ) St0 Σ0 (Some {| nxt := s0; dir := Dpos; out := o0 |}))).
+  (TM_upd' (TM0) St0 Σ0 (Some {| nxt := s0; dir := Dneg; out := o0 |})) =
+  (TM_rev Σ (TM_upd' (TM0) St0 Σ0 (Some {| nxt := s0; dir := Dpos; out := o0 |}))).
 Proof.
   repeat rewrite TM_upd'_spec.
   fext. fext.
@@ -6040,22 +6108,22 @@ Proof.
       rewrite TM_rev_upd'_TM0;
       eapply HaltTimeUpperBound_LE_rev_InitES.
     1: eassert (H2:_) by (apply (H0 {|
-             TNF_tm := TM_upd' (TM0 Σ) St0 Σ0 (Some {| nxt := St0; dir := Dpos; out := Σ0 |});
+             TNF_tm := TM_upd' (TM0) St0 Σ0 (Some {| nxt := St0; dir := Dpos; out := Σ0 |});
              TNF_cnt := 9;
              TNF_ptr := St1
            |}); tauto); apply H2.
     1: eassert (H2:_) by (apply (H0 {|
-             TNF_tm := TM_upd' (TM0 Σ) St0 Σ0 (Some {| nxt := St0; dir := Dpos; out := Σ1 |});
+             TNF_tm := TM_upd' (TM0) St0 Σ0 (Some {| nxt := St0; dir := Dpos; out := Σ1 |});
              TNF_cnt := 9;
              TNF_ptr := St1
            |}); tauto); apply H2.
     1: eassert (H2:_) by (apply (H0 {|
-             TNF_tm := TM_upd' (TM0 Σ) St0 Σ0 (Some {| nxt := St1; dir := Dpos; out := Σ0 |});
+             TNF_tm := TM_upd' (TM0) St0 Σ0 (Some {| nxt := St1; dir := Dpos; out := Σ0 |});
              TNF_cnt := 9;
              TNF_ptr := St2
            |}); tauto); apply H2.
     1: eassert (H2:_) by (apply (H0 {|
-             TNF_tm := TM_upd' (TM0 Σ) St0 Σ0 (Some {| nxt := St1; dir := Dpos; out := Σ1 |});
+             TNF_tm := TM_upd' (TM0) St0 Σ0 (Some {| nxt := St1; dir := Dpos; out := Σ1 |});
              TNF_cnt := 9;
              TNF_ptr := St2
            |}); tauto); apply H2.
@@ -7091,6 +7159,15 @@ Hypothesis T_step_spec:
      | None => True
      end.
 
+Definition T_eqb t1 t2 := Pos.eqb (T_enc t1) (T_enc t2).
+Lemma T_eqb_spec t1 t2:
+  if T_eqb t1 t2 then t1=t2 else t1<>t2.
+Proof.
+  unfold T_eqb.
+  destruct (Pos.eqb_spec (T_enc t1) (T_enc t2)); auto 2.
+  cg.
+Qed.
+
 Fixpoint ins_all(q:list T)(st:PositiveMap.tree unit)(ls:list T) :=
   match ls with
   | nil => (q,st)
@@ -7176,10 +7253,21 @@ Proof.
       destruct H1 as [H1|H1].
       * destruct H1 as [[H1|H1] H2].
         1: subst a; tauto.
-        destruct (LEM (a=x)).
+        pose proof (T_eqb_spec a x).
+        destruct (T_eqb a x).
         1: subst a; tauto.
         tauto.
       * tauto.
+Qed.
+
+Lemma set_in_dec {T0} (enc:T0->positive) s x:
+  set_in enc s x \/
+  ~ set_in enc s x.
+Proof.
+  unfold set_in.
+  destruct (PositiveMap.find (enc x) (snd s)) as [[]|].
+  - left. reflexivity.
+  - right. cg.
 Qed.
 
 
@@ -7211,7 +7299,7 @@ Proof.
     intros x H1.
     rewrite <-I1 in H1.
     destruct H1 as [H1|H1].
-    + destruct (LEM (set_in T_enc (q0, st) x)) as [H2|H2].
+    + destruct ((set_in_dec T_enc (q0, st) x)) as [H2|H2].
       2: specialize (I2 x); tauto.
       specialize (H x H2). cbn in H.
       destruct H as [[H|H]|H].
@@ -9149,10 +9237,10 @@ Definition Skelet33 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 ER1.
 Definition Skelet34 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AR1.
 Definition Skelet35 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AL0.
 
-
 From BusyCoq Require Import
   Finned1 Finned2 Finned3 Finned4 Finned5
   Skelet1 Skelet10 Skelet15 Skelet26 Skelet33 Skelet34 Skelet35.
+
 Module Translation.
 Import Individual52.Individual52.Permute.Flip.Compute.TM.
 
@@ -9360,6 +9448,17 @@ Proof.
     reflexivity.
 Qed.
 
+Lemma halted_dec tm st:
+  halted tm st \/
+  ~halted tm st.
+Proof.
+  unfold halted.
+  destruct st as [q [[_ s2] _]].
+  destruct (tm (q,s2)).
+  - right; cg.
+  - left; cg.
+Qed.
+
 Lemma nonhalt_multistep tm st0:
   ~halts tm st0 ->
   forall n, exists st1, multistep tm n st0 st1.
@@ -9370,7 +9469,7 @@ Proof.
   1: eexists; ctor.
   destruct IHn as [st1 IHn].
   unfold halts_in in H.
-  destruct (LEM (halted tm st1)).
+  destruct (halted_dec tm st1).
   - assert (X:False). {
       apply H.
       eexists. eexists.
@@ -18890,7 +18989,7 @@ Proof.
 Qed.
 
 Lemma TM0_HTUB:
-  HaltTimeUpperBound Σ (N.to_nat BB) (InitES Σ Σ0) (LE Σ (TM0 Σ)).
+  HaltTimeUpperBound Σ (N.to_nat BB) (InitES Σ Σ0) (LE Σ (TM0)).
 Proof.
   apply root_HTUB.
 Qed.
