@@ -86,7 +86,7 @@ The search queue can be updated when an TNF_Node in it is decided to halts or ne
 
 When the search queue becomes empty, the conjectured value of BB(5) is proved.
 
-After using some symmetries (move right at the first step; all unused states are equal) to reduce the search space, there are about 1.6e8 TMs to be decided. Writes 1 at the first step is not used because it may change halting time, and only 1/3 speedup. If a TM writes 0 at the first step, it may be normalized to write 1 at the first step ( implemented in `TM_to_NF` ) and re-run some of the deciders for proving non-halt.
+After using some symmetries (move right at the first step; all unused states are equal) to reduce the search space, there are about 1.8e8 TMs to be decided. Writes 1 at the first step is not used because it may change halting time, and only 1/3 speedup. If a TM writes 0 at the first step, it may be normalized to write 1 at the first step ( implemented in `TM_to_NF` ) and re-run some of the deciders for proving non-halt.
 
 There are some repeated code like `Time Definition q_183 := Eval vm_compute in q_183_def.` . This is used to split the searching process into multiple smaller steps (without this you will wait for hours without any feedback).
 
@@ -118,4 +118,61 @@ LEM : forall P : Prop, P \/ ~ P
 `functional_extensionality_dep` is used to simplify the equality between `TM` and between `ExecState` since they are represented by functions, removing this axiom will make setoid everywhere.
 
 `LEM` can simplify some case analysis, and is easy to remove if needed.
+
+## Build
+
+This project have been tested with Coq8.18.0. It can be compiled by executing these commands:
+
+```
+coqc -Q . BusyCoq LibTactics.v
+coqc -Q . BusyCoq Helper.v
+coqc -Q . BusyCoq TM.v
+coqc -Q . BusyCoq Compute.v
+coqc -Q . BusyCoq Filp.v
+coqc -Q . BusyCoq Permute.v
+coqc -Q . BusyCoq Individual.v
+coqc -Q . BusyCoq BB52.v
+coqc -Q . BusyCoq Induvidual52.v
+coqc -Q . BusyCoq Finned.v
+coqc -Q . BusyCoq Finned1.v
+coqc -Q . BusyCoq Finned2.v
+coqc -Q . BusyCoq Finned3.v
+coqc -Q . BusyCoq Finned4.v
+coqc -Q . BusyCoq Finned5.v
+coqc -Q . BusyCoq Skelet10.v
+coqc -Q . BusyCoq FixedBin.v
+coqc -Q . BusyCoq ShiftOverflow.v
+coqc -Q . BusyCoq ShiftOverflowBins.v
+coqc -Q . BusyCoq Skelet26.v
+coqc -Q . BusyCoq Skelet15.v
+coqc -Q . BusyCoq Skelet33.v
+coqc -Q . BusyCoq Skelet34.v
+coqc -Q . BusyCoq Skelet35.v
+coqc -Q . BusyCoq Skelet1.v
+coqc -Q . BusyCoq BB52Theorem.v
+```
+
+`Skelet1.v` takes about 10min to do some computation.
+
+`BB52Theorem.v` takes about 12h (and about 4GB memory usage), you will see messages like this:
+
+```
+...
+Finished transaction in 214.144 secs (213.937u,0.s) (successful)
+Finished transaction in 362.645 secs (362.437u,0.s) (successful)
+Finished transaction in 0. secs (0.u,0.s) (successful)
+Finished transaction in 0. secs (0.u,0.s) (successful)
+...
+Finished transaction in 0. secs (0.u,0.s) (successful)
+Finished transaction in 1.291 secs (0.156u,0.046s) (successful)
+Axioms:
+functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Eqdep.Eq_rect_eq.eq_rect_eq
+  : forall (U : Type) (p : U) (Q : U -> Type) (x : Q p) (h : p = p),
+    x = eq_rect p Q x p h
+Translation.Skelet17_nonhalt : ~ HaltsFromInit Σ Σ0 Skelet17
+LEM : forall P : Prop, P \/ ~ P
+```
 
