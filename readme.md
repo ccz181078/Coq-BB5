@@ -128,11 +128,11 @@ coqc -Q . BusyCoq LibTactics.v
 coqc -Q . BusyCoq Helper.v
 coqc -Q . BusyCoq TM.v
 coqc -Q . BusyCoq Compute.v
-coqc -Q . BusyCoq Filp.v
+coqc -Q . BusyCoq Flip.v
 coqc -Q . BusyCoq Permute.v
 coqc -Q . BusyCoq Individual.v
 coqc -Q . BusyCoq BB52.v
-coqc -Q . BusyCoq Induvidual52.v
+coqc -Q . BusyCoq Individual52.v
 coqc -Q . BusyCoq Finned.v
 coqc -Q . BusyCoq Finned1.v
 coqc -Q . BusyCoq Finned2.v
