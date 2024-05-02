@@ -4802,7 +4802,7 @@ Proof.
   inversion H4.
   epose proof (getASteps_spec H6 H5a H5b) as X1. subst.
 
-  rewrite plus_comm in H2.
+  rewrite Nat.add_comm in H2.
   epose proof (Steps_split H2) as H3'.
   destruct H3' as [st3' [H3' H4']].
   epose proof (ex_sitr_history H3') as H5'.
@@ -4833,7 +4833,7 @@ Proof.
     eassert (B2:_) by (apply (H0 (length ls - n)); lia).
     rewrite H5a' in A1'.
     destruct B2 as [s5 [i5 [s6 [i6 [B2 [B3 [B4 B5]]]]]]].
-    rewrite plus_comm in B3.
+    rewrite Nat.add_comm in B3.
     epose proof (Steps_unique _ B3 B1) as B6.
     epose proof (Steps_unique _ A1' B2) as B7.
     invst B6. invst B7.
@@ -5936,7 +5936,7 @@ Proof.
              (Decimal.D1
                 (Decimal.D7 (Decimal.D6 (Decimal.D8 (Decimal.D7 (Decimal.D0 Decimal.Nil))))))))))
   with (N.to_nat 47176870).
-  1: apply le_refl.
+  1: apply Nat.le_refl.
   symmetry.
   apply nat_eqb_N_spec.
   vm_compute.
