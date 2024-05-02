@@ -3,7 +3,6 @@ Require Import ZArith.
 Require Import Logic.FunctionalExtensionality.
 Require Import Lia.
 Require Import FSets.FMapPositive.
-Require Import Coq.Program.Equality.
 
 Set Warnings "-abstract-large-number".
 
@@ -8355,19 +8354,25 @@ Defined.
 Lemma nat_n_list_spec n:
   forall s, In s (nat_n_list n).
 Proof.
-  induction n.
+  induction n as [|n].
   - intros.
     left.
-    dependent destruction s0.
-    reflexivity.
+    remember 0 as c0.
+    destruct s0; subst; auto 1; cg.
   - intros.
-    dependent destruction s0.
-    + left. reflexivity.
-    + right. rewrite in_map_iff.
+    remember (S n) as Sn.
+    destruct s0.
+    + subst.
+      left. reflexivity.
+    + right.
+      rewrite in_map_iff.
       exists s0.
       repeat split.
+      invst HeqSn.
       apply IHn.
 Qed.
+
+
 
 
 Fixpoint nat_n_to_nat(n:nat)(x:nat_n n):nat.
@@ -8376,26 +8381,42 @@ Fixpoint nat_n_to_nat(n:nat)(x:nat_n n):nat.
   - apply (S (nat_n_to_nat x0 x)).
 Defined.
 
+Fixpoint nat_n_from_nat(n:nat)(x:nat):nat_n n.
+  destruct x as [|x0].
+  - apply nat_n_O.
+  - destruct n as [|n0].
+    + apply nat_n_O.
+    + apply nat_n_S.
+      apply (nat_n_from_nat n0 x0).
+Defined.
+
+Lemma nat_n_from_to_nat(n:nat)(x:nat_n n):
+  nat_n_from_nat n (nat_n_to_nat n x) = x.
+Proof.
+  gd x.
+  induction n.
+  - intros.
+    remember 0 as c0.
+    destruct x; subst; cbn; cg.
+  - intros.
+    remember (S n) as Sn.
+    destruct x.
+    1: subst; reflexivity.
+    invst HeqSn.
+    cbn.
+    f_equal.
+    apply IHn.
+Qed.
+
+
 Lemma nat_n_to_nat_inj n: is_inj (nat_n_to_nat n).
 Proof.
   unfold is_inj.
-  induction n.
-  - intros.
-    dependent destruction a.
-    dependent destruction b.
-    reflexivity.
-  - intros.
-    dependent destruction a.
-    + dependent destruction b; cbn in H.
-      * reflexivity.
-      * cg.
-    + dependent destruction b; cbn in H.
-      * cg.
-      * injection H.
-        intro H0.
-        specialize (IHn _ _ H0).
-        subst.
-        reflexivity.
+  intros.
+  pose proof (nat_n_from_to_nat n a) as Ha.
+  pose proof (nat_n_from_to_nat n b) as Hb.
+  rewrite H in Ha.
+  cg.
 Qed.
 
 Definition nat_n_enc(n:nat)(x:nat_n n):positive := Pos.of_succ_nat (nat_n_to_nat n x).
@@ -8408,14 +8429,6 @@ Proof.
   lia.
 Qed.
 
-Fixpoint nat_n_from_nat(n:nat)(x:nat):nat_n n.
-  destruct x as [|x0].
-  - apply nat_n_O.
-  - destruct n as [|n0].
-    + apply nat_n_O.
-    + apply nat_n_S.
-      apply (nat_n_from_nat n0 x0).
-Defined.
 
 
 Definition make_dfa(f:nat->Σ->nat)(n:nat)(u:nat_n n)(i:Σ) :=
