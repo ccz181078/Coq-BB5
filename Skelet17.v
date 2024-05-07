@@ -3538,6 +3538,120 @@ Proof.
 Qed.
 
 
+Lemma divpow2r_pow2 i j:
+  S j <= i ->
+  divpow2r (2^i) j = 2^(i-S j).
+Proof.
+  intro H.
+  gen i.
+  induction j.
+  - intros i H.
+    destruct i as [|i]. 1: lia.
+    rewrite pow2_1a,mul_comm,divpow2r_0.
+    rewrite div_add_l. 2: congruence.
+    cbn.
+    rewrite sub_0_r,add_0_r.
+    reflexivity.
+  - intros i H.
+    destruct i as [|i].
+    1: lia.
+    assert (S j <= i) by lia.
+    specialize (IHj i H0).
+    applys_eq IHj.
+    replace (2^i) with (2^(S i)/2) by
+      (rewrite pow2_1a,mul_comm,div_mul; congruence).
+    rewrite divpow2r_div2.
+    reflexivity.
+Qed.
+
+Lemma divpow2r_pow2sub1 i j:
+  S j <= i ->
+  divpow2r (2^i-1) j = 2^(i-S j).
+Proof.
+  intro H.
+  gen i.
+  induction j.
+  - intros i H.
+    destruct i as [|i]. 1: lia.
+    rewrite pow2_1a,mul_comm,divpow2r_0.
+    pose proof (pow2_nez i).
+    replace (2^i*2-1+1) with (2^i*2) by lia.
+    rewrite div_mul. 2: congruence. 
+    f_equal. lia.
+  - intros i H.
+    destruct i as [|i].
+    1: lia.
+    assert (S j <= i) by lia.
+    specialize (IHj i H0).
+    applys_eq IHj.
+    replace (2^i-1) with ((2^(S i)-1)/2). 2:{
+      rewrite pow2_1a,mul_comm.
+      pose proof (pow2_nez i).
+      replace (2^i*2) with ((2^i-1+1)*2) by lia.
+      rewrite mul_add_distr_r.
+      rewrite <-add_sub_assoc. 2: lia.
+      change (1*2-1) with 1%nat.
+      rewrite div_add_l. 2: congruence.
+      cbn. lia.
+    }
+    rewrite divpow2r_div2.
+    reflexivity.
+Qed.
+
+Lemma divpow2r_small n i:
+  n<2^i ->
+  divpow2r n i = O.
+Proof.
+  intro H.
+  unfold divpow2r.
+  rewrite (add_comm i 1),pow2_1a.
+  rewrite div_small; lia.
+Qed.
+
+Lemma divpow2r_pow2_small j i:
+  j<i ->
+  divpow2r (2^j) i = O.
+Proof.
+  intro H.
+  apply divpow2r_small.
+  apply pow_lt_mono_r; lia.
+Qed.
+
+Lemma divpow2r_pow2_1 j i:
+  j=i ->
+  divpow2r (2^j) i = S O.
+Proof.
+  intro H.
+  unfold divpow2r.
+  subst.
+  rewrite (add_comm i 1),pow2_1a.
+  replace (2^i+2^i) with (2*2^i) by lia.
+  pose proof (pow2_nez i).
+  rewrite div_same; lia.
+Qed.
+
+Lemma divpow2r_pow2sub1_small j i:
+  j<=i ->
+  divpow2r (2^j-1) i = O.
+Proof.
+  intro H.
+  apply divpow2r_small.
+  assert (j<i\/j=i) as E by lia.
+  destruct E as [E|E].
+  - pose proof (pow_lt_mono_r 2 j i).
+    lia.
+  - subst.
+    pose proof (pow2_nez i).
+    lia.
+Qed.
+
+Ltac simpl_divpow2r_pow2 H :=
+  repeat (
+  (rewrite divpow2r_pow2 in H; [idtac|lia]) ||
+  (rewrite divpow2r_pow2_1 in H; [idtac|lia]) ||
+  (rewrite divpow2r_pow2_small in H; [idtac|lia]) ||
+  (rewrite divpow2r_pow2sub1 in H; [idtac|lia]) ||
+  (rewrite divpow2r_pow2sub1_small in H; [idtac|lia])).
 
 Inductive Base(k:nat): (nat*(list nat))->Prop :=
 | Base_intro s
@@ -3549,7 +3663,9 @@ Inductive Base(k:nat): (nat*(list nat))->Prop :=
 
 Lemma Base_embanked k s1:
   Base k s1 ->
-  exists s7 s_1 h_1 s_2 h_2, embanked s1 s7 s_1 h_1 s_2 h_2.
+  exists s7 s_1 h_1 s_2 h_2,
+    embanked s1 s7 s_1 h_1 s_2 h_2 /\
+    (Add2 (k*2+1) s1 s7).
 Proof.
   intro HB.
   inversion HB; subst.
@@ -3692,12 +3808,79 @@ Proof.
   inversion Hemb. subst s1' s7' s_1' h_1' s_2' h_2'.
   rewrite n3_expr,n4_expr,n5_expr,n6_expr,Base_l' in a7_expr,a70_expr.
 
-  do 5 eexists.
-  apply Hemb.
+  assert (Hadd:(Add2 (k*2+1) (1,xs0++[0]) s7)%nat). {
+    constructor.
+    intro i.
+    destruct i as [|i].
+    - unfold ai'.
+      destruct (Nat.eqb_spec 0 (k*2)) as [E|E].
+      1: lia.
+      simpl_divpow2r_pow2 a70_expr.
+      rewrite Hs7n in a70_expr.
+      rewrite Base_a in a70_expr.
+      destruct (Nat.ltb_spec (S O) (k*2)) as [E1|E1]. 2: lia.
+      destruct (Nat.eqb_spec (O) (k*2+1)) as [E2|E2]. 1: lia.
+      rewrite add_sub in a70_expr.
+      assert (H:fst s7 = S O) by lia.
+      rewrite H.
+      reflexivity.
+    - unfold ai'.
+      specialize (a7_expr i).
+      destruct (Nat.eqb_spec (S i) (k*2+1)) as [E|E].
+      + simpl_divpow2r_pow2 a7_expr.
+        destruct (Nat.eqb_spec (S (S i)) (k*2 + 1 - 1)) as [E0|E0]. 1: lia.
+        rewrite Base_a in a7_expr.
+        destruct (Nat.ltb_spec (S(S i)) (k*2)) as [E1|E1]. 1: lia.
+        rewrite Base_a.
+        destruct (Nat.ltb_spec (i) (k*2)) as [E2|E2]. 1: lia.
+        lia.
+      + assert (i<k*2\/k*2<i) as [E0|E0] by lia.
+        * simpl_divpow2r_pow2 a7_expr.
+          rewrite Base_a.
+          destruct (Nat.ltb_spec (i) (k*2)) as [E1'|E1']. 2: lia.
+        assert (i+1=k*2\/i+1<k*2) as [E1|E1] by lia.
+        -- simpl_divpow2r_pow2 a7_expr.
+          destruct (Nat.eqb_spec (S (S i)) (k*2 + 1 - 1)) as [E2|E2]. 1: lia.
+          rewrite <-E1 in a7_expr.
+          repeat rewrite (add_comm _ 1) in a7_expr.
+          repeat rewrite sub_diag in a7_expr.
+          rewrite Base_a in a7_expr.
+          destruct (Nat.ltb_spec (S(S i)) (k*2)) as [E3|E3]. 1: lia.
+          replace (k*2-i) with 1%nat by lia.
+          cbn.
+          cbn in a7_expr.
+          lia.
+        -- simpl_divpow2r_pow2 a7_expr.
+          assert (i+2=k*2\/i+2<k*2) as [E2|E2] by lia.
+        ++ destruct (Nat.eqb_spec (S (S i)) (k*2 + 1 - 1)) as [E3|E3]. 2: lia.
+          replace (k*2-(S(S i))) with O in a7_expr by lia.
+          replace (k*2-((S i))) with (S O) in a7_expr by lia.
+          replace (k*2+1-(S(S i))) with (S O) in a7_expr by lia.
+          replace (k*2+1-(S(S(S i)))) with (O) in a7_expr by lia.
+          rewrite Base_a in a7_expr.
+          destruct (Nat.ltb_spec (S(S i)) (k*2)) as [E4|E4]. 1: lia.
+          replace (k*2-i) with 2 by lia.
+          cbn. cbn in a7_expr. lia.
+        ++ destruct (Nat.eqb_spec (S (S i)) (k*2 + 1 - 1)) as [E3|E3]. 1: lia.
+          rewrite Base_a in a7_expr.
+          destruct (Nat.ltb_spec (S(S i)) (k*2)) as [E4|E4]. 2: lia.
+          replace (k*2+1-S(S i)) with (k*2-S i) in a7_expr by lia.
+          assert (ai i s7 = 2*2^(k*2-S i)) as H by lia.
+          replace (k*2-i) with (1+(k*2-S i)) by lia.
+          rewrite pow2_1a.
+          lia.
+        * simpl_divpow2r_pow2 a7_expr.
+          destruct (Nat.eqb_spec (S (S i)) (k*2 + 1 - 1)) as [E1|E1]. 1: lia.
+          rewrite Base_a in a7_expr.
+          destruct (Nat.ltb_spec (S(S i)) (k*2)) as [E2|E2]. 1: lia.
+          rewrite Base_a.
+          destruct (Nat.ltb_spec (i) (k*2)) as [E3|E3]. 1: lia.
+          lia.
+  }
+  do 5 eexists; split.
+  - apply Hemb.
+  - apply Hadd.
 Qed.
-
-
-
 
 
 
