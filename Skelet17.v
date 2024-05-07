@@ -2597,8 +2597,13 @@ Proof.
     + auto 1.
 Qed.
 
+Inductive Box(P:Prop):Prop :=
+| Box_intro: P -> Box P
+.
+
 Inductive weakly_embanked: (nat*(list nat))->(nat*(list nat))->nat->nat->nat->nat->Prop :=
 | weakly_embanked_intro n1' n2' s1' s2' s3' s4' s5' s6'
+  (* use ' to avoid auto-renaming of number suffix in the name *)
   (Z12':Zero s1' s2')
   (I23':Increments n1' s2' s3')
   (H34':Halve s3' s4')
@@ -2617,6 +2622,10 @@ Inductive weakly_embanked: (nat*(list nat))->(nat*(list nat))->nat->nat->nat->na
   (Hs6s:to_s s6' = false)
   (Hs6l:to_l s6' = to_l s1')
 
+  (* use Box to avoid subst to use this equations *)
+  (n34_expr:Box ((to_n s4') = (to_n s3')/2))
+  (n56_expr:Box ((to_n s6') = (to_n s5')/2))
+
   (n3_expr:(to_n s3') + (fst s1') = 2^(to_l s1'))
   (n4_expr:(to_n s4') + (fst s1')/2 + 1 = 2^(to_l s1' - 1))
   (n5_expr:(to_n s5') = (ai O s1') + 2^(to_l s1' - 1))
@@ -2626,7 +2635,7 @@ Inductive weakly_embanked: (nat*(list nat))->(nat*(list nat))->nat->nat->nat->na
   fst s6' + divpow2r (to_n s4') 0 + divpow2r (to_n s3') 1)
 
   (a6_expr:forall i : nat,
-    ai (S (S i)) s1' + (if S (S i) =? to_l s1' - 1 then 1 else 0) + divpow2r (to_n s2') (S (S i)) +
+    ai (S (S i)) s1' + (if S (S i) =? to_l s1' - 1 then 1 else 0) + divpow2r (2^(to_l s1') - 1) (S (S i)) +
     divpow2r (to_n s5') (S i) = ai i s6' + divpow2r (to_n s4') (S i) + divpow2r (to_n s3') (S (S i))):
 
   weakly_embanked s1' s6' (to_n s3') (to_n s4') (to_n s5') (to_n s6').
@@ -2638,9 +2647,22 @@ Inductive embanked: (nat*(list nat))->(nat*(list nat))->nat->nat->nat->nat->Prop
   (Hwemb:weakly_embanked s1' s6' s_1' h_1' s_2' h_2')
   (I67:Increments n1' s6' s7')
   (Z78:Zero s7' s8')
+
+  (H_a60_ge_n6:fst s6' >= h_2')
+
+  (a70_expr : ai 1 s1' + 2 ^ (to_l s1' - 2) + divpow2r s_2' 0 - (to_n s7') + 1 =
+           fst s7' + h_2' + divpow2r h_1' 0 + divpow2r s_1' 1)
+  (a7_expr : forall i : nat,
+          ai (S (S i)) s1' + (if S (S i) =? (to_l s1') - 1 then 1 else 0) +
+          divpow2r (2 ^ (to_l s1') - 1) (S (S i)) + divpow2r s_2' (S i) + divpow2r h_2' i =
+          ai i s7' + divpow2r h_1' (S i) + divpow2r s_1' (S (S i)))
+
   (Hwf7:WF1 s7')
+  (Hs7s:to_s s7' = false)
+  (Hs7n:to_n s7' = O)
   (Hl_eq:to_l s1' = to_l s7'):
   embanked s1' s7' s_1' h_1' s_2' h_2'.
+
 
 Definition ai' i s :=
   match i with
@@ -2835,6 +2857,55 @@ Proof.
 Qed.
 
 
+Lemma pow2_div2 i:
+  i<>O ->
+  2^i/2 = 2^(i-1).
+Proof.
+  destruct i as [|i].
+  1: congruence.
+  intro.
+  replace (2^S i) with (2^(S i - 1 + 1)) by (f_equal; lia).
+  rewrite pow_add_r.
+  change (2^1) with 2.
+  rewrite div_mul; congruence.
+Qed.
+
+Lemma pow2_add i:
+  2^i + 2^i = 2^(i+1).
+Proof.
+  rewrite (add_comm i),pow2_1a.
+  lia.
+Qed.
+
+Lemma pow2_sub1 a i:
+  a+1 = 2^i <->
+  a = 2^i - 1.
+Proof.
+  pose proof (pow2_nez i).
+  lia.
+Qed.
+
+Lemma pow2_Even i:
+  i<>O ->
+  Even (2^i).
+Proof.
+  destruct i as [|i].
+  1: congruence.
+  intro.
+  rewrite pow2_1a.
+  econstructor.
+  reflexivity.
+Qed.
+
+Lemma div2_add2 a:
+  (a+2)/2 = a/2+1.
+Proof.
+  replace (a+2) with (1*2+a) by lia.
+  rewrite div_add_l. 2: congruence.
+  lia.
+Qed.
+
+
 (*
   Proposition 3.4
   and also prove some properties of s_1,s_2,h_1,h_2 for Lemma 3.5
@@ -2848,7 +2919,7 @@ Lemma weakly_embanked_precond s1:
   fst s1 < 2 ^ to_l s1 - 1 ->
   ai O s1 < 3 * (2 ^ (to_l s1 - 1)) ->
   exists s2 s_1 s_2 h_1 h_2,
-  weakly_embanked s1 s2 s_1 s_2 h_1 h_2.
+  weakly_embanked s1 s2 s_1 h_1 s_2 h_2.
 Proof.
   intros Hwf1 Hs1s Hs1n Hs1l Hs1a0_odd Hs1a0_lt Hs1a1_lt.
   destruct (Zero_precond Hwf1 Hs1s Hs1n) as [s2 [Z12 Hwf2]].
@@ -3002,30 +3073,28 @@ Proof.
     lia.
   }
   assert (Ha60_expr:
-  ai 1 s1 + divpow2r n2 1 + divpow2r n5 0 + 1 =
+  ai 1 s1 + (2^(l1-2)) + divpow2r n5 0 + 1 =
   a60 + divpow2r n4 0 + divpow2r n3 1). {
     specialize (Hs5a_expr O).
     destruct (Nat.eqb_spec 1 (l1-1)).
     1: lia.
     rewrite add_0_r in Hs5a_expr.
     rewrite Hs6a0.
+    replace (2^(l1-2)) with (divpow2r n2 1). 2:{
+      unfold divpow2r.
+      rewrite Hs2n.
+      change (2^1) with 2.
+      change (2^(1+1)) with (2*2).
+      rewrite <-Div0.div_div.
+      replace ((2^l1)-1+2) with (2^l1+1) by (pose proof (pow2_nez l1); lia).
+      rewrite div2ceil_div2floor_Even. 2: apply pow2_Even; lia.
+      do 2 (rewrite pow2_div2; [idtac|lia]).
+      f_equal. lia.
+    }
     lia.
   }
-  replace (divpow2r n2 1) with (2 ^ (l1 - 2)) in Ha60_expr. 2:{
-    unfold divpow2r.
-    rewrite Hs2n.
-    change (2^(1+1)) with 4.
-    change (2^1) with 2.
-    pose proof (pow2_nez l1).
-    replace (2^l1-1+2) with (2^l1+1) by lia.
-    replace (2^l1) with (2^((l1-2)+2)) by (f_equal; lia).
-    rewrite pow_add_r.
-    rewrite div_add_l. 2: congruence.
-    rewrite add_0_r.
-    reflexivity.
-  }
   assert (Hs6a_expr:forall i,
-  ai (S (S i)) s1 + (if S (S i) =? l1 - 1 then 1 else 0) + divpow2r n2 (S (S i)) + divpow2r n5 (S i) =
+  ai (S (S i)) s1 + (if S (S i) =? l1 - 1 then 1 else 0) + divpow2r (2^l1-1) (S (S i)) + divpow2r n5 (S i) =
   ai i s6 + divpow2r n4 (S i) + divpow2r n3 (S (S i))). {
     intro i.
     specialize (Hs2a (S (S i))).
@@ -3033,6 +3102,7 @@ Proof.
     specialize (Hs4a (S i)).
     specialize (Hs5a (S i)).
     specialize (Hs6a i).
+    rewrite <-Hs2n.
     subst.
     lia.
   }
@@ -3054,6 +3124,8 @@ Proof.
   - apply Hwf6.
   - apply Hs6s.
   - lia.
+  - constructor. congruence.
+  - constructor. congruence.
   - congruence.
   - congruence.
   - congruence.
@@ -3062,16 +3134,16 @@ Proof.
   - apply Hs6a_expr.
 Qed.
 
-Lemma embanked_precond s1 s6 s_1 h_1 s_2 h_2:
+Lemma embanked_precond {s1 s6 s_1 h_1 s_2 h_2}:
   weakly_embanked s1 s6 s_1 h_1 s_2 h_2 ->
   h_2 <= fst s6 ->
   exists s7, embanked s1 s7 s_1 h_1 s_2 h_2.
 Proof.
   intros Hweb Hn6_le.
   inversion Hweb; subst.
-
+  assert (H_a60_ge_n6:fst s6 >= to_n s6) by lia.
   eassert (I67:_). {
-    apply (Increments_dec_precond1 (to_n s6) Hwf6' Hs6s); lia.
+    apply (Increments_dec_precond1 (to_n s6) Hwf6' Hs6s); auto 1; lia.
   }
   destruct I67 as [s7 [I67 Hwf7]].
   pose proof (Increments_sgn I67) as Hs7s.
@@ -3087,28 +3159,56 @@ Proof.
     - lia.
   }
   destruct Z78 as [s8 [Z78 Hwf8]].
+
+  remember (to_l s1) as l1.
+  remember (to_l s6) as l6.
+  remember (to_l s7) as l7.
+  remember (to_n s3') as n3.
+  remember (to_n s4') as n4.
+  remember (to_n s5') as n5.
+  remember (to_n s6) as n6.
+  remember (to_n s7) as n7.
+
+  assert(a70_expr : ai 1 s1 + 2 ^ (l1 - 2) + divpow2r n5 0 - n7 + 1 =
+           fst s7 + n6 + divpow2r n4 0 + divpow2r n3 1) by lia.
+  assert(a7_expr : forall i : nat,
+          ai (S (S i)) s1 + (if S (S i) =? l1 - 1 then 1 else 0) +
+          divpow2r (2 ^ l1 - 1) (S (S i)) + divpow2r n5 (S i) + divpow2r n6 i =
+          ai i s7 + divpow2r n4 (S i) + divpow2r n3 (S (S i))). {
+    intro i.
+    assert (divpow2r n7 i = O). {
+      assert (Hn7_0:n7=O) by lia.
+      rewrite Hn7_0.
+      unfold divpow2r. cbn.
+      rewrite add_comm,div_small.
+      1: reflexivity.
+      cbn. pose proof (pow2_nez i); lia.
+    }
+    specialize (a6_expr i).
+    specialize (Hs7a i).
+    lia.
+  }
+
+  subst.
   exists s7.
   econstructor.
-  - econstructor; eauto 1.
+  - apply Hweb.
   - apply I67.
   - apply Z78.
+  - apply H_a60_ge_n6.
+  - apply a70_expr.
+  - apply a7_expr.
   - apply Hwf7.
+  - congruence.
+  - lia.
   - lia.
 Qed.
 
 
 
 
-Lemma div2_add2 a:
-  (a+2)/2 = a/2+1.
-Proof.
-  replace (a+2) with (1*2+a) by lia.
-  rewrite div_add_l. 2: congruence.
-  lia.
-Qed.
-
 (* Lemma 3.5 *)
-Lemma emb_wemb_s_h e ne nne i s_1 h_1 s_2 h_2 s_1' h_1' s_2' h_2':
+Lemma emb_wemb_s_h {e ne nne i s_1 h_1 s_2 h_2 s_1' h_1' s_2' h_2'}:
   embanked e ne s_1 h_1 s_2 h_2 ->
   weakly_embanked ne nne s_1' h_1' s_2' h_2' ->
   Add2 i e ne ->
@@ -3158,10 +3258,443 @@ Proof.
     repeat f_equal; lia.
 Qed.
 
+Lemma Nat_eqb_def a b:
+  Nat.eqb (S a) (S b) = Nat.eqb a b.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma divpow2r_mono n1 n2 i:
+  n1 <= n2 ->
+  divpow2r n1 i <=
+  divpow2r n2 i.
+Proof.
+  intro H.
+  unfold divpow2r.
+  apply Div0.div_le_mono.
+  lia.
+Qed.
+
+
+Lemma divpow2r_div2 n i:
+  divpow2r (n/2) i = divpow2r n (S i).
+Proof.
+  unfold divpow2r.
+  cbn[add].
+  do 2 rewrite pow2_1a.
+  rewrite <-Div0.div_div.
+  replace (n+2*2^i) with (2*(n/2)+(n mod 2)+2*2^i). 2:{
+    f_equal.
+    rewrite <-div_mod; congruence.
+  }
+  replace (2*(n/2) + n mod 2 + 2 * 2 ^ i) with
+  ((n/2+2^i)*2 + n mod 2) by lia.
+  rewrite div_add_l. 2: congruence.
+  rewrite (div_small (n mod 2)).
+  2: apply mod_upper_bound; congruence.
+  f_equal.
+  lia.
+Qed.
+
+Lemma divpow2r_div2_add2 n i:
+  divpow2r (n/2+1) i = divpow2r (n+2) (S i).
+Proof.
+  applys_eq divpow2r_div2.
+  f_equal.
+  rewrite div2_add2.
+  reflexivity.
+Qed.
+
+Lemma divpow2r_S n i:
+  divpow2r (n+1) i = (divpow2r n i) + (if Nat.eqb (n mod 2^(i+1)) (2^i-1) then 1 else 0).
+Proof.
+  destruct (Nat.eqb_spec (n mod 2 ^ (i + 1)) (2 ^ i - 1)) as [E|E].
+  - symmetry. apply divpow2r_inc,E.
+  - symmetry. rewrite divpow2r_eq. 2: apply E.
+    apply add_0_r.
+Qed.
+
+Axiom ctzS: nat->nat.
+
+Lemma ctzS_spec n i:
+  ctzS n = i <->
+  n mod 2^(i+1) = 2^i-1.
+Admitted.
+
+
+(* Proposition 3.6 *)
+Lemma emb_wemb_Add2_emb {e ne ne' i s_1 h_1 s_2 h_2 s_1' h_1' s_2' h_2'}:
+  embanked e ne s_1 h_1 s_2 h_2 ->
+  weakly_embanked ne ne' s_1' h_1' s_2' h_2' ->
+  Add2 i e ne ->
+  exists nne, embanked ne nne s_1' h_1' s_2' h_2' /\
+  match i with
+  | O => Add2 (ctzS (h_1-1)) ne nne
+  | S O => Add2 (S (ctzS h_2)) ne nne
+  | S (S i0) => Add2 i0 ne nne
+  end.
+Proof.
+  intros He Hwe Hadd.
+  pose proof (emb_wemb_s_h He Hwe Hadd) as H_s_h.
+  inversion He. subst.
+  inversion Hwemb. subst.
+  inversion Hwe. subst.
+  inversion Hadd. subst.
+  pose proof (Hadd2 O) as Hadd2_0.
+  pose proof (Hadd2 (S O)) as Hadd2_1.
+  cbn in Hadd2_0,Hadd2_1.
+  remember (to_n s3') as s_1.
+  remember (to_n s4') as h_1.
+  remember (to_n s5') as s_2.
+  remember (to_n s6') as h_2.
+  remember (to_n s3'0) as s_1'.
+  remember (to_n s4'0) as h_1'.
+  remember (to_n s5'0) as s_2'.
+  remember (to_n ne') as h_2'.
+  remember (to_l e) as l1.
+  remember (to_l ne) as l1'.
+  remember (fst e) as a10.
+  remember (fst ne) as a10'.
+  remember (ai 0 e) as a11.
+  remember (ai 0 ne) as a11'.
+  rewrite <-Hl_eq in Heql1'.
+  subst l1'.
+  rewrite <-Hadd2_0 in Heqa10'.
+  subst a10'.
+  rewrite <-Hadd2_1 in Heqa11'.
+  subst a11'.
+  destruct i as [|[|i]].
+  {
+    inversion H_s_h.
+    rewrite H0 in Heqs_1,n3_expr.
+    rewrite H1 in Heqh_1,n4_expr.
+    rewrite H2 in Heqs_2,n5_expr.
+    rewrite H3 in Heqh_2,n6_expr.
+    subst s_1 h_1 s_2 h_2.
+    rewrite div2_add2 in n4_expr0.
+    rewrite add_0_r in n6_expr0.
+
+    epose proof (divpow2r_mono h_1' (h_1'+1) 0 _) as E1.
+    Unshelve. 2: lia.
+    epose proof (divpow2r_mono s_1' (s_1'+2) 1 _) as E2.
+    Unshelve. 2: lia.
+    pose proof (Hadd2 2) as Hadd2_2.
+    cbn in Hadd2_2.
+
+    epose proof (embanked_precond Hwe _) as He'.
+    Unshelve. 2: lia.
+    destruct He' as [nne He'].
+    exists nne.
+    split. 1: apply He'.
+    inversion He'. subst s1' s7' s_1'0 h_1'0 s_2'0 h_2'0.
+    rewrite <-Heql1' in a70_expr0,a7_expr0.
+
+    assert (Ha:
+    forall i:nat,
+      ai' i ne + 2*(divpow2r (h_1' + 1) i) =
+      ai' i nne + 2*(divpow2r h_1' i)
+    ). {
+      destruct n34_expr0 as [n34_expr0].
+      destruct n56_expr0 as [n56_expr0].
+      assert (H1:forall i,divpow2r (s_1' + 2) (S i) = (divpow2r (h_1' + 1) i)). {
+        intro i.
+        rewrite <-divpow2r_div2_add2.
+        congruence.
+      }
+      assert (H2:forall i,divpow2r (s_1') (S i) = (divpow2r (h_1') i)). {
+        intro i.
+        rewrite <-divpow2r_div2.
+        congruence.
+      }
+      intro i0.
+      destruct i0 as [|i0].
+      - specialize (H1 O).
+        specialize (H2 O).
+        unfold ai'.
+        lia.
+      - specialize (H1 (S i0)).
+        specialize (H2 (S i0)).
+        unfold ai'.
+        specialize (a7_expr i0).
+        specialize (a7_expr0 i0).
+        pose proof (Hadd2 (S (S (S i0)))) as Hadd2_S.
+        cbn in Hadd2_S.
+        lia.
+    }
+    constructor.
+    intro i.
+    specialize (Ha i).
+    rewrite add_sub.
+    destruct (Nat.eqb_spec i (ctzS h_1')) as [E|E].
+    - symmetry in E.
+      rewrite ctzS_spec in E.
+      rewrite <-divpow2r_inc in Ha. 2: apply E. lia.
+    - pose proof (not_eq_sym E) as E'.
+      rewrite ctzS_spec in E'.
+      rewrite <-divpow2r_eq in Ha. 2: apply E'. lia.
+  }
+  {
+    inversion H_s_h.
+    rewrite <-H0 in Heqs_1',n3_expr0.
+    rewrite <-H1 in Heqh_1',n4_expr0.
+    rewrite <-H2 in Heqs_2',n5_expr0.
+    rewrite <-H3 in Heqh_2',n6_expr0.
+    subst s_1' h_1' s_2' h_2'.
+    rewrite add_0_r in n4_expr0.
+    rewrite div2_add2 in n6_expr0.
+
+    pose proof (Hadd2 2) as Hadd2_2.
+    cbn in Hadd2_2.
+    assert ((divpow2r s_2 0) + 1 = divpow2r (s_2+2) 0). {
+      repeat rewrite divpow2r_0.
+      replace (s_2+2+1) with (s_2+1+2) by lia.
+      rewrite div2_add2.
+      reflexivity.
+    }
+    epose proof (embanked_precond Hwe _) as He'.
+    Unshelve. 2: lia.
+    destruct He' as [nne He'].
+    exists nne.
+    split. 1: apply He'.
+    inversion He'. subst s1' s7' s_1' h_1' s_2' h_2'.
+    rewrite <-Heql1' in a70_expr0,a7_expr0.
+
+    assert (Ha:
+    forall i,
+      ai i ne + 2*(divpow2r (h_2 + 1) i) =
+      ai i nne + 2*(divpow2r h_2 i)
+    ). {
+      intro i0.
+      pose proof (Hadd2 (S (S (S i0)))) as Hadd2_S.
+      cbn in Hadd2_S.
+      destruct n34_expr as [n34_expr].
+      destruct n56_expr as [n56_expr].
+      assert (divpow2r (s_2 + 2) (S i0) = (divpow2r (h_2 + 1) i0)). {
+        rewrite <-divpow2r_div2_add2.
+        congruence.
+      }
+      assert (divpow2r (s_2) (S i0) = (divpow2r (h_2) i0)). {
+        rewrite <-divpow2r_div2.
+        congruence.
+      }
+      specialize (a7_expr i0).
+      specialize (a7_expr0 i0).
+      lia.
+    }
+
+    assert (Ha0:
+      (fst ne) + divpow2r (s_2 + 2) 0 =
+      (fst nne) + divpow2r s_2 0 + 1
+    ) by lia.
+
+    constructor.
+    intro i.
+    destruct i as [|i].
+    - unfold ai'.
+      do 2 rewrite divpow2r_0 in Ha0.
+      replace (s_2+2+1) with (s_2+1+2) in Ha0 by lia.
+      rewrite div2_add2,<-add_assoc,add_cancel_r in Ha0.
+      cbn. lia.
+    - unfold ai'.
+      rewrite Nat_eqb_def.
+      specialize (Ha i).
+      destruct (Nat.eqb_spec i (ctzS h_2)) as [E|E].
+      + symmetry in E.
+        rewrite ctzS_spec in E.
+        rewrite <-divpow2r_inc in Ha. 2: apply E. lia.
+      + pose proof (not_eq_sym E) as E'.
+        rewrite ctzS_spec in E'.
+        rewrite <-divpow2r_eq in Ha. 2: apply E'. lia.
+  }
+  {
+    inversion H_s_h.
+    rewrite <-H0 in Heqs_1',n3_expr0.
+    rewrite <-H1 in Heqh_1',n4_expr0.
+    rewrite <-H2 in Heqs_2',n5_expr0.
+    rewrite <-H3 in Heqh_2',n6_expr0.
+    subst s_1' h_1' s_2' h_2'.
+    pose proof (Hadd2 2) as Hadd2_2.
+    unfold ai' in Hadd2_2.
+    repeat rewrite Nat_eqb_def in Hadd2_2.
+    assert (H_a60_ge_n6':fst ne' >= h_2) by lia.
+    destruct (embanked_precond Hwe H_a60_ge_n6') as [nne He'].
+    exists nne.
+    split. 1: apply He'.
+    inversion He'. subst s1' s7' s_1' h_1' s_2' h_2'.
+    rewrite <-Heql1' in a70_expr0,a7_expr0.
+    constructor.
+    intro i0.
+    destruct i0 as [|i0].
+    - unfold ai'.
+      lia.
+    - unfold ai'.
+      specialize (a7_expr i0).
+      specialize (a7_expr0 i0).
+      specialize (Hadd2 (S (S (S i0)))).
+      unfold ai' in Hadd2.
+      repeat rewrite Nat_eqb_def in Hadd2.
+      lia.
+  }
+Qed.
 
 
 
+Inductive Base(k:nat): (nat*(list nat))->Prop :=
+| Base_intro s
+  (Base_a0':fst s = S O)
+  (Base_a:forall i, ai i s = if Nat.ltb i (k*2) then 2^(k*2-i) else O)
+  (Base_l:to_l s = k*2+1)
+  (Base_k:k<>O):
+  Base k s.
 
+Lemma Base_embanked k s1:
+  Base k s1 ->
+  exists s7 s_1 h_1 s_2 h_2, embanked s1 s7 s_1 h_1 s_2 h_2.
+Proof.
+  intro HB.
+  inversion HB; subst.
+  assert (H_l:to_l s1 >= 3) by lia.
+  destruct s1 as [x xs].
+  cbn in Base_a0'.
+  subst x.
+  assert (Ha0_odd:Odd (fst (1%nat,xs))). {
+    cbn.
+    rewrite <-odd_spec.
+    reflexivity.
+  }
+  assert (Ha1:ai O (1%nat,xs) = 2^(k*2)). {
+    rewrite (Base_a O).
+    destruct (Nat.ltb_spec O (k*2)) as [E|E]. 2: lia.
+    f_equal. apply sub_0_r.
+  }
+  assert (Ha2:ai 1 (1%nat,xs) = 2^(k*2-1)). {
+    rewrite (Base_a 1%nat).
+    destruct (Nat.ltb_spec 1 (k*2)) as [E|E]. 2: lia.
+    reflexivity.
+  }
+  assert (Ha0_lt:fst (1%nat,xs) < 2 ^ to_l (1%nat,xs) - 1). {
+    rewrite Base_l. cbn.
+    destruct k as [|k]. 1: congruence.
+    cbn.
+    pose proof (pow2_nez (k*2+1)).
+    lia.
+  }
+  pose proof Base_l as Base_l'.
+  cbn in Base_l.
+  rewrite grey_to_binary_length,map_length in Base_l.
+  assert (Hxsnn:xs<>[]) by (intro X; rewrite X in Base_l; cbn in Base_l; lia).
+  destruct (exists_last Hxsnn) as [xs0 [x1 Hxs]].
+  subst xs.
+  rewrite app_length in Base_l. cbn in Base_l.
+  assert (Hl:length xs0 = k*2) by lia.
+  assert (Hx1:x1=O). {
+    specialize (Base_a (k*2)).
+    destruct (Nat.ltb_spec (k*2) (k*2)) as [E|E].
+    1: lia.
+    cbn in Base_a.
+    rewrite app_nth2 in Base_a. 2: lia.
+    replace (k*2-length xs0) with O in Base_a by lia.
+    cbn in Base_a.
+    apply Base_a.
+  }
+  subst x1.
+  assert (H_ev:Forall Even xs0). {
+    rewrite Forall_forall.
+    intros x HIn.
+    destruct (In_nth _ _ O HIn) as [i [H0 H1]].
+    specialize (Base_a i).
+    unfold ai,snd in Base_a.
+    rewrite app_nth1 in Base_a. 2: auto 1.
+    rewrite H1 in Base_a.
+    destruct (Nat.ltb_spec i (k*2)) as [E|E]. 2: lia.
+    subst x.
+    replace (k*2-i) with (1+(k*2-i-1)) by lia.
+    rewrite pow2_1a.
+    econstructor. reflexivity.
+  }
+  assert (H_nz:Forall Nonzero xs0). {
+    rewrite Forall_forall.
+    intros x HIn.
+    destruct (In_nth _ _ O HIn) as [i [H0 H1]].
+    specialize (Base_a i).
+    unfold ai,snd in Base_a.
+    rewrite app_nth1 in Base_a. 2: auto 1.
+    rewrite H1 in Base_a.
+    destruct (Nat.ltb_spec i (k*2)) as [E|E]. 2: lia.
+    subst x.
+    apply (pow2_nez (k*2-i)).
+  }
+  assert (H_wf1:WF1 (1%nat,xs0++[O])) by (econstructor; eauto 1).
+  assert (H_n:to_n (1%nat,xs0++[O]) = O). {
+    apply to_n_Even.
+    rewrite Forall_app.
+    split; auto 2.
+  }
+  assert (H_s:to_s (1%nat,xs0++[O]) = false). {
+    cbn.
+    simpl_list_to_binary_0s.
+    reflexivity.
+  }
+  assert (H_a1_lt:ai 0 (1%nat,xs0++[O]) < 3 * 2 ^ (to_l (1%nat,xs0++[O]) - 1)). {
+    remember (to_l (1%nat, xs0 ++ [O])) as l1.
+    specialize (Base_a O).
+    rewrite Base_a.
+    destruct (Nat.ltb_spec O (k*2)) as [E|E]. 2: lia.
+    rewrite Base_l'.
+    replace (k*2+1-1) with (k*2) by lia.
+    rewrite sub_0_r.
+    pose proof (pow2_nez (k*2)).
+    lia.
+  }
+  eassert (Hwemb:_) by
+    (eapply weakly_embanked_precond with (s1:=(1%nat,xs0++[O])); eassumption).
+  destruct Hwemb as [s6 [s_1 [h_1 [s_2 [h_2 Hwemb]]]]].
+  inversion Hwemb; subst.
+  rewrite Base_l' in n3_expr,n4_expr,n5_expr,n6_expr,a60_expr.
+  rewrite Ha1 in n5_expr,n6_expr.
+  rewrite Ha2 in a60_expr.
+  unfold fst in n3_expr,n4_expr,n5_expr,n6_expr.
+  rewrite add_0_r in n4_expr.
+  rewrite add_sub in n4_expr,n5_expr.
+  replace (k*2+1-2) with (k*2-1) in n6_expr,a60_expr by lia.
+  rewrite pow2_div2 in n6_expr. 2: lia.
+  rewrite pow2_add in n5_expr,n6_expr,a60_expr.
+  replace (k*2-1+1) with (k*2) in n6_expr,a60_expr by lia.
+  rewrite pow2_sub1 in n3_expr,n4_expr.
+  rewrite n3_expr,n4_expr,n5_expr in a60_expr.
+  do 2 rewrite divpow2r_0 in a60_expr.
+  rewrite sub_add in a60_expr. 2: pose proof (pow2_nez (k*2)); lia.
+  rewrite div2ceil_div2floor_Even in a60_expr. 2: apply pow2_Even; lia.
+  do 2 (rewrite pow2_div2 in a60_expr; [idtac | lia]).
+  rewrite add_sub in a60_expr.
+  unfold divpow2r in a60_expr.
+  change (2^1) with 2 in a60_expr.
+  change (2^(1+1)) with (2*2) in a60_expr.
+  replace (2^(k*2+1)-1+2) with (2^(k*2+1)+1) in a60_expr by (pose proof (pow2_nez (k*2+1)); lia).
+  rewrite <-Div0.div_div in a60_expr.
+  rewrite div2ceil_div2floor_Even in a60_expr. 2: apply pow2_Even; lia.
+  do 2 (rewrite pow2_div2 in a60_expr; [idtac | lia]).
+  rewrite add_sub in a60_expr.
+  rewrite pow2_add in a60_expr.
+  rewrite <-add_assoc in a60_expr.
+  rewrite pow2_add in a60_expr.
+  rewrite sub_add in a60_expr. 2: lia.
+  rewrite (add_comm (k*2) 1) in a60_expr.
+  rewrite pow2_1a in a60_expr.
+  assert (a60_expr':fst s6 = 2^(k*2)+1) by lia.
+  clear a60_expr. rename a60_expr' into a60_expr.
+  eassert (Hemb:_). {
+    eapply embanked_precond.
+    - apply Hwemb.
+    - lia.
+  }
+  destruct Hemb as [s7 Hemb].
+  inversion Hemb. subst s1' s7' s_1' h_1' s_2' h_2'.
+  rewrite n3_expr,n4_expr,n5_expr,n6_expr,Base_l' in a7_expr,a70_expr.
+
+  do 5 eexists.
+  apply Hemb.
+Qed.
 
 
 
