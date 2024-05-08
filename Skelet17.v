@@ -4660,8 +4660,380 @@ Proof.
 Qed.
 
 
+Lemma ctz_upper_bound i m:
+  m<2^i-1 ->
+  ctzS m < i.
+Proof.
+  intro H.
+  remember (ctzS m) as v1.
+  symmetry in Heqv1.
+  rewrite ctzS_spec in Heqv1.
+  pose proof (Div0.mod_le m (2^(v1+1))) as H0.
+  rewrite Heqv1 in H0.
+  pose proof (pow2_nez v1) as H1.
+  pose proof (pow2_nez i) as H2.
+  assert (2^v1<2^i) as H3 by lia.
+  rewrite <-pow_lt_mono_r_iff in H3; lia.
+Qed.
+
+Lemma ctzS_add i m:
+  m<2^i-1 ->
+  ctzS (2^i+m) = ctzS m.
+Proof.
+  intro H.
+  pose proof (ctz_upper_bound i m H) as H0.
+  remember (ctzS m) as v1.
+  rewrite ctzS_spec.
+  symmetry in Heqv1.
+  rewrite ctzS_spec in Heqv1.
+  rewrite <- Div0.add_mod_idemp_l.
+  replace i with (i-(v1+1)+(v1+1)) by lia.
+  rewrite pow_add_r.
+  rewrite Div0.mod_mul.
+  apply Heqv1.
+Qed.
+
+Lemma ctzS_sub i m:
+  i>0 ->
+  m<2^i-1 ->
+  ctzS (2^i-m-2) = ctzS m.
+Proof.
+  intros Hi H.
+  pose proof (ctz_upper_bound i m H) as H0.
+  remember (ctzS m) as v1.
+  rewrite ctzS_spec.
+  symmetry in Heqv1.
+  rewrite ctzS_spec in Heqv1.
+  remember ((2^i-m-2) mod (2^(v1+1))) as v2.
+  symmetry in Heqv2.
+  pose proof (Div0.add_mod m 2 (2^(v1+1))) as H1.
+  rewrite Heqv1 in H1.
+  rewrite Div0.add_mod_idemp_r in H1.
+  pose proof (Div0.add_mod (2^i-m-2) (m+2) (2^(v1+1))) as H2.
+  rewrite Heqv2,H1 in H2.
+  rewrite Div0.add_mod_idemp_r in H2.
+  replace (2^i-m-2+(m+2)) with (2^i) in H2 by lia.
+  replace i with (i-(v1+1)+(v1+1)) in H2 by lia.
+  rewrite pow_add_r in H2.
+  rewrite Div0.mod_mul in H2.
+  assert (v2<2^v1-1\/v2=2^v1-1\/v2>2^v1-1) as E by lia.
+  destruct E as [E|[E|E]].
+  2: apply E.
+  - rewrite mod_small in H2.
+    2: rewrite (add_comm v1 1),pow2_1a; lia.
+    lia.
+  - pose proof (pow2_nez v1) as Hv1.
+    replace (v2+(2^v1-1+2)) with ((v2-(2^v1-1))+2*2^v1) in H2 by lia.
+    change (2*2^v1) with (2^(1+v1)) in H2.
+    replace (2^(1+v1)) with (1*2^(1+v1)) in H2 by lia.
+    rewrite (add_comm 1 v1) in H2.
+    rewrite Div0.mod_add in H2.
+    epose proof (mod_upper_bound (2^i-m-2) (2^(v1+1)) _) as H3.
+    Unshelve. 2: pose proof (pow2_nez (v1+1)); lia.
+    rewrite Heqv2 in H3.
+    rewrite mod_small in H2; lia.
+Qed.
 
 
+Inductive ctzS_chain:nat->Prop :=
+| ctzS_chain_O:
+  ctzS_chain O
+| ctzS_chain_S2 n:
+  ctzS_chain n ->
+  ctzS n mod 2 = 0 ->
+  ctzS (n+1) mod 2 = 1 ->
+  ctzS_chain (n+2)
+| ctzS_chain_S4 n:
+  ctzS_chain n ->
+  ctzS n mod 2 = 0 ->
+  ctzS (n+1) mod 2 = 0 ->
+  ctzS (n+2) mod 2 = 0 ->
+  ctzS (n+3) mod 2 = 1 ->
+  ctzS_chain (n+4)
+.
+
+Lemma ctzS_even_0 n:
+  n mod 2 = 0 ->
+  ctzS n = 0.
+Proof.
+  intro H.
+  rewrite ctzS_spec.
+  apply H.
+Qed.
+
+Lemma ctzS_mod4eq1 n:
+  n mod 4 = 1 ->
+  ctzS n = 1.
+Proof.
+  intro H.
+  rewrite ctzS_spec.
+  apply H.
+Qed.
+
+Lemma mod2_0_1 n:
+  n mod 2 = 0 \/
+  n mod 2 = 1.
+Proof.
+  epose proof (mod_upper_bound n 2 _).
+  Unshelve. 2: congruence.
+  lia.
+Qed.
+
+Lemma ctzS_odd_odd n:
+  ctzS n mod 2 = 1 ->
+  n mod 2 = 1.
+Proof.
+  intro H.
+  destruct (mod2_0_1 n) as [E|E]; auto 1.
+  pose proof (ctzS_even_0 _ E) as H0.
+  rewrite H0 in H.
+  cbn in H.
+  congruence.
+Qed.
+
+Lemma ctzS_even_mod4ne1 n:
+  ctzS n mod 2 = 0 ->
+  n mod 4 <> 1.
+Proof.
+  intros H H0.
+  pose proof (ctzS_mod4eq1 _ H0) as H1.
+  rewrite H1 in H.
+  cbn in H.
+  congruence.
+Qed.
+
+Lemma ctzS_mod2eq0_5 n:
+  ctzS n mod 2 = 0 ->
+  ctzS (1+n) mod 2 = 0 ->
+  ctzS (2+n) mod 2 = 0 ->
+  ctzS (3+n) mod 2 = 0 ->
+  ctzS (4+n) mod 2 = 0 ->
+  False.
+Proof.
+  intros.
+  pose proof (ctzS_even_mod4ne1 _ H) as E.
+  pose proof (ctzS_even_mod4ne1 _ H0) as E0.
+  pose proof (ctzS_even_mod4ne1 _ H1) as E1.
+  pose proof (ctzS_even_mod4ne1 _ H2) as E2.
+  pose proof (ctzS_even_mod4ne1 _ H3) as E3.
+  rewrite <-Div0.add_mod_idemp_r in E0,E1,E2,E3.
+  remember (n mod 4) as v1.
+  epose proof (mod_upper_bound n 4 _).
+  Unshelve. 2: congruence.
+  assert (v1=0\/v1=1\/v1=2\/v1=3) as X by lia.
+  clear Heqv1.
+  destruct X as [X|[X|[X|X]]]; subst v1; cbn in E0,E1,E2,E3; congruence.
+Qed.
+
+Lemma ctzS_chain_spec0 n0:
+  forall n,
+  n<n0 ->
+  ctzS n mod 2 = 1 ->
+  ctzS_chain (S n).
+Proof.
+  induction n0.
+  1: intro; lia.
+  intros n H H0.
+  pose proof (ctzS_odd_odd _ H0) as H1.
+  destruct n as [|n].
+  1: cbn in H1; congruence.
+  destruct n as [|n].
+  { change 2 with (0+2).
+    eapply ctzS_chain_S2; auto 1.
+    constructor. }
+  rewrite mod2_SS in H1.
+  destruct (mod2_0_1 (ctzS n)) as [E|E].
+  - destruct n as [|n].
+    1: cbn in H1; congruence.
+    destruct n as [|n].
+    { change 4 with (0+4).
+      eapply ctzS_chain_S4; auto 1.
+      constructor. }
+    replace (S(S(S(S(S n))))) with (S n+4) by lia.
+    assert (ctzS (S n) mod 2 = 0) as E1. {
+      rewrite ctzS_even_0.
+      1: reflexivity.
+      rewrite <-mod2_1_S.
+      rewrite mod2_SS in H1.
+      apply H1.
+    }
+    assert (ctzS (S (S (S n))) mod 2 = 0) as E3. {
+      rewrite ctzS_even_0.
+      1: reflexivity.
+      cbn[add].
+      rewrite mod2_SS.
+      rewrite mod2_SS in H1.
+      rewrite <-mod2_1_S.
+      apply H1.
+    }
+    eapply ctzS_chain_S4.
+    + apply IHn0.
+      1: lia.
+      destruct (mod2_0_1 (ctzS n)) as [E0|E0].
+      2: apply E0.
+      destruct n as [|n].
+      1: cbn in H1; congruence.
+      assert (ctzS n mod 2 = 0) as E'. {
+        rewrite ctzS_even_0.
+        1: reflexivity.
+        rewrite mod2_SS,<-mod2_0_S in H1.
+        apply H1.
+      }
+      destruct (ctzS_mod2eq0_5 _ E' E0 E1 E E3).
+    + apply E1.
+    + rewrite add_comm. apply E.
+    + rewrite add_comm. apply E3.
+    + rewrite add_comm. apply H0.
+  - epose proof (IHn0 _ _ E).
+    Unshelve. 2: lia.
+    replace (S (S (S n))) with ((S n)+2) by lia.
+    eapply ctzS_chain_S2; eauto 1.
+    + rewrite ctzS_even_0.
+      1: reflexivity.
+      rewrite <-mod2_1_S.
+      apply H1.
+    + rewrite add_comm. apply H0.
+Qed.
+
+Lemma ctzS_chain_spec n:
+  ctzS n mod 2 = 1 ->
+  ctzS_chain (S n).
+Proof.
+  apply ctzS_chain_spec0 with (n0:=S n).
+  lia.
+Qed.
+
+Inductive N'steps: (nat*(list nat))->nat->nat->(nat*(list nat))->nat->nat->Prop :=
+| N'steps_O i e ne h1 h2:
+  embanked_batch i e ne h1 h2 ->
+  N'steps ne h1 h2 ne h1 h2
+| N'steps_S i e ne nne h1 h2 h1a h2a h1b h2b:
+  N'steps e h1 h2 ne h1a h2a ->
+  embanked_batch i ne nne h1b h2b ->
+  N'steps e h1 h2 nne h1b h2b
+.
+
+
+Check embanked_4batch.
+Check Base_embanked_batch.
+Hypothesis Sk:nat*(list nat).
+Hypothesis Base_Sk: Base Sk.
+
+Lemma embanked_batches_0 m0:
+  m0 < 2^(k*2)-1 ->
+  forall m,
+  m<=m0 ->
+  ctzS_chain m ->
+  exists e ne,
+  N'steps e (2^(k*2)-1) (2^(k*2)) ne (2^(k*2)-1-m) (2^(k*2)+m) /\
+  embanked_batch (k*2+1) Sk e (2^(k*2)-1) (2^(k*2)) /\
+  (exists e' i', embanked_batch i' e' ne (2^(k*2)-1-m) (2^(k*2)+m) /\ i' mod 2 = 1) /\
+  to_l ne = k*2+1 /\
+  ai' 0 ne = 1+m*2 /\
+  ai' 1 ne = 2^(k*2)+2+m*2.
+Proof.
+  induction m0.
+  - intros Hm0 m Hm Hcc.
+    assert (m=0) by lia. subst.
+    destruct (Base_embanked_batch Base_Sk) as [ne [Heb [Hl [Ha0 Ha1]]]].
+    exists ne ne.
+    repeat split; auto 1.
+    + rewrite sub_0_r,add_0_r; eapply N'steps_O,Heb.
+    + do 2 eexists.
+      split. 1: rewrite sub_0_r,add_0_r; apply Heb.
+      rewrite add_comm,Div0.mod_add.
+      reflexivity.
+    + lia.
+  - intros Hm0 m Hm Hcc.
+    inversion Hcc; subst.
+    1: eapply IHm0; auto 1; lia.
+    + eassert (_) as X. {
+        apply IHm0.
+        3: apply H.
+        1,2: lia.
+      }
+      destruct X as [e [ne [HN [Heb0 [Heb' [Hl [Ha0 Ha1]]]]]]].
+      destruct Heb' as [e' [i' [Heb' Hi']]].
+      eassert (_) as X0. {
+        eapply embanked_4batch with (m:=n).
+        1: lia.
+        1,2: rewrite ctzS_add; auto 1; lia.
+        1: replace (2^(k*2)-1-(n+1)) with (2^(k*2)-n-2) by lia.
+        2: replace (2^(k*2)-1-(n+2)) with (2^(k*2)-(n+1)-2) by lia.
+        1,2: rewrite ctzS_sub; auto 1; lia.
+        1: apply Heb'.
+        all: auto 1.
+      }
+      destruct X0 as [e2 [i2 [Heb2 [e3 [i3 [Heb3 [e4 [i4 [Heb4 [e5 [i5 [Heb5 [Hi5 [Hl5 [Ha50 Ha51]]]]]]]]]]]]]]].
+      exists e e5.
+      repeat split.
+      * eapply N'steps_S. 2: apply Heb5.
+        eapply N'steps_S. 2: apply Heb4.
+        eapply N'steps_S. 2: apply Heb3.
+        eapply N'steps_S. 2: apply Heb2.
+        apply HN.
+      * auto 1.
+      * exists e4 i5. tauto.
+      * auto 1.
+      * auto 1.
+      * auto 1.
+    + eassert (_) as X. {
+        apply IHm0.
+        3: apply H.
+        1,2: lia.
+      }
+      destruct X as [e [ne [HN [Heb0 [Heb' [Hl [Ha0 Ha1]]]]]]].
+      destruct Heb' as [e' [i' [Heb' Hi']]].
+      eassert (_) as X0. {
+        eapply embanked_8batch with (m:=n).
+        1: lia.
+        1,2,3,4: rewrite ctzS_add; auto 1; lia.
+        1: replace (2^(k*2)-1-(n+1)) with (2^(k*2)-n-2) by lia.
+        2: replace (2^(k*2)-1-(n+2)) with (2^(k*2)-(n+1)-2) by lia.
+        3: replace (2^(k*2)-1-(n+3)) with (2^(k*2)-(n+2)-2) by lia.
+        4: replace (2^(k*2)-1-(n+4)) with (2^(k*2)-(n+3)-2) by lia.
+        1,2,3,4: rewrite ctzS_sub; auto 1; lia.
+        1: apply Heb'.
+        all: auto 1.
+      }
+      destruct X0 as
+        [e2 [i2 [Heb2 [e3 [i3 [Heb3 [e4 [i4 [Heb4 [e5 [i5 [Heb5
+        [e6 [i6 [Heb6 [e7 [i7 [Heb7 [e8 [i8 [Heb8 [e9 [i9 [Heb9
+        [Hi9 [Hl9 [Ha90 Ha91]]]]]]]]]]]]]]]]]]]]]]]]]]].
+      exists e e9.
+      repeat split.
+      * eapply N'steps_S. 2: apply Heb9.
+        eapply N'steps_S. 2: apply Heb8.
+        eapply N'steps_S. 2: apply Heb7.
+        eapply N'steps_S. 2: apply Heb6.
+        eapply N'steps_S. 2: apply Heb5.
+        eapply N'steps_S. 2: apply Heb4.
+        eapply N'steps_S. 2: apply Heb3.
+        eapply N'steps_S. 2: apply Heb2.
+        apply HN.
+      * auto 1.
+      * exists e8 i9. tauto.
+      * auto 1.
+      * auto 1.
+      * auto 1.
+Qed.
+
+
+(* m=2^(k*2)-2 is Corollary 4.2 *)
+Lemma embanked_batches m:
+  m < 2^(k*2)-1 ->
+  ctzS_chain m ->
+  exists e ne,
+  N'steps e (2^(k*2)-1) (2^(k*2)) ne (2^(k*2)-1-m) (2^(k*2)+m) /\
+  embanked_batch (k*2+1) Sk e (2^(k*2)-1) (2^(k*2)) /\
+  (exists e' i', embanked_batch i' e' ne (2^(k*2)-1-m) (2^(k*2)+m) /\ i' mod 2 = 1) /\
+  to_l ne = k*2+1 /\
+  ai' 0 ne = 1+m*2 /\
+  ai' 1 ne = 2^(k*2)+2+m*2.
+Proof.
+  intros.
+  apply embanked_batches_0 with (m0:=m); auto 1.
+Qed.
 
 
 
