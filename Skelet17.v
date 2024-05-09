@@ -2426,6 +2426,66 @@ Proof.
   apply H5.
 Qed.
 
+
+Ltac rsplit :=
+  try match goal with
+  | |- (?a /\ ?b) => split; rsplit
+  end.
+
+Lemma Overflow_precond_0 x xs y:
+  to_n (x,xs++[y]) = 2^(to_l (x,xs++[y]))-1 ->
+  hd false (grey_to_binary (map odd (xs ++ [y]))) = true /\
+  Forall Even xs /\ Odd y.
+Proof.
+  induction xs.
+  - cbn.
+    destruct (odd y) eqn:Ey; cbn.
+    2: congruence.
+    intros.
+    rsplit; auto 1.
+    rewrite <-odd_spec.
+    apply Ey.
+  - gen IHxs.
+    cbn.
+    remember (grey_to_binary (map odd (xs ++ [y]))) as v1.
+    remember (xorb (odd a) (hd false v1)) as v2.
+    intro IHxs.
+    pose proof (pow2_nez (length v1)).
+    destruct v2; cbn. 2: lia.
+    intro H0.
+    eassert _ as X by (apply IHxs; lia).
+    destruct X as [X1 [X2 X3]].
+    rsplit; auto 1.
+    constructor; auto 1.
+    rewrite <-even_spec.
+    rewrite X1 in Heqv2.
+    unfold odd in Heqv2.
+    destruct (even a) eqn:Ea; cbn in Heqv2; congruence.
+Qed.
+
+Close Scope sym_scope.
+Lemma Overflow_precond {s1}:
+  WF1 s1 ->
+  to_s s1 = true ->
+  to_n s1 = 2^(to_l s1) - 1 ->
+  fst s1 = 1 ->
+  exists s2, Overflow s1 s2 /\ WF1 s2.
+Proof.
+  intros.
+  inverts H.
+  pose proof (Overflow_precond_0 x xs y H1) as H4.
+  destruct H4 as [H4 [H5 H6]].
+  cbn in H2.
+  subst.
+  eexists.
+  split.
+  1: econstructor; eauto 1.
+  rewrite app_cons_r.
+  econstructor.
+  rewrite Forall_app.
+  split; auto 2.
+Qed.
+
 Lemma Increments_inc_precond1 {s1} n:
   WF1 s1 ->
   to_s s1 = true ->
@@ -2717,16 +2777,42 @@ Proof.
     lia.
   - assert (i<length xs\/i>length xs) as [E0|E0] by lia.
     + do 2 (rewrite app_nth1; auto 1).
-    + rewrite app_nth2. 2: lia.
-      rewrite app_nth2. 2: lia.
+    + do 2 (rewrite app_nth2; try lia).
       destruct (i-length xs) as [|v1] eqn:E1. 1: lia.
       cbn.
-      destruct v1 as [|v1].
-      1: reflexivity.
-      destruct v1 as [|v1].
-      1: reflexivity.
-      destruct v1 as [|v1].
-      1,2: reflexivity.
+      destruct v1 as [|[|[|]]]; reflexivity.
+Qed.
+
+Lemma Overflow_a0 {s1 s2}:
+  Overflow s1 s2 ->
+  fst s1 = fst s2.
+Proof.
+  intro Ov.
+  inverts Ov.
+  reflexivity.
+Qed.
+
+Lemma Overflow_a {s1 s2}:
+  Overflow s1 s2 ->
+  forall i, ai i s1 + (if Nat.eqb i (to_l s1 - 1) then 1 else 0)%nat = ai i s2.
+Proof.
+  intro Ov.
+  inverts Ov.
+  unfold ai.
+  cbn.
+  rewrite grey_to_binary_length,map_length,app_length.
+  cbn.
+  rewrite add_sub.
+  intro i.
+  destruct (Nat.eqb_spec i (length xs)) as [E|E].
+  - subst i. do 2 rewrite nth_middle.
+    lia.
+  - assert (i<length xs\/i>length xs) as [E0|E0] by lia.
+    + do 2 (rewrite app_nth1; auto 1).
+    + do 2 (rewrite app_nth2; try lia).
+      destruct (i-length xs) as [|v1] eqn:E1. 1: lia.
+      cbn.
+      destruct v1 as [|[|[|]]]; reflexivity.
 Qed.
 
 Lemma Halve_a0 {s1 s2}:
@@ -3712,7 +3798,7 @@ Inductive embanked_batch: nat->(nat*(list nat))->(nat*(list nat))->nat->nat->Pro
   embanked_batch (S (S i)) e n'e h_1 h_2
 .
 
-Close Scope sym_scope.
+
 
 Lemma embanked_Add2SS_embanked {i e ne s_1' h_1' s_2' h_2'}:
   embanked e ne s_1' h_1' s_2' h_2' ->
@@ -3985,6 +4071,17 @@ Proof.
       cbn. cbn in Ha0.
       congruence.
 Qed.
+
+
+Lemma mod2_0_1 n:
+  n mod 2 = 0 \/
+  n mod 2 = 1.
+Proof.
+  epose proof (mod_upper_bound n 2 _).
+  Unshelve. 2: congruence.
+  lia.
+Qed.
+
 
 
 
@@ -4339,24 +4436,23 @@ Proof.
 Qed.
 
 
-
-
 Lemma Base_embanked_batch {e}:
   Base e ->
   exists ne,
   embanked_batch (k*2+1) e ne (2^(k*2)-1) (2^(k*2)) /\
   to_l ne = k*2+1 /\
   ai' 0 ne = 1 /\
-  ai' 1 ne = 2^(k*2)+2.
+  ai' 1 ne = 2^(k*2)+2 /\
+  Add2s (k*2+1) e ne.
 Proof.
   intro HB.
   destruct (Base_embanked HB) as [ne0 [s_1 [s_2 [He Ha]]]].
   destruct (embanked__embanked_batch He Ha) as [ne Hne].
   inverts HB.
   destruct (embanked_batch_a0_a1 Hne) as [Ha0 Ha1].
+  epose proof (embanked_batch_Add2s Hne).
   exists ne.
-  repeat split.
-  - apply Hne.
+  rsplit; auto 1.
   - pose proof (embanked_batch_len Hne).
     congruence.
   - cbn.
@@ -4437,229 +4533,6 @@ Ltac pose_eb_a0_a1 Heb Ha0 Ha1 rw :=
   cbn in Ha0,Ha1.
 
 
-(* case of Proposition 4.1 *)
-Lemma embanked_4batch m i0 e0 e1:
-  m+3 < 2^(k*2) ->
-  ctzS (2^(k*2)+m) mod 2 = 0 ->
-  ctzS (2^(k*2)+(m+1)) mod 2 = 1 ->
-
-  ctzS (2^(k*2)-1-(m+1)) mod 2 = 0 ->
-  ctzS (2^(k*2)-1-(m+2)) mod 2 = 1 ->
-
-  embanked_batch i0 e0 e1 (2^(k*2)-1-m) (2^(k*2)+m) ->
-  i0 mod 2 = 1 ->
-  to_l e1 = k*2+1 ->
-  ai' 0 e1 = 1+m*2 ->
-  ai' 1 e1 = 2^(k*2)+2+m*2 ->
-
-  exists e2 i2,
-  embanked_batch i2 e1 e2 (2^(k*2)-1-(m)) (2^(k*2)+(m+1)) /\
-
-  exists e3 i3,
-  embanked_batch i3 e2 e3 (2^(k*2)-1-(m)) (2^(k*2)+(m+2)) /\
-
-  exists e4 i4,
-  embanked_batch i4 e3 e4 (2^(k*2)-1-(m+1)) (2^(k*2)+(m+2)) /\
-
-  exists e5 i5,
-  embanked_batch i5 e4 e5 (2^(k*2)-1-(m+2)) (2^(k*2)+(m+2)) /\
-
-  i5 mod 2 = 1 /\
-  to_l e5 = k*2+1 /\
-  ai' 0 e5 = 1+(m+2)*2 /\
-  ai' 1 e5 = 2^(k*2)+2+(m+2)*2
-.
-Proof.
-  intros Hm_lt Hc0 Hc1 Hc3 Hc4.
-
-  intros Heb1 Hi1 Hl1 Ha10 Ha11.
-  cbn in Ha10,Ha11.
-
-  rewrite mod2_0_S in Hc0.
-  rewrite mod2_1_S in Hc1.
-
-
-  pose_Heb Heb1 Hl1 e2 Heb2 Hi1.
-  replace (2^(k*2)+m+1) with (2^(k*2)+(m+1)) in Heb2 by lia.
-  ex_Heb e2 Heb2.
-
-  pose_eb_len Heb2 Hl1 Hl2.
-  pose_eb_a0_a1 Heb2 Ha20 Ha21 Hc0.
-
-
-  pose_Heb Heb2 Hl2 e3 Heb3 Hc0.
-  cbn in Heb3.
-  replace (2^(k*2)+(m+1)+1) with (2^(k*2)+(m+2)) in Heb3 by lia.
-  ex_Heb e3 Heb3.
-
-  pose_eb_len Heb3 Hl2 Hl3.
-  pose_eb_a0_a1 Heb3 Ha30 Ha31 Hc1.
-
-
-  pose_Heb Heb3 Hl3 e4 Heb4 Hc1.
-  replace (2^(k*2)-1-m-1) with (2^(k*2)-1-(m+1)) in Heb4 by lia.
-  ex_Heb e4 Heb4.
-
-  pose_eb_len Heb4 Hl3 Hl4.
-  pose_eb_a0_a1 Heb4 Ha40 Ha41 Hc3.
-
-
-  pose_Heb Heb4 Hl4 e5 Heb5 Hc3.
-  replace (2^(k*2)-1-(m+1)-1) with (2^(k*2)-1-(m+2)) in Heb5 by lia.
-  ex_Heb e5 Heb5.
-
-  pose_eb_len Heb5 Hl4 Hl5.
-  pose_eb_a0_a1 Heb5 Ha50 Ha51 Hc4.
-
-
-  rewrite Hc4.
-  repeat split.
-  - congruence.
-  - cbn. lia.
-  - cbn. lia.
-
-
-  Unshelve.
-  all: cbn; lia.
-Qed.
-
-
-(* case of Proposition 4.1 *)
-Lemma embanked_8batch m i0 e0 e1:
-  m+5 < 2^(k*2) ->
-  ctzS (2^(k*2)+m) mod 2 = 0 ->
-  ctzS (2^(k*2)+(m+1)) mod 2 = 0 ->
-  ctzS (2^(k*2)+(m+2)) mod 2 = 0 ->
-  ctzS (2^(k*2)+(m+3)) mod 2 = 1 ->
-
-  ctzS (2^(k*2)-1-(m+1)) mod 2 = 0 ->
-  ctzS (2^(k*2)-1-(m+2)) mod 2 = 0 ->
-  ctzS (2^(k*2)-1-(m+3)) mod 2 = 0 ->
-  ctzS (2^(k*2)-1-(m+4)) mod 2 = 1 ->
-
-  embanked_batch i0 e0 e1 (2^(k*2)-1-m) (2^(k*2)+m) ->
-  i0 mod 2 = 1 ->
-  to_l e1 = k*2+1 ->
-  ai' 0 e1 = 1+m*2 ->
-  ai' 1 e1 = 2^(k*2)+2+m*2 ->
-
-  exists e2 i2,
-  embanked_batch i2 e1 e2 (2^(k*2)-1-(m)) (2^(k*2)+(m+1)) /\
-
-  exists e3 i3,
-  embanked_batch i3 e2 e3 (2^(k*2)-1-(m)) (2^(k*2)+(m+2)) /\
-
-  exists e4 i4,
-  embanked_batch i4 e3 e4 (2^(k*2)-1-(m)) (2^(k*2)+(m+3)) /\
-
-  exists e5 i5,
-  embanked_batch i5 e4 e5 (2^(k*2)-1-(m)) (2^(k*2)+(m+4)) /\
-
-  exists e6 i6,
-  embanked_batch i6 e5 e6 (2^(k*2)-1-(m+1)) (2^(k*2)+(m+4)) /\
-
-  exists e7 i7,
-  embanked_batch i7 e6 e7 (2^(k*2)-1-(m+2)) (2^(k*2)+(m+4)) /\
-
-  exists e8 i8,
-  embanked_batch i8 e7 e8 (2^(k*2)-1-(m+3)) (2^(k*2)+(m+4)) /\
-
-  exists e9 i9,
-  embanked_batch i9 e8 e9 (2^(k*2)-1-(m+4)) (2^(k*2)+(m+4)) /\
-
-  i9 mod 2 = 1 /\
-  to_l e9 = k*2+1 /\
-  ai' 0 e9 = 1+(m+4)*2 /\
-  ai' 1 e9 = 2^(k*2)+2+(m+4)*2
-.
-Proof.
-  intros Hm_lt Hc0 Hc1 Hc2 Hc3 Hc5 Hc6 Hc7 Hc8.
-  intros Heb1 Hi1 Hl1 Ha10 Ha11.
-  cbn in Ha10,Ha11.
-
-  rewrite mod2_0_S in Hc0.
-  rewrite mod2_0_S in Hc1.
-  rewrite mod2_0_S in Hc2.
-  rewrite mod2_1_S in Hc3.
-
-
-  pose_Heb Heb1 Hl1 e2 Heb2 Hi1.
-  replace (2^(k*2)+m+1) with (2^(k*2)+(m+1)) in Heb2 by lia.
-  ex_Heb e2 Heb2.
-
-  pose_eb_len Heb2 Hl1 Hl2.
-  pose_eb_a0_a1 Heb2 Ha20 Ha21 Hc0.
-
-
-  pose_Heb Heb2 Hl2 e3 Heb3 Hc0.
-  cbn in Heb3.
-  replace (2^(k*2)+(m+1)+1) with (2^(k*2)+(m+2)) in Heb3 by lia.
-  ex_Heb e3 Heb3.
-
-  pose_eb_len Heb3 Hl2 Hl3.
-  pose_eb_a0_a1 Heb3 Ha30 Ha31 Hc1.
-
-
-  pose_Heb Heb3 Hl3 e4 Heb4 Hc1.
-  replace (2^(k*2)+(m+2)+1) with (2^(k*2)+(m+3)) in Heb4 by lia.
-  ex_Heb e4 Heb4.
-
-  pose_eb_len Heb4 Hl3 Hl4.
-  pose_eb_a0_a1 Heb4 Ha40 Ha41 Hc2.
-
-
-  pose_Heb Heb4 Hl4 e5 Heb5 Hc2.
-  replace (2^(k*2)+(m+3)+1) with (2^(k*2)+(m+4)) in Heb5 by lia.
-  ex_Heb e5 Heb5.
-
-  pose_eb_len Heb5 Hl4 Hl5.
-  pose_eb_a0_a1 Heb5 Ha50 Ha51 Hc3.
-
-
-  pose_Heb Heb5 Hl5 e6 Heb6 Hc3.
-  replace (2^(k*2)-1-m-1) with (2^(k*2)-1-(m+1)) in Heb6 by lia.
-  ex_Heb e6 Heb6.
-
-  pose_eb_len Heb6 Hl5 Hl6.
-  pose_eb_a0_a1 Heb6 Ha60 Ha61 Hc5.
-
-
-  pose_Heb Heb6 Hl6 e7 Heb7 Hc5.
-  replace (2^(k*2)-1-(m+1)-1) with (2^(k*2)-1-(m+2)) in Heb7 by lia.
-  ex_Heb e7 Heb7.
-
-  pose_eb_len Heb7 Hl6 Hl7.
-  pose_eb_a0_a1 Heb7 Ha70 Ha71 Hc6.
-
-
-  pose_Heb Heb7 Hl7 e8 Heb8 Hc6.
-  replace (2^(k*2)-1-(m+2)-1) with (2^(k*2)-1-(m+3)) in Heb8 by lia.
-  ex_Heb e8 Heb8.
-
-  pose_eb_len Heb8 Hl7 Hl8.
-  pose_eb_a0_a1 Heb8 Ha80 Ha81 Hc7.
-
-
-  pose_Heb Heb8 Hl8 e9 Heb9 Hc7.
-  replace (2^(k*2)-1-(m+3)-1) with (2^(k*2)-1-(m+4)) in Heb9 by lia.
-  ex_Heb e9 Heb9.
-
-  pose_eb_len Heb9 Hl8 Hl9.
-  pose_eb_a0_a1 Heb9 Ha90 Ha91 Hc8.
-
-
-  rewrite Hc8.
-  repeat split.
-  - congruence.
-  - cbn. lia.
-  - cbn. lia.
-
-
-  Unshelve.
-  all: cbn; lia.
-Qed.
-
-
 Lemma ctz_upper_bound i m:
   m<2^i-1 ->
   ctzS m < i.
@@ -4734,6 +4607,494 @@ Proof.
     rewrite mod_small in H2; lia.
 Qed.
 
+Lemma mod_mod' a b c:
+  a mod c = a mod (b*c) mod c.
+Proof.
+  rewrite (Div0.div_mod a (b*c)).
+  rewrite <-Div0.add_mod_idemp_l.
+  rewrite mul_comm,mul_assoc,Div0.mod_mul.
+  cbn.
+  rewrite <-mul_assoc.
+  rewrite <-Div0.add_mod_idemp_l.
+  rewrite Div0.mod_mul.
+  cbn.
+  rewrite Div0.mod_mod.
+  reflexivity.
+Qed.
+
+Lemma le_ctzS_sum i m:
+  2*(m/(2^i)) + (if i <=? ctzS m then 2 else 0) = 2*((m+1)/(2^i)).
+Proof.
+  destruct (Nat.leb_spec i (ctzS m)) as [E|E].
+  - remember (ctzS m) as v1.
+    symmetry in Heqv1.
+    pose proof Heqv1 as Heqv1'.
+    rewrite ctzS_spec in Heqv1.
+    assert (m mod 2^i = 2^i-1). {
+      replace (v1+1) with (v1+1-i+i) in Heqv1 by lia.
+      rewrite pow_add_r in Heqv1.
+      rewrite (mod_mod' m (2^(v1+1-i)) (2^i)).
+      rewrite Heqv1.
+      replace v1 with (v1-i+i) by lia.
+      rewrite pow_add_r.
+      pose proof (pow2_nez (v1-i)).
+      pose proof (pow2_nez i).
+      replace (2^(v1-i)) with (2^(v1-i)-1+1) by lia.
+      rewrite mul_add_distr_r.
+      rewrite mul_1_l.
+      rewrite <-add_sub_assoc.
+      2: lia.
+      rewrite add_comm,Div0.mod_add.
+      rewrite mod_small; lia.
+    }
+    pose proof (Div0.div_mod m (2^i)) as H0.
+    rewrite H in H0.
+    rewrite H0.
+    rewrite (mul_comm (2^i)).
+    pose proof (pow2_nez i) as Hpi.
+    rewrite div_add_l. 2: lia.
+    rewrite <-add_assoc.
+    rewrite div_add_l. 2: lia.
+    rewrite (div_small (2^i-1)). 2: lia.
+    rewrite sub_add. 2: lia.
+    rewrite div_same. 2: lia.
+    lia.
+  - remember (ctzS m) as v1.
+    symmetry in Heqv1.
+    pose proof Heqv1 as Heqv1'.
+    rewrite ctzS_spec in Heqv1.
+    pose proof (pow2_nez i) as Hpi.
+    pose proof (pow2_nez v1) as Hpv1.
+    assert (2^v1<2^i) as Hplt by (rewrite <-pow_lt_mono_r_iff; lia).
+
+    rewrite (Div0.div_mod m (2^(i))).
+    rewrite (mul_comm (2^i)).
+    rewrite div_add_l. 2: lia.
+    rewrite <-add_assoc.
+    rewrite div_add_l. 2: lia.
+    rewrite add_0_r.
+    f_equal.
+    f_equal.
+
+
+    rewrite (Div0.div_mod m (2^(v1+1))).
+    rewrite Heqv1.
+    replace (i) with (i-(v1+1)+(v1+1)) by lia.
+    rewrite (pow_add_r 2 (i-(v1+1)) (v1+1)).
+    rewrite (mul_comm (2^(v1+1))).
+    rewrite Div0.add_mul_mod_distr_r.
+    2: rewrite add_comm,pow2_1a; lia.
+    rewrite (mul_comm (2^(i-(v1+1))) (2^(v1+1))).
+    do 2 rewrite <-Div0.div_div.
+    rewrite div_add_l. 2: apply pow2_nez.
+    rewrite <-add_assoc.
+    rewrite div_add_l. 2: apply pow2_nez.
+    f_equal.
+    f_equal.
+    rewrite div_small.
+    2: rewrite add_comm,pow2_1a; lia.
+    rewrite div_small.
+    2: rewrite (add_comm v1 1),pow2_1a; lia.
+    reflexivity.
+Qed.
+
+Lemma Nat_leb_S a b:
+  (Nat.leb (S a) (S b)) = (Nat.leb a b).
+Proof.
+  reflexivity.
+Qed.
+
+Lemma Nat_leb_S_l a b:
+  even (S a) = even b ->
+  (Nat.leb (S a) b) = (Nat.leb a b).
+Proof.
+  intro H.
+  destruct (Nat.leb_spec a b).
+  - destruct (Nat.leb_spec (S a) b); auto 1.
+    assert (a=b) by lia. subst.
+    rewrite even_succ in H.
+    unfold odd in H.
+    destruct (even b); cbn in H; congruence.
+  - destruct (Nat.leb_spec (S a) b); auto 1.
+    lia.
+Qed.
+
+Lemma Nat_leb_S_r a b:
+  even a = even b ->
+  (Nat.leb a (S b)) = (Nat.leb a b).
+Proof.
+  intro H.
+  destruct (Nat.leb_spec a b).
+  - destruct (Nat.leb_spec a (S b)); auto 1. lia.
+  - destruct (Nat.leb_spec a (S b)); auto 1.
+    assert (a=S b) by lia. subst.
+    rewrite even_succ in H.
+    unfold odd in H.
+    destruct (even b); cbn in H; congruence.
+Qed.
+
+Ltac simpl_Add2s :=
+  unfold ai';
+  cbn[negb]; cbn[Bool.eqb];
+  repeat rewrite Bool.andb_true_r;
+  repeat rewrite Bool.andb_false_r;
+  repeat (rewrite Nat_leb_S);
+  repeat (rewrite Nat_leb_S_l; [idtac|congruence]).
+
+Ltac inv_eb_Add2s Heb := pose proof (embanked_batch_Add2s Heb) as tmp; inverts tmp.
+
+
+(* case of Proposition 4.1 *)
+Lemma embanked_4batch m i0 e0 e1:
+  m+3 < 2^(k*2) ->
+  ctzS m mod 2 = 0 ->
+  ctzS (m+1) mod 2 = 1 ->
+
+  embanked_batch i0 e0 e1 (2^(k*2)-1-m) (2^(k*2)+m) ->
+  i0 mod 2 = 1 ->
+  to_l e1 = k*2+1 ->
+  ai' 0 e1 = 1+m*2 ->
+  ai' 1 e1 = 2^(k*2)+2+m*2 ->
+
+  exists e2 i2,
+  embanked_batch i2 e1 e2 (2^(k*2)-1-(m)) (2^(k*2)+(m+1)) /\
+
+  exists e3 i3,
+  embanked_batch i3 e2 e3 (2^(k*2)-1-(m)) (2^(k*2)+(m+2)) /\
+
+  exists e4 i4,
+  embanked_batch i4 e3 e4 (2^(k*2)-1-(m+1)) (2^(k*2)+(m+2)) /\
+
+  exists e5 i5,
+  embanked_batch i5 e4 e5 (2^(k*2)-1-(m+2)) (2^(k*2)+(m+2)) /\
+
+  i5 mod 2 = 1 /\
+  to_l e5 = k*2+1 /\
+  ai' 0 e5 = 1+(m+2)*2 /\
+  ai' 1 e5 = 2^(k*2)+2+(m+2)*2 /\
+  (forall i, ai i e5 + 2*(m/2^i) = ai i e1 + 2*((m+2)/2^i))
+.
+Proof.
+  intros Hm_lt Hc0' Hc1'.
+
+  assert (Hc0a:ctzS (2^(k*2)+m) = ctzS m) by (rewrite ctzS_add; lia).
+  assert (Hc1a:ctzS (2^(k*2)+(m+1)) = ctzS (m+1)) by (rewrite ctzS_add; lia).
+  assert (Hc2a:ctzS (2^(k*2)-1-(m+1)) = ctzS m). {
+    replace (2^(k*2)-1-(m+1)) with (2^(k*2)-(m)-2) by lia.
+    rewrite ctzS_sub; lia.
+  }
+  assert (Hc3a:ctzS (2^(k*2)-1-(m+2)) = ctzS (m+1)). {
+    replace (2^(k*2)-1-(m+2)) with (2^(k*2)-(m+1)-2) by lia.
+    rewrite ctzS_sub; lia.
+  }
+  pose proof Hc0' as Hc0.
+  pose proof Hc1' as Hc1.
+  pose proof Hc0' as Hc3.
+  pose proof Hc1' as Hc4.
+  rewrite <-Hc0a in Hc0.
+  rewrite <-Hc1a in Hc1.
+  rewrite <-Hc2a in Hc3.
+  rewrite <-Hc3a in Hc4.
+
+  intros Heb1 Hi1 Hl1 Ha10 Ha11.
+  cbn in Ha10,Ha11.
+
+  rewrite mod2_0_S in Hc0.
+  rewrite mod2_1_S in Hc1.
+
+
+  pose_Heb Heb1 Hl1 e2 Heb2 Hi1.
+  replace (2^(k*2)+m+1) with (2^(k*2)+(m+1)) in Heb2 by lia.
+  ex_Heb e2 Heb2.
+
+  pose_eb_len Heb2 Hl1 Hl2.
+  pose_eb_a0_a1 Heb2 Ha20 Ha21 Hc0.
+
+
+  pose_Heb Heb2 Hl2 e3 Heb3 Hc0.
+  cbn in Heb3.
+  replace (2^(k*2)+(m+1)+1) with (2^(k*2)+(m+2)) in Heb3 by lia.
+  ex_Heb e3 Heb3.
+
+  pose_eb_len Heb3 Hl2 Hl3.
+  pose_eb_a0_a1 Heb3 Ha30 Ha31 Hc1.
+
+
+  pose_Heb Heb3 Hl3 e4 Heb4 Hc1.
+  replace (2^(k*2)-1-m-1) with (2^(k*2)-1-(m+1)) in Heb4 by lia.
+  ex_Heb e4 Heb4.
+
+  pose_eb_len Heb4 Hl3 Hl4.
+  pose_eb_a0_a1 Heb4 Ha40 Ha41 Hc3.
+
+
+  pose_Heb Heb4 Hl4 e5 Heb5 Hc3.
+  replace (2^(k*2)-1-(m+1)-1) with (2^(k*2)-1-(m+2)) in Heb5 by lia.
+  ex_Heb e5 Heb5.
+
+  pose_eb_len Heb5 Hl4 Hl5.
+  pose_eb_a0_a1 Heb5 Ha50 Ha51 Hc4.
+
+  assert (Ha:forall i, ai i e5 + 2*((m)/2^i) = ai i e1 + 2*((m+2)/2^i)). {
+    inv_eb_Add2s Heb2.
+    inv_eb_Add2s Heb3.
+    inv_eb_Add2s Heb4.
+    inv_eb_Add2s Heb5.
+
+    intro i.
+    specialize (Hadd2s (S i)).
+    specialize (Hadd2s0 (S i)).
+    specialize (Hadd2s1 (S i)).
+    specialize (Hadd2s2 (S i)).
+    rewrite Hc0a in Hadd2s.
+    rewrite Hc1a in Hadd2s0.
+    rewrite Hc2a in Hadd2s1.
+    rewrite Hc3a in Hadd2s2.
+    rewrite <-even_true_mod2 in Hc0'.
+    rewrite <-even_false_mod2 in Hc1'.
+    destruct (even (S i)) eqn:E;
+      gen Hadd2s Hadd2s0 Hadd2s1 Hadd2s2;
+      simpl_oe_S;
+      unfold odd;
+      rewrite Hc0',Hc1';
+      simpl_Add2s;
+      pose proof (le_ctzS_sum i m) as H;
+      pose proof (le_ctzS_sum i (m+1)) as H0;
+      replace (m+1+1) with (m+2) in H0 by lia;
+      lia.
+  }
+
+  rewrite Hc4.
+  repeat split.
+  - congruence.
+  - cbn. lia.
+  - cbn. lia.
+  - apply Ha.
+
+
+  Unshelve.
+  all: cbn; lia.
+Qed.
+
+
+(* case of Proposition 4.1 *)
+Lemma embanked_8batch m i0 e0 e1:
+  m+5 < 2^(k*2) ->
+  ctzS m mod 2 = 0 ->
+  ctzS (m+1) mod 2 = 0 ->
+  ctzS (m+2) mod 2 = 0 ->
+  ctzS (m+3) mod 2 = 1 ->
+
+  embanked_batch i0 e0 e1 (2^(k*2)-1-m) (2^(k*2)+m) ->
+  i0 mod 2 = 1 ->
+  to_l e1 = k*2+1 ->
+  ai' 0 e1 = 1+m*2 ->
+  ai' 1 e1 = 2^(k*2)+2+m*2 ->
+
+  exists e2 i2,
+  embanked_batch i2 e1 e2 (2^(k*2)-1-(m)) (2^(k*2)+(m+1)) /\
+
+  exists e3 i3,
+  embanked_batch i3 e2 e3 (2^(k*2)-1-(m)) (2^(k*2)+(m+2)) /\
+
+  exists e4 i4,
+  embanked_batch i4 e3 e4 (2^(k*2)-1-(m)) (2^(k*2)+(m+3)) /\
+
+  exists e5 i5,
+  embanked_batch i5 e4 e5 (2^(k*2)-1-(m)) (2^(k*2)+(m+4)) /\
+
+  exists e6 i6,
+  embanked_batch i6 e5 e6 (2^(k*2)-1-(m+1)) (2^(k*2)+(m+4)) /\
+
+  exists e7 i7,
+  embanked_batch i7 e6 e7 (2^(k*2)-1-(m+2)) (2^(k*2)+(m+4)) /\
+
+  exists e8 i8,
+  embanked_batch i8 e7 e8 (2^(k*2)-1-(m+3)) (2^(k*2)+(m+4)) /\
+
+  exists e9 i9,
+  embanked_batch i9 e8 e9 (2^(k*2)-1-(m+4)) (2^(k*2)+(m+4)) /\
+
+  i9 mod 2 = 1 /\
+  to_l e9 = k*2+1 /\
+  ai' 0 e9 = 1+(m+4)*2 /\
+  ai' 1 e9 = 2^(k*2)+2+(m+4)*2 /\
+  (forall i, ai i e9 + 2*(m/2^i) = ai i e1 + 2*((m+4)/2^i))
+.
+Proof.
+  intros Hm_lt Hc0' Hc1' Hc2' Hc3'.
+
+  assert (Hc0a:ctzS (2^(k*2)+m) = ctzS m) by (rewrite ctzS_add; lia).
+  assert (Hc1a:ctzS (2^(k*2)+(m+1)) = ctzS (m+1)) by (rewrite ctzS_add; lia).
+  assert (Hc2a:ctzS (2^(k*2)+(m+2)) = ctzS (m+2)) by (rewrite ctzS_add; lia).
+  assert (Hc3a:ctzS (2^(k*2)+(m+3)) = ctzS (m+3)) by (rewrite ctzS_add; lia).
+  assert (Hc4a:ctzS (2^(k*2)-1-(m+1)) = ctzS m). {
+    replace (2^(k*2)-1-(m+1)) with (2^(k*2)-(m)-2) by lia.
+    rewrite ctzS_sub; lia.
+  }
+  assert (Hc5a:ctzS (2^(k*2)-1-(m+2)) = ctzS (m+1)). {
+    replace (2^(k*2)-1-(m+2)) with (2^(k*2)-(m+1)-2) by lia.
+    rewrite ctzS_sub; lia.
+  }
+  assert (Hc6a:ctzS (2^(k*2)-1-(m+3)) = ctzS (m+2)). {
+    replace (2^(k*2)-1-(m+3)) with (2^(k*2)-(m+2)-2) by lia.
+    rewrite ctzS_sub; lia.
+  }
+  assert (Hc7a:ctzS (2^(k*2)-1-(m+4)) = ctzS (m+3)). {
+    replace (2^(k*2)-1-(m+4)) with (2^(k*2)-(m+3)-2) by lia.
+    rewrite ctzS_sub; lia.
+  }
+  pose proof Hc0' as Hc0.
+  pose proof Hc1' as Hc1.
+  pose proof Hc2' as Hc2.
+  pose proof Hc3' as Hc3.
+  pose proof Hc0' as Hc5.
+  pose proof Hc1' as Hc6.
+  pose proof Hc2' as Hc7.
+  pose proof Hc3' as Hc8.
+  rewrite <-Hc0a in Hc0.
+  rewrite <-Hc1a in Hc1.
+  rewrite <-Hc2a in Hc2.
+  rewrite <-Hc3a in Hc3.
+  rewrite <-Hc4a in Hc5.
+  rewrite <-Hc5a in Hc6.
+  rewrite <-Hc6a in Hc7.
+  rewrite <-Hc7a in Hc8.
+
+
+  intros Heb1 Hi1 Hl1 Ha10 Ha11.
+  cbn in Ha10,Ha11.
+
+  rewrite mod2_0_S in Hc0.
+  rewrite mod2_0_S in Hc1.
+  rewrite mod2_0_S in Hc2.
+  rewrite mod2_1_S in Hc3.
+
+
+  pose_Heb Heb1 Hl1 e2 Heb2 Hi1.
+  replace (2^(k*2)+m+1) with (2^(k*2)+(m+1)) in Heb2 by lia.
+  ex_Heb e2 Heb2.
+
+  pose_eb_len Heb2 Hl1 Hl2.
+  pose_eb_a0_a1 Heb2 Ha20 Ha21 Hc0.
+
+
+  pose_Heb Heb2 Hl2 e3 Heb3 Hc0.
+  cbn in Heb3.
+  replace (2^(k*2)+(m+1)+1) with (2^(k*2)+(m+2)) in Heb3 by lia.
+  ex_Heb e3 Heb3.
+
+  pose_eb_len Heb3 Hl2 Hl3.
+  pose_eb_a0_a1 Heb3 Ha30 Ha31 Hc1.
+
+
+  pose_Heb Heb3 Hl3 e4 Heb4 Hc1.
+  replace (2^(k*2)+(m+2)+1) with (2^(k*2)+(m+3)) in Heb4 by lia.
+  ex_Heb e4 Heb4.
+
+  pose_eb_len Heb4 Hl3 Hl4.
+  pose_eb_a0_a1 Heb4 Ha40 Ha41 Hc2.
+
+
+  pose_Heb Heb4 Hl4 e5 Heb5 Hc2.
+  replace (2^(k*2)+(m+3)+1) with (2^(k*2)+(m+4)) in Heb5 by lia.
+  ex_Heb e5 Heb5.
+
+  pose_eb_len Heb5 Hl4 Hl5.
+  pose_eb_a0_a1 Heb5 Ha50 Ha51 Hc3.
+
+
+  pose_Heb Heb5 Hl5 e6 Heb6 Hc3.
+  replace (2^(k*2)-1-m-1) with (2^(k*2)-1-(m+1)) in Heb6 by lia.
+  ex_Heb e6 Heb6.
+
+  pose_eb_len Heb6 Hl5 Hl6.
+  pose_eb_a0_a1 Heb6 Ha60 Ha61 Hc5.
+
+
+  pose_Heb Heb6 Hl6 e7 Heb7 Hc5.
+  replace (2^(k*2)-1-(m+1)-1) with (2^(k*2)-1-(m+2)) in Heb7 by lia.
+  ex_Heb e7 Heb7.
+
+  pose_eb_len Heb7 Hl6 Hl7.
+  pose_eb_a0_a1 Heb7 Ha70 Ha71 Hc6.
+
+
+  pose_Heb Heb7 Hl7 e8 Heb8 Hc6.
+  replace (2^(k*2)-1-(m+2)-1) with (2^(k*2)-1-(m+3)) in Heb8 by lia.
+  ex_Heb e8 Heb8.
+
+  pose_eb_len Heb8 Hl7 Hl8.
+  pose_eb_a0_a1 Heb8 Ha80 Ha81 Hc7.
+
+
+  pose_Heb Heb8 Hl8 e9 Heb9 Hc7.
+  replace (2^(k*2)-1-(m+3)-1) with (2^(k*2)-1-(m+4)) in Heb9 by lia.
+  ex_Heb e9 Heb9.
+
+  pose_eb_len Heb9 Hl8 Hl9.
+  pose_eb_a0_a1 Heb9 Ha90 Ha91 Hc8.
+
+  assert (Ha:forall i, ai i e9 + 2*((m)/2^i) = ai i e1 + 2*((m+4)/2^i)). {
+    inv_eb_Add2s Heb2.
+    inv_eb_Add2s Heb3.
+    inv_eb_Add2s Heb4.
+    inv_eb_Add2s Heb5.
+    inv_eb_Add2s Heb6.
+    inv_eb_Add2s Heb7.
+    inv_eb_Add2s Heb8.
+    inv_eb_Add2s Heb9.
+
+    intro i.
+    specialize (Hadd2s (S i)).
+    specialize (Hadd2s0 (S i)).
+    specialize (Hadd2s1 (S i)).
+    specialize (Hadd2s2 (S i)).
+    specialize (Hadd2s3 (S i)).
+    specialize (Hadd2s4 (S i)).
+    specialize (Hadd2s5 (S i)).
+    specialize (Hadd2s6 (S i)).
+    rewrite Hc0a in Hadd2s.
+    rewrite Hc1a in Hadd2s0.
+    rewrite Hc2a in Hadd2s1.
+    rewrite Hc3a in Hadd2s2.
+    rewrite Hc4a in Hadd2s3.
+    rewrite Hc5a in Hadd2s4.
+    rewrite Hc6a in Hadd2s5.
+    rewrite Hc7a in Hadd2s6.
+    rewrite <-even_true_mod2 in Hc0',Hc1',Hc2'.
+    rewrite <-even_false_mod2 in Hc3'.
+    destruct (even (S i)) eqn:E;
+      gen Hadd2s Hadd2s0 Hadd2s1 Hadd2s2 Hadd2s3 Hadd2s4 Hadd2s5 Hadd2s6;
+      simpl_oe_S;
+      unfold odd;
+      rewrite Hc0',Hc1',Hc2',Hc3';
+      simpl_Add2s;
+      pose proof (le_ctzS_sum i m) as H;
+      pose proof (le_ctzS_sum i (m+1)) as H0;
+      pose proof (le_ctzS_sum i (m+2)) as H1;
+      pose proof (le_ctzS_sum i (m+3)) as H2;
+      replace (m+1+1) with (m+2) in H0 by lia;
+      replace (m+2+1) with (m+3) in H1 by lia;
+      replace (m+3+1) with (m+4) in H2 by lia;
+      lia.
+  }
+
+
+  rewrite Hc8.
+  repeat split.
+  - congruence.
+  - cbn. lia.
+  - cbn. lia.
+  - apply Ha.
+
+
+  Unshelve.
+  all: cbn; lia.
+Qed.
+
+
+
 
 Inductive ctzS_chain:nat->Prop :=
 | ctzS_chain_O:
@@ -4768,15 +5129,6 @@ Proof.
   intro H.
   rewrite ctzS_spec.
   apply H.
-Qed.
-
-Lemma mod2_0_1 n:
-  n mod 2 = 0 \/
-  n mod 2 = 1.
-Proof.
-  epose proof (mod_upper_bound n 2 _).
-  Unshelve. 2: congruence.
-  lia.
 Qed.
 
 Lemma ctzS_odd_odd n:
@@ -4914,8 +5266,7 @@ Inductive N'steps: (nat*(list nat))->nat->nat->(nat*(list nat))->nat->nat->Prop 
 .
 
 
-Check embanked_4batch.
-Check Base_embanked_batch.
+
 Hypothesis Sk:nat*(list nat).
 Hypothesis Base_Sk: Base Sk.
 
@@ -4927,23 +5278,28 @@ Lemma embanked_batches_0 m0:
   exists e ne,
   N'steps e (2^(k*2)-1) (2^(k*2)) ne (2^(k*2)-1-m) (2^(k*2)+m) /\
   embanked_batch (k*2+1) Sk e (2^(k*2)-1) (2^(k*2)) /\
+  Add2s (k*2+1) Sk e /\
   (exists e' i', embanked_batch i' e' ne (2^(k*2)-1-m) (2^(k*2)+m) /\ i' mod 2 = 1) /\
   to_l ne = k*2+1 /\
   ai' 0 ne = 1+m*2 /\
-  ai' 1 ne = 2^(k*2)+2+m*2.
+  ai' 1 ne = 2^(k*2)+2+m*2 /\
+  (forall i, ai i ne = ai i e + 2*(m/2^i)).
 Proof.
   induction m0.
   - intros Hm0 m Hm Hcc.
     assert (m=0) by lia. subst.
-    destruct (Base_embanked_batch Base_Sk) as [ne [Heb [Hl [Ha0 Ha1]]]].
+    destruct (Base_embanked_batch Base_Sk) as [ne [Heb [Hl [Ha0 [Ha1 Ha]]]]].
     exists ne ne.
-    repeat split; auto 1.
+    rsplit; auto 1.
     + rewrite sub_0_r,add_0_r; eapply N'steps_O,Heb.
     + do 2 eexists.
       split. 1: rewrite sub_0_r,add_0_r; apply Heb.
       rewrite add_comm,Div0.mod_add.
       reflexivity.
     + lia.
+    + intro i.
+      rewrite Div0.div_0_l.
+      lia.
   - intros Hm0 m Hm Hcc.
     inversion Hcc; subst.
     1: eapply IHm0; auto 1; lia.
@@ -4952,56 +5308,51 @@ Proof.
         3: apply H.
         1,2: lia.
       }
-      destruct X as [e [ne [HN [Heb0 [Heb' [Hl [Ha0 Ha1]]]]]]].
+      destruct X as [e [ne [HN [Heb0 [Hadd2s0 [Heb' [Hl [Ha0 [Ha1 Ha]]]]]]]]].
       destruct Heb' as [e' [i' [Heb' Hi']]].
       eassert (_) as X0. {
         eapply embanked_4batch with (m:=n).
         1: lia.
-        1,2: rewrite ctzS_add; auto 1; lia.
-        1: replace (2^(k*2)-1-(n+1)) with (2^(k*2)-n-2) by lia.
-        2: replace (2^(k*2)-1-(n+2)) with (2^(k*2)-(n+1)-2) by lia.
-        1,2: rewrite ctzS_sub; auto 1; lia.
-        1: apply Heb'.
+        3: apply Heb'.
         all: auto 1.
       }
-      destruct X0 as [e2 [i2 [Heb2 [e3 [i3 [Heb3 [e4 [i4 [Heb4 [e5 [i5 [Heb5 [Hi5 [Hl5 [Ha50 Ha51]]]]]]]]]]]]]]].
+      destruct X0 as [e2 [i2 [Heb2 [e3 [i3 [Heb3 [e4 [i4 [Heb4 [e5 [i5 [Heb5 [Hi5 [Hl5 [Ha50 [Ha51 Ha5]]]]]]]]]]]]]]]].
       exists e e5.
-      repeat split.
+      rsplit.
       * eapply N'steps_S. 2: apply Heb5.
         eapply N'steps_S. 2: apply Heb4.
         eapply N'steps_S. 2: apply Heb3.
         eapply N'steps_S. 2: apply Heb2.
         apply HN.
       * auto 1.
+      * auto 1.
       * exists e4 i5. tauto.
       * auto 1.
       * auto 1.
       * auto 1.
+      * intro i.
+        specialize (Ha i).
+        specialize (Ha5 i).
+        lia.
     + eassert (_) as X. {
         apply IHm0.
         3: apply H.
         1,2: lia.
       }
-      destruct X as [e [ne [HN [Heb0 [Heb' [Hl [Ha0 Ha1]]]]]]].
+      destruct X as [e [ne [HN [Heb0 [Hadd2s0 [Heb' [Hl [Ha0 [Ha1 Ha]]]]]]]]].
       destruct Heb' as [e' [i' [Heb' Hi']]].
       eassert (_) as X0. {
         eapply embanked_8batch with (m:=n).
         1: lia.
-        1,2,3,4: rewrite ctzS_add; auto 1; lia.
-        1: replace (2^(k*2)-1-(n+1)) with (2^(k*2)-n-2) by lia.
-        2: replace (2^(k*2)-1-(n+2)) with (2^(k*2)-(n+1)-2) by lia.
-        3: replace (2^(k*2)-1-(n+3)) with (2^(k*2)-(n+2)-2) by lia.
-        4: replace (2^(k*2)-1-(n+4)) with (2^(k*2)-(n+3)-2) by lia.
-        1,2,3,4: rewrite ctzS_sub; auto 1; lia.
-        1: apply Heb'.
+        5: apply Heb'.
         all: auto 1.
       }
       destruct X0 as
         [e2 [i2 [Heb2 [e3 [i3 [Heb3 [e4 [i4 [Heb4 [e5 [i5 [Heb5
         [e6 [i6 [Heb6 [e7 [i7 [Heb7 [e8 [i8 [Heb8 [e9 [i9 [Heb9
-        [Hi9 [Hl9 [Ha90 Ha91]]]]]]]]]]]]]]]]]]]]]]]]]]].
+        [Hi9 [Hl9 [Ha90 [Ha91 Ha9]]]]]]]]]]]]]]]]]]]]]]]]]]]].
       exists e e9.
-      repeat split.
+      rsplit.
       * eapply N'steps_S. 2: apply Heb9.
         eapply N'steps_S. 2: apply Heb8.
         eapply N'steps_S. 2: apply Heb7.
@@ -5012,10 +5363,15 @@ Proof.
         eapply N'steps_S. 2: apply Heb2.
         apply HN.
       * auto 1.
+      * auto 1.
       * exists e8 i9. tauto.
       * auto 1.
       * auto 1.
       * auto 1.
+      * intro i.
+        specialize (Ha i).
+        specialize (Ha9 i).
+        lia.
 Qed.
 
 
@@ -5026,16 +5382,249 @@ Lemma embanked_batches m:
   exists e ne,
   N'steps e (2^(k*2)-1) (2^(k*2)) ne (2^(k*2)-1-m) (2^(k*2)+m) /\
   embanked_batch (k*2+1) Sk e (2^(k*2)-1) (2^(k*2)) /\
+  Add2s (k*2+1) Sk e /\
   (exists e' i', embanked_batch i' e' ne (2^(k*2)-1-m) (2^(k*2)+m) /\ i' mod 2 = 1) /\
   to_l ne = k*2+1 /\
   ai' 0 ne = 1+m*2 /\
-  ai' 1 ne = 2^(k*2)+2+m*2.
+  ai' 1 ne = 2^(k*2)+2+m*2 /\
+  (forall i, ai i ne = ai i e + 2*(m/2^i)). (* Proposition 4.3 *)
 Proof.
   intros.
   apply embanked_batches_0 with (m0:=m); auto 1.
 Qed.
 
+Lemma pow22k_lower_bound: 2^(k*2)>=4.
+Proof.
+  destruct k as [|k']. 1: lia.
+  cbn.
+  pose proof (pow2_nez (k'*2)).
+  lia.
+Qed.
 
+(* Corollary 4.2 *)
+Lemma Sk_to_E':
+  exists e ne,
+  N'steps e (2^(k*2)-1) (2^(k*2)) ne 1 (2^(k*2)*2-2) /\
+  embanked_batch (k*2+1) Sk e (2^(k*2)-1) (2^(k*2)) /\
+  Add2s (k*2+1) Sk e /\
+  (exists e' i', embanked_batch i' e' ne 1 (2^(k*2)*2-2) /\ i' mod 2 = 1) /\
+  to_l ne = k*2+1 /\
+  ai' 0 ne = 2^(k*2)*2-3 /\
+  ai' 1 ne = 2^(k*2)*3-2 /\
+  (forall i, ai i ne = ai i e + 2*((2^(k*2)-2)/2^i)).
+Proof.
+  pose proof pow22k_lower_bound as p22k_lb.
+  eassert (_) as X. {
+    apply (embanked_batches (2^(k*2)-2)).
+    1: lia.
+    replace (2^(k*2)-2) with (S(2^(k*2)-1-2)) by lia.
+    apply ctzS_chain_spec.
+    rewrite ctzS_sub. 2,3: lia.
+    reflexivity.
+  }
+  destruct X as [e [ne [HN [Heb0 [Hadd2s0 [Heb' [Hl [Ha0 [Ha1 Ha]]]]]]]]].
+  exists e ne.
+  rsplit; auto 1.
+  - applys_eq HN; lia.
+  - destruct Heb' as [e' [i' [Heb' Hi']]].
+    exists e' i'.
+    split; auto 1.
+    applys_eq Heb'; lia.
+  - applys_eq Ha0; lia.
+  - applys_eq Ha1; lia.
+Qed.
+
+Lemma Sk_to_E'':
+  exists e ne,
+  N'steps e (2^(k*2)-1) (2^(k*2)) ne 1 (2^(k*2)*2-2) /\
+  embanked_batch (k*2+1) Sk e (2^(k*2)-1) (2^(k*2)) /\
+  Add2s (k*2+1) Sk e /\
+  (forall i, ai i ne = ai i e + 2*((2^(k*2)-2)/2^i)) /\
+  exists n'ne,
+  embanked_batch 1 ne n'ne 1 (2^(k*2)*2-1) /\
+  to_l n'ne = k*2+1 /\
+  ai' 0 n'ne = 2^(k*2)*2-3 /\
+  ai' 1 n'ne = 2^(k*2)*3
+.
+Proof.
+  pose proof pow22k_lower_bound as p22k_lb.
+  destruct Sk_to_E' as [e [ne [HN [Heb0 [Hadd2s0 [[e' [i' [Heb' Hi']]] [Hl [Ha0 [Ha1 Ha]]]]]]]]].
+  epose proof (embanked_batch_precond'' Heb' Hl _ _) as H.
+  Unshelve. 2,3: lia.
+  rewrite Hi' in H.
+  destruct H as [n'ne Heb].
+  change (2^(k*2)*2) with (2^(k*2)*2^1) in Heb.
+  rewrite <-pow_add_r in Heb.
+  replace (2^(k*2+1)-2) with (2^(k*2+1)-0-2) in Heb. 2: lia.
+  rewrite ctzS_sub in Heb. 2: lia. 2: rewrite pow_add_r; cbn; lia.
+  rewrite pow_add_r,sub_0_r in Heb.
+  cbn in Heb.
+  replace (2^(k*2)*2-2+1) with (2^(k*2)*2-1) in Heb by lia.
+  pose proof (embanked_batch_Add2s Heb) as Ha'.
+  destruct (embanked_batch_a0_a1 Heb) as [Ha0' Ha1'].
+  cbn in Ha0',Ha1',Ha0,Ha1.
+  rewrite Ha0 in Ha0'.
+  rewrite Ha1 in Ha1'.
+  exists e ne.
+  rsplit; auto 1.
+    exists n'ne. rsplit; auto 1.
+    + epose proof (embanked_batch_len Heb).
+      congruence.
+    + cbn. lia.
+    + cbn. lia.
+Qed.
+
+
+Lemma E''_Overflow s1:
+  (exists s0, embanked_batch 1 s0 s1 1 (2^(k*2)*2-1)) ->
+  to_l s1 = k*2+1 ->
+  ai' 0 s1 = 2^(k*2)*2-3 ->
+  ai' 1 s1 = 2^(k*2)*3 ->
+  exists s2,
+  Zero s1 s2 /\
+  exists s3 n_1,
+  Increments n_1 s2 s3 /\
+  exists s4,
+  Halve s3 s4 /\
+  exists s5 n_2,
+  Increments n_2 s4 s5 /\
+  exists s6,
+  Overflow s5 s6 /\
+  True.
+Proof.
+  pose proof pow22k_lower_bound as p22k_lb.
+
+  intros Heb Hl1' Ha10 Ha11.
+  destruct Heb as [s0 Heb].
+  destruct (embanked_batch_postcond Heb) as [Hwf1 [Hs1 [Hn1 [Hl1 Ha10_odd]]]].
+  cbn in Ha10,Ha11.
+
+  destruct (Zero_precond Hwf1 Hs1 Hn1) as [s2 [Z12 Hwf2]].
+  exists s2.
+  split. 1: apply Z12.
+
+  pose proof (Zero_sgn Z12) as Hs2.
+  pose proof (Zero_n Z12) as Hn2.
+  pose proof (Zero_len Z12) as Hl2.
+  pose proof (Zero_a0 Z12) as Ha20.
+  pose proof (Zero_a1 Z12 Hl1) as Ha21.
+  pose proof (Zero_a Z12) as Ha2.
+
+  assert (Ha20_even:Even (fst s2)). {
+    rewrite Ha20 in Ha10_odd.
+    rewrite Odd_succ in Ha10_odd.
+    apply Ha10_odd.
+  }
+  assert (Hn2_odd:Odd (to_n s2)). {
+    rewrite Hn2.
+    replace (to_l s1) with (1+(to_l s1 - 1)) by lia.
+    rewrite pow2_1a.
+    pose proof (pow2_nez (to_l s1 - 1)).
+    destruct (2 ^ (to_l s1 - 1)). 1: congruence.
+    replace (2*(S n)-1) with (S (2*n)) by lia.
+    rewrite Odd_succ.
+    econstructor; reflexivity.
+  }
+  eassert (I23:_). {
+    apply (Increments_dec_precond2 (fst s2) Hwf2 Hs2).
+    2: lia.
+    rewrite <-Ha20.
+    rewrite Hn2,Hl1',Ha10.
+    rewrite pow_add_r; cbn.
+    lia.
+  }
+
+  destruct I23 as [s3 [I23 Hwf3]].
+  do 2 eexists. split. 1: apply I23.
+
+  pose proof (Increments_sgn I23) as Hs3.
+  pose proof (Increments_n I23) as Hn3.
+  pose proof (Increments_len I23) as Hl3.
+  pose proof (Increments_a0 I23) as Ha30.
+  pose proof (Increments_a I23) as Ha3.
+  rewrite Hs2 in Hn3,Ha30,Ha3.
+  pose proof (Ha3 O) as Ha31.
+  assert (Ha30_0:fst s3 = O) by lia.
+  clear Ha30.
+
+  symmetry in Hl1'. gsubst (to_l s1) Hl1'.
+  rewrite pow_add_r in Hn2; cbn in Hn2.
+  assert (Ha21_expr:2^(k*2)*2-4 = fst s2) by lia.
+  gsubst (fst s2) Ha21_expr.
+  assert (Hn3_expr:3 = to_n s3) by lia.
+
+  assert (Hn3gt1:to_n s3 > 1%nat) by lia.
+
+  edestruct (Halve_precond2 Hwf3 Ha30_0) as [s4 [H34 Hwf4]]. 1: lia.
+  eexists. split. 1: apply H34.
+  pose proof (Halve_sgn H34) as Hs4.
+  pose proof (Halve_n H34) as Hn4.
+  pose proof (Halve_len H34) as Hl4.
+  pose proof (Halve_a0 H34) as Ha40.
+  pose proof (Halve_a H34) as Ha4.
+  rewrite <-Hs3,Hs2 in Hs4.
+  cbn in Hs4; symmetry in Hs4.
+  gsubst (to_n s3) Hn3_expr.
+  cbn in Hn4.
+  assert (Hl4':to_l s4 = k*2+2) by lia.
+  rewrite Hn2 in Ha31.
+  change (2^(k*2)*2) with (2^(k*2)*2^1) in Ha31.
+  rewrite <-pow_add_r in Ha31.
+  rewrite divpow2r_pow2sub1 in Ha31. 2: lia.
+  cbn in Ha31.
+  rewrite add_sub in Ha31.
+  symmetry in Ha11. gsubst (ai 0 s1) Ha11.
+  gsubst (ai 0 s2) Ha21.
+  assert (Ha31_expr:ai 0 s3 = 2^(k*2)*4-2) by lia.
+  clear Ha31.
+
+  eassert (I45:_). {
+    apply (Increments_inc_precond2 (2^(k*2)*4-2) Hwf4 Hs4).
+    3: lia.
+    - rewrite Hl4',<-Hn4,add_sub. lia.
+    - rewrite Hl4',<-Hn4.
+      rewrite pow_add_r. cbn. lia.
+  }
+  destruct I45 as [s5 [I45 Hwf5]].
+  do 2 eexists. split. 1: apply I45.
+  pose proof (Increments_sgn I45) as Hs5.
+  pose proof (Increments_n I45) as Hn5.
+  pose proof (Increments_len I45) as Hl5.
+  pose proof (Increments_a0 I45) as Ha50.
+  pose proof (Increments_a I45) as Ha5.
+  rewrite Hs4 in Hn5,Ha50,Ha5.
+  assert (Ha50_expr:fst s5 = 1) by lia.
+  clear Ha50.
+
+  assert (Hn5_expr:to_n s5 = 2^(k*2)*4-1) by lia.
+  clear Hn5.
+  assert (Hl5_expr:to_l s5 = k*2+2) by lia.
+  clear Hl5.
+  assert (Hs5_expr:to_s s5 = true) by congruence.
+  clear Hs5.
+
+  eassert (O56:_). {
+    apply (Overflow_precond Hwf5); auto 1.
+    rewrite Hl5_expr.
+    rewrite pow_add_r.
+    cbn. auto 1.
+  }
+  destruct O56 as [s6 [O56 Hwf6]].
+  eexists. split. 1: apply O56.
+  pose proof (Overflow_sgn O56) as Hs6.
+  pose proof (Overflow_n O56) as Hn6.
+  pose proof (Overflow_len O56) as Hl6.
+  pose proof (Overflow_a0 O56) as Ha60.
+  pose proof (Overflow_a O56) as Ha6.
+  assert (Ha60_expr:fst s6 = 1) by lia.
+  clear Ha6.
+  assert (Hl6_expr:to_l s6 = k*2+3) by lia.
+  clear Hl6.
+Check weakly_embanked_precond.
+Admitted.
+
+
+End Sk.
 
 (* this won't be used in the proof *)
 Lemma halt_case : forall x xs,
