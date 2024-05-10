@@ -6,9 +6,13 @@ An ExecState has type $St\times (\mathbb{Z}\to\Sigma)$ , means the current state
 
 BB(5) is the maximum steps to halt for all TM with $|St|=5$ and $\Sigma=\{0,1\}$ and starts from empty tape.
 
-This is a Coq project for proving BB(5)=47,176,870. **The proof is incomplete now. **
+This is a Coq project for proving BB(5)=47,176,870. This result is in `BB52Theorem.v`.
 
-The main part of the proof is in `BB52Theorem.v` . Most other files are from BusyCoq ([busycoq/verify at master · meithecatte/busycoq (github.com)](https://github.com/meithecatte/busycoq/tree/master/verify)).
+Most other files are from BusyCoq ([busycoq/verify at master · meithecatte/busycoq (github.com)](https://github.com/meithecatte/busycoq/tree/master/verify)). They provided the nonhalt proof of 12 non-trivial TMs. This part is not described in this document.
+
+`Skelet17.v` is the non-halt proof of the last non-trivial TM in the computation of BB(5). A natural language version of the proof is [Skelet #17 does not halt - Individual machines - The Busy Beaver Challenge (bbchallenge.org)](https://discuss.bbchallenge.org/t/skelet-17-does-not-halt/184).
+
+For other TMs, we use deciders or verifiers to decide whether they halt or nonhalt and confirm the value of BB(5).
 
 ## loop1_decider
 
@@ -90,17 +94,13 @@ After using some symmetries (move right at the first step; all unused states are
 
 There are some repeated code like `Time Definition q_183 := Eval vm_compute in q_183_def.` . This is used to split the searching process into multiple smaller steps (without this you will wait for hours without any feedback).
 
-**It takes about 12h to clear the search queue. The non-halt of Skelet17 is axiom now, so the proof is incomplete. **
+**It takes about 12h to clear the search queue. **
 
 ## decider_all
 
 Different deciders are arranged in a specific order to decide most TMs efficiently.
 
 A list of about 8,000 TMs are mapped to specific deciders (and parameters). This avoids grid search of decider kind and parameters.
-
-## TODO
-
-Skelet17's proof of nonhalt.
 
 ## Used Axioms
 
@@ -141,6 +141,7 @@ coqc -Q . BusyCoq Skelet15.v
 coqc -Q . BusyCoq Skelet33.v
 coqc -Q . BusyCoq Skelet34.v
 coqc -Q . BusyCoq Skelet35.v
+coqc -Q . BusyCoq Skelet17.v
 coqc -Q . BusyCoq Skelet1.v
 coqc -Q . BusyCoq BB52Theorem.v
 ```
@@ -162,6 +163,5 @@ Axioms:
 functional_extensionality_dep
   : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
     (forall x : A, f x = g x) -> f = g
-Translation.Skelet17_nonhalt : ~ HaltsFromInit Σ Σ0 Skelet17
 ```
 
