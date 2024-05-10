@@ -9252,7 +9252,7 @@ Definition Skelet35 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AL0.
 
 From BusyCoq Require Import
   Finned1 Finned2 Finned3 Finned4 Finned5
-  Skelet1 Skelet10 Skelet15 Skelet26 Skelet33 Skelet34 Skelet35.
+  Skelet1 Skelet10 Skelet15 Skelet17 Skelet26 Skelet33 Skelet34 Skelet35.
 
 Module Translation.
 Import Individual52.Individual52.Permute.Flip.Compute.TM.
@@ -9603,8 +9603,11 @@ Proof.
   translate_nonhalt Skelet1.tm Skelet1.nonhalt.
 Qed.
 
-Axiom Skelet17_nonhalt:
+Lemma Skelet17_nonhalt:
   ~HaltsFromInit Σ Σ0 Skelet17.
+Proof.
+  translate_nonhalt Skelet17.tm Skelet17.nonhalt.
+Qed.
 
 End Translation.
 
