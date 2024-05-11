@@ -10,7 +10,7 @@ The proof is complicated due to 6 layers of nested induction.
 
 The transition table of Skelet17:
 
-```
+```ocaml
 Definition tm : TM := fun '(q, s) =>
   match q, s with
   | A, 0 => Some (1, R, B)  | A, 1 => None
@@ -180,7 +180,7 @@ Lemma zero_O : forall xs y,
 
 While the `_O` rules are similar, we can split them into two rules. With some minor changes in the representation, we have:
 
-```
+```ocaml
 Inductive Increment: (nat*(list nat))->(nat*(list nat))->Prop :=
 | Increment_even x xs y z zs:
   Even x ->
@@ -231,7 +231,7 @@ Inductive Overflow: (nat*(list nat))->(nat*(list nat))->Prop :=
 
 `TryHalve` is apply `Halve` when possible, and do nothing otherwise.
 
-```
+```ocaml
 Inductive TryHalve: (nat*(list nat))->(nat*(list nat))->Prop :=
 | TryHalve_1 x xs:
   TryHalve
@@ -250,7 +250,7 @@ We can define the translation between `increment/zero/overflow` and `Increment/H
 
 `toConfig` is the translation between the two different representations of tape config:
 
-```
+```ocaml
 Inductive toConfig: (nat*(list nat))->(Q*tape)->Prop :=
 | toConfig_intro x xs:
   toConfig (S x,xs) (lower (x::xs))
@@ -1181,7 +1181,7 @@ Lemma last_step k e ne:
 
 ```
 
-We reach `Base (k+1)` from `Base k` by `embanked_batch, N'_steps, embanked_batch, ZIHIO, embanked_batch`.
+We reach `Base (k+1)` from `Base k` by `embanked_batch, N'_steps, embanked_batch, ZIHIO, embanked_batch, embanked_batch`.
 
 ## level 7 behavior
 
