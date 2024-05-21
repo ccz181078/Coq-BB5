@@ -165,3 +165,13 @@ functional_extensionality_dep
     (forall x : A, f x = g x) -> f = g
 ```
 
+## BB(4)
+
+BB(4)=107 is proved in `BB42Theorem.v`. We only use `loop1_decider, NGramCPS_decider, RepWL_ES_decider` in BB(4).
+
+This file doesn't depend on other files and can be compiled directly:
+
+```
+coqc -Q . BusyCoq BB42Theorem.v
+```
+
