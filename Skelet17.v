@@ -5962,7 +5962,6 @@ Proof.
   gsubst_l (fst ne) Ha60'.
   gsubst_l (ai 0 ne) Ha61'.
   gsubst_l (to_l ne) Hl6'.
-  Search (to_n s3').
   cbn in n3_expr,n4_expr,n5_expr.
   simpl_add_sub_in n3_expr.
   simpl_add_sub_in n4_expr.
