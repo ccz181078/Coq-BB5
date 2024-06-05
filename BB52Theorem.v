@@ -3,6 +3,7 @@ Require Import ZArith.
 Require Import Logic.FunctionalExtensionality.
 Require Import Lia.
 Require Import FSets.FMapPositive.
+From BusyCoq Require Import BB52Statement.
 
 Set Warnings "-abstract-large-number".
 
@@ -292,12 +293,6 @@ Qed.
 
 
 
-Inductive St:Set :=
-| St0
-| St1
-| St2
-| St3
-| St4.
 
 
 Definition St_enc(x:St):positive :=
@@ -336,10 +331,6 @@ Ltac St_eq_dec s1 s2 :=
   eq_dec St_eqb_spec St_eqb s1 s2.
 
 
-
-Inductive Σ:Set :=
-| Σ0
-| Σ1.
 
 Definition Σ_eqb(i1 i2:Σ) :=
 match i1,i2 with
@@ -410,16 +401,6 @@ Proof.
   apply enc_list_inj,H0.
 Qed.
 
-
-Inductive Dir:Set :=
-| Dneg
-| Dpos.
-
-Definition Dir_to_Z(x:Dir) :=
-match x with
-| Dneg => Zneg 1
-| Dpos => Zpos 1
-end.
 
 Definition Dir_rev(d:Dir) :=
 match d with
@@ -518,55 +499,16 @@ Section TM.
 Hypothesis Σ:Set.
 Hypothesis Σ0:Σ.
 
-Record Trans:Set := {
-  nxt: St;
-  dir: Dir;
-  out: Σ;
-}.
+Definition Halts(tm:TM Σ)(st:ExecState Σ): Prop :=
+  exists n, HaltsAt Σ tm n st.
 
-Definition TM:Set := St->Σ->option Trans.
-
-Definition ExecState:Set := St*(Z->Σ).
-
-Definition InitES:ExecState := (St0,fun _=>Σ0).
-
-Definition upd(t:(Z->Σ))(o:Σ) :=
-  fun x:Z => if Z.eqb x Z0 then o else t x.
-
-Definition mov(t:(Z->Σ))(d:Dir) :=
-  fun x:Z => t ((x+(Dir_to_Z d))%Z).
-
-Definition step(tm:TM)(st:ExecState): option ExecState :=
-  let (s,t):=st in
-  match tm s (t Z0) with
-  | None => None
-  | Some tr =>
-    let (s',d,o):=tr in
-    Some (s',mov (upd t o) d)
-  end.
-
-Inductive Steps: TM->nat->ExecState->ExecState->Prop :=
-| steps_O tm st:
-  Steps tm O st st
-| steps_S tm n st st0 st1:
-  Steps tm n st st0 ->
-  step tm st0 = Some st1 ->
-  Steps tm (S n) st st1.
-
-Definition HaltsAt(tm:TM)(n:nat)(st:ExecState): Prop :=
-  exists st', Steps tm n st st' /\ step tm st' = None.
-
-Definition Halts(tm:TM)(st:ExecState): Prop :=
-  exists n, HaltsAt tm n st.
-
-Definition HaltsFromInit(tm:TM): Prop :=
-  Halts tm InitES.
-
+Definition HaltsFromInit(tm:TM Σ): Prop :=
+  Halts tm (InitES Σ Σ0).
 
 Lemma Steps_trans {tm n m st st0 st1}:
-  Steps tm n st st0 ->
-  Steps tm m st0 st1 ->
-  Steps tm (m+n) st st1.
+  Steps Σ tm n st st0 ->
+  Steps Σ tm m st0 st1 ->
+  Steps Σ tm (m+n) st st1.
 Proof.
   intro H.
   gd st1.
@@ -576,8 +518,8 @@ Proof.
 Qed.
 
 Lemma Steps_unique {tm n st st0 st1}:
-  Steps tm n st st0 ->
-  Steps tm n st st1 ->
+  Steps Σ tm n st st0 ->
+  Steps Σ tm n st st1 ->
   st0 = st1.
 Proof.
   gd st1.
@@ -590,8 +532,8 @@ Qed.
 
 Lemma Steps_NonHalt {tm m n st st0}:
   m<n ->
-  Steps tm n st st0 ->
-  ~HaltsAt tm m st.
+  Steps Σ tm n st st0 ->
+  ~HaltsAt Σ tm m st.
 Proof.
   intros.
   gd st0.
@@ -611,8 +553,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_unique {tm n1 n2 st}:
-  HaltsAt tm n1 st ->
-  HaltsAt tm n2 st ->
+  HaltsAt Σ tm n1 st ->
+  HaltsAt Σ tm n2 st ->
   n1=n2.
 Proof.
   intros.
@@ -630,7 +572,7 @@ Proof.
 Qed.
 
 Definition NonHalt tm st :=
-  forall n, exists st', Steps tm n st st'.
+  forall n, exists st', Steps Σ tm n st st'.
 
 Lemma NonHalt_iff {tm st}:
   NonHalt tm st <-> ~Halts tm st.
@@ -648,22 +590,22 @@ Proof.
     + eexists. ector.
     + destruct IHn as [st' IHn].
       unfold Halts,HaltsAt in H.
-      destruct (step tm st') as [st''|] eqn:E.
+      destruct (step Σ tm st') as [st''|] eqn:E.
       * exists st''. ector; eassumption.
       * assert False by (apply H; eexists; eexists; split; eassumption).
         contradiction.
 Qed.
 
 
-Definition LE(tm tm':TM): Prop :=
+Definition LE(tm tm':TM Σ): Prop :=
   forall (s:St)(i:Σ),
   tm s i = tm' s i \/
   tm s i = None.
 
 Lemma LE_step tm tm' st st0:
   LE tm tm' ->
-  step tm st = Some st0 ->
-  step tm' st = Some st0.
+  step Σ tm st = Some st0 ->
+  step Σ tm' st = Some st0.
 Proof.
   unfold LE,step.
   destruct st as [s t].
@@ -676,8 +618,8 @@ Qed.
 
 Lemma LE_Steps {tm tm' n st st0}:
   LE tm tm' ->
-  Steps tm n st st0 ->
-  Steps tm' n st st0.
+  Steps Σ tm n st st0 ->
+  Steps Σ tm' n st st0.
 Proof.
   intros.
   induction H0.
@@ -702,8 +644,8 @@ Qed.
 
 
 Hypothesis BB:nat.
-Definition HaltTimeUpperBound(st:ExecState)(P:TM->Prop):Prop :=
-  forall (tm:TM)(n0:nat), P tm -> HaltsAt tm n0 st -> n0<=BB.
+Definition HaltTimeUpperBound(st:ExecState Σ)(P:TM Σ->Prop):Prop :=
+  forall (tm:TM Σ)(n0:nat), P tm -> HaltsAt Σ tm n0 st -> n0<=BB.
 
 
 Lemma HaltTimeUpperBound_LE_NonHalt {st tm}:
@@ -720,17 +662,17 @@ Qed.
 Hypothesis Σ_eqb:Σ->Σ->bool.
 Hypothesis Σ_eqb_spec: forall i1 i2, if Σ_eqb i1 i2 then i1=i2 else i1<>i2.
 
-Definition TM_upd tm s i t: TM :=
+Definition TM_upd tm s i t: TM Σ :=
   fun s0 i0 =>
     if (andb (St_eqb s0 s) (Σ_eqb i0 i)) then t else tm s0 i0.
 
 
 Lemma LE_HaltsAtES_1 {tm tm0 n st s t}:
   LE tm tm0 ->
-  HaltsAt tm n st ->
-  Steps tm n st (s,t) ->
+  HaltsAt Σ tm n st ->
+  Steps Σ tm n st (s,t) ->
   tm0 s (t 0%Z) = None ->
-  HaltsAt tm0 n st.
+  HaltsAt Σ tm0 n st.
 Proof.
   intros.
   unfold HaltsAt.
@@ -748,8 +690,8 @@ Ltac Σ_eq_dec s1 s2 :=
 
 Lemma LE_HaltsAtES_2 {tm tm0 n st s t tr}:
   LE tm tm0 ->
-  HaltsAt tm n st ->
-  Steps tm n st (s,t) ->
+  HaltsAt Σ tm n st ->
+  Steps Σ tm n st (s,t) ->
   tm0 s (t 0%Z) = Some tr ->
   LE (TM_upd tm s (t 0%Z) (Some tr)) tm0.
 Proof.
@@ -765,8 +707,8 @@ Qed.
 
 
 Lemma HaltTimeUpperBound_LE_Halt st tm n s t:
-  HaltsAt tm n st ->
-  Steps tm n st (s,t) ->
+  HaltsAt Σ tm n st ->
+  Steps Σ tm n st (s,t) ->
   n<=BB ->
   (forall tr, HaltTimeUpperBound st (LE (TM_upd tm s (t Z0) (Some tr)))) ->
   HaltTimeUpperBound st (LE tm).
@@ -797,20 +739,20 @@ Definition St_swap s :=
   if St_eqb s1 s then s2 else
   if St_eqb s2 s then s1 else s.
 
-Definition Trans_swap(tr:Trans) :=
+Definition Trans_swap(tr:Trans Σ) :=
   let (s',d,o):=tr in
   {| nxt:=St_swap s'; dir:=d; out:=o |}.
 
-Definition option_Trans_swap(x:option Trans) :=
+Definition option_Trans_swap(x:option (Trans Σ)) :=
   match x with
   | Some x0 => Some (Trans_swap x0)
   | None => None
   end.
 
-Definition TM_swap(tm:TM) := 
+Definition TM_swap(tm:TM Σ) := 
   fun s i => option_Trans_swap (tm (St_swap s) i).
 
-Definition ExecState_swap(st:ExecState) :=
+Definition ExecState_swap(st:ExecState Σ) :=
   let (s,t):=st in
   (St_swap s,t).
 
@@ -874,8 +816,8 @@ Qed.
 
 
 Lemma step_swap {tm st st0}:
-  step (TM_swap tm) st = Some st0 <->
-  step tm (ExecState_swap st) = Some (ExecState_swap st0).
+  step Σ (TM_swap tm) st = Some st0 <->
+  step Σ tm (ExecState_swap st) = Some (ExecState_swap st0).
 Proof.
   destruct st,st0. cbn.
   unfold TM_swap.
@@ -892,8 +834,8 @@ Proof.
 Qed.
 
 Lemma step_halt_swap tm st:
-  step (TM_swap tm) st = None <->
-  step tm (ExecState_swap st) = None.
+  step Σ (TM_swap tm) st = None <->
+  step Σ tm (ExecState_swap st) = None.
 Proof.
   destruct st. cbn.
   unfold TM_swap.
@@ -905,8 +847,8 @@ Qed.
 
 
 Lemma Steps_swap tm n st st0:
-  Steps (TM_swap tm) n st st0 <->
-  Steps tm n (ExecState_swap st) (ExecState_swap st0).
+  Steps Σ (TM_swap tm) n st st0 <->
+  Steps Σ tm n (ExecState_swap st) (ExecState_swap st0).
 Proof.
 gd st0.
 induction n; intros.
@@ -951,7 +893,7 @@ Proof.
 Qed.
 
 Lemma InitES_swap:
-  ExecState_swap InitES = InitES.
+  ExecState_swap (InitES Σ Σ0) = InitES Σ Σ0.
 Proof.
   unfold InitES. cbn.
   f_equal.
@@ -961,8 +903,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_swap_0 tm n st:
-  HaltsAt tm n st ->
-  HaltsAt (TM_swap tm) n (ExecState_swap st).
+  HaltsAt Σ tm n st ->
+  HaltsAt Σ (TM_swap tm) n (ExecState_swap st).
 Proof.
   unfold HaltsAt.
   intros.
@@ -978,8 +920,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_swap tm n st:
-  HaltsAt tm n st <->
-  HaltsAt (TM_swap tm) n (ExecState_swap st).
+  HaltsAt Σ tm n st <->
+  HaltsAt Σ (TM_swap tm) n (ExecState_swap st).
 Proof.
   split.
   - apply HaltsAt_swap_0.
@@ -1002,7 +944,7 @@ Proof.
 Qed.
 
 Lemma HaltTimeUpperBound_LE_swap_InitES tm:
-  HaltTimeUpperBound InitES (LE tm) -> HaltTimeUpperBound InitES (LE (TM_swap tm)).
+  HaltTimeUpperBound (InitES Σ Σ0) (LE tm) -> HaltTimeUpperBound (InitES Σ Σ0) (LE (TM_swap tm)).
 Proof.
   intro.
   rewrite <-InitES_swap.
@@ -1014,23 +956,23 @@ End swap.
 
 
 Section rev.
-Definition Trans_rev(tr:Trans) :=
+Definition Trans_rev(tr:Trans Σ) :=
   let (s',d,o):=tr in
   {| nxt:=s'; dir:=Dir_rev d; out:=o |}.
 
-Definition option_Trans_rev(o:option Trans) :=
+Definition option_Trans_rev(o:option (Trans Σ)) :=
   match o with
   | None => None
   | Some tr => Some (Trans_rev tr)
   end.
 
-Definition TM_rev(tm:TM) := 
+Definition TM_rev(tm:TM Σ) := 
   fun s i => option_Trans_rev (tm s i).
 
 Definition Tape_rev(t:Z->Σ) :=
   fun x:Z => t (-x)%Z.
 
-Definition ExecState_rev(st:ExecState) :=
+Definition ExecState_rev(st:ExecState Σ) :=
   let (s,t):=st in
   (s,Tape_rev t).
 
@@ -1043,7 +985,7 @@ Proof.
   destruct t.
   unfold Trans_rev.
   f_equal.
-  destruct dir0; auto.
+  destruct dir; auto.
 Qed.
 
 Lemma option_Trans_rev_rev:
@@ -1098,8 +1040,8 @@ Proof.
 Qed.
 
 Lemma step_rev tm st st0:
-  step (TM_rev tm) st = Some st0 <->
-  step tm (ExecState_rev st) = Some (ExecState_rev st0).
+  step Σ (TM_rev tm) st = Some st0 <->
+  step Σ tm (ExecState_rev st) = Some (ExecState_rev st0).
 Proof.
   destruct st,st0. cbn.
   unfold Tape_rev. cbn.
@@ -1149,8 +1091,8 @@ Qed.
 
 
 Lemma step_halt_rev tm st:
-  step (TM_rev tm) st = None <->
-  step tm (ExecState_rev st) = None.
+  step Σ (TM_rev tm) st = None <->
+  step Σ tm (ExecState_rev st) = None.
 Proof.
   destruct st.
   cbn.
@@ -1164,8 +1106,8 @@ Proof.
 Qed.
 
 Lemma Steps_rev tm n st st0:
-  Steps (TM_rev tm) n st st0 <->
-  Steps tm n (ExecState_rev st) (ExecState_rev st0).
+  Steps Σ (TM_rev tm) n st st0 <->
+  Steps Σ tm n (ExecState_rev st) (ExecState_rev st0).
 Proof.
 gd st0.
 induction n; intros.
@@ -1209,14 +1151,14 @@ Proof.
 Qed.
 
 Lemma InitES_rev:
-  ExecState_rev InitES = InitES.
+  ExecState_rev (InitES Σ Σ0) = InitES Σ Σ0.
 Proof.
   reflexivity.
 Qed.
 
 Lemma HaltsAt_rev_0 tm n st:
-  HaltsAt tm n st ->
-  HaltsAt (TM_rev tm) n (ExecState_rev st).
+  HaltsAt Σ tm n st ->
+  HaltsAt Σ (TM_rev tm) n (ExecState_rev st).
 Proof.
   unfold HaltsAt.
   intros.
@@ -1232,8 +1174,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_rev tm n st:
-  HaltsAt tm n st <->
-  HaltsAt (TM_rev tm) n (ExecState_rev st).
+  HaltsAt Σ tm n st <->
+  HaltsAt Σ (TM_rev tm) n (ExecState_rev st).
 Proof.
   split.
   - apply HaltsAt_rev_0.
@@ -1256,7 +1198,7 @@ Proof.
 Qed.
 
 Lemma HaltTimeUpperBound_LE_rev_InitES tm:
-  HaltTimeUpperBound InitES (LE tm) -> HaltTimeUpperBound InitES (LE (TM_rev tm)).
+  HaltTimeUpperBound (InitES Σ Σ0) (LE tm) -> HaltTimeUpperBound (InitES Σ Σ0) (LE (TM_rev tm)).
 Proof.
   intro.
   rewrite <-InitES_rev.
@@ -1278,8 +1220,8 @@ Proof.
   f_equal.
   cbn in H,H0.
   unfold St_swap.
-  St_eq_dec s1 nxt0; subst; try cg.
-  St_eq_dec s2 nxt0; subst; try cg.
+  St_eq_dec s1 nxt; subst; try cg.
+  St_eq_dec s2 nxt; subst; try cg.
 Qed.
 
 Definition UnusedState(tm:TM Σ)(s:St): Prop :=
@@ -9310,7 +9252,7 @@ Definition to_oTrans(x:option (Sym*TM.dir*Q)):option (Trans Σ) :=
   | Some (o,d,s) => Some {| nxt:=to_St s; dir:=to_Dir d; out:=to_Σ o |}
   end.
 
-Definition to_TM(tm:TM):BB52Theorem.TM Σ :=
+Definition to_TM(tm:TM):BB52Statement.TM Σ :=
   fun s0 i0 =>
   to_oTrans (tm (of_St s0,of_Σ i0)).
 
@@ -9353,11 +9295,11 @@ Qed.
 
 Lemma to_step tm st0 st1:
   step tm st0 st1 ->
-  BB52Theorem.step Σ (to_TM tm) (to_ExecState st0) = Some (to_ExecState st1).
+  BB52Statement.step Σ (to_TM tm) (to_ExecState st0) = Some (to_ExecState st1).
 Proof.
   intro H.
   invst H.
-  - unfold BB52Theorem.step.
+  - unfold BB52Statement.step.
     cbn.
     rewrite to_TM_spec,H0.
     cbn.
@@ -9383,7 +9325,7 @@ Proof.
       unfold to_halftape. f_equal.
       replace (Nat.pred (Pos.to_nat p0)) with (S (Nat.pred (Pos.to_nat p))) by lia.
       apply Str_nth_S'.
-  - unfold BB52Theorem.step.
+  - unfold BB52Statement.step.
     cbn.
     rewrite to_TM_spec,H0.
     cbn.
@@ -19033,8 +18975,7 @@ Proof.
 Qed.
 
 Lemma BB5_value:
-  (forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB) /\
-  (exists tm, HaltsAt Σ tm (N.to_nat BB) (InitES Σ Σ0)).
+  BB5_value_statement.
 Proof.
   split.
   - intros tm n0.

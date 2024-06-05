@@ -6,7 +6,12 @@ An ExecState has type $St\times (\mathbb{Z}\to\Sigma)$ , means the current state
 
 BB(5) is the maximum steps to halt for all TM with $|St|=5$ and $\Sigma=\{0,1\}$ and starts from empty tape.
 
-This is a Coq project for proving BB(5)=47,176,870. This result is in `BB52Theorem.v`.
+This is a Coq project for proving BB(5)=47,176,870. This result is proved in `BB52Theorem.v`. The basic definitions for this theorem are in `BB52Statement.v`.
+
+#### Note:
+
+- BB is S (max steps to halt) instead of Σ (max amount of nonzero symbols on the halting tape).
+- Due to a minor difference of the definition of "max steps to halt", the theorem proved in `BB52Theorem.v` is written as BB(5)=47,176,870-1.
 
 Most other files are from BusyCoq ([busycoq/verify at master · meithecatte/busycoq (github.com)](https://github.com/meithecatte/busycoq/tree/master/verify)). They provided the nonhalt proof of 12 non-trivial TMs. This part is not described in this document.
 
@@ -143,6 +148,7 @@ coqc -Q . BusyCoq Skelet34.v
 coqc -Q . BusyCoq Skelet35.v
 coqc -Q . BusyCoq Skelet17.v
 coqc -Q . BusyCoq Skelet1.v
+coqc -Q . BusyCoq BB52Statement.v
 coqc -Q . BusyCoq BB52Theorem.v
 ```
 
