@@ -499,8 +499,11 @@ Section TM.
 Hypothesis Σ:Set.
 Hypothesis Σ0:Σ.
 
+Definition HaltsAt(tm:TM Σ)(n:nat)(st:ExecState Σ): Prop :=
+  exists st', Steps Σ tm n st st' /\ step Σ tm st' = None.
+
 Definition Halts(tm:TM Σ)(st:ExecState Σ): Prop :=
-  exists n, HaltsAt Σ tm n st.
+  exists n, HaltsAt tm n st.
 
 Definition HaltsFromInit(tm:TM Σ): Prop :=
   Halts tm (InitES Σ Σ0).
@@ -533,7 +536,7 @@ Qed.
 Lemma Steps_NonHalt {tm m n st st0}:
   m<n ->
   Steps Σ tm n st st0 ->
-  ~HaltsAt Σ tm m st.
+  ~HaltsAt tm m st.
 Proof.
   intros.
   gd st0.
@@ -553,8 +556,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_unique {tm n1 n2 st}:
-  HaltsAt Σ tm n1 st ->
-  HaltsAt Σ tm n2 st ->
+  HaltsAt tm n1 st ->
+  HaltsAt tm n2 st ->
   n1=n2.
 Proof.
   intros.
@@ -645,7 +648,7 @@ Qed.
 
 Hypothesis BB:nat.
 Definition HaltTimeUpperBound(st:ExecState Σ)(P:TM Σ->Prop):Prop :=
-  forall (tm:TM Σ)(n0:nat), P tm -> HaltsAt Σ tm n0 st -> n0<=BB.
+  forall (tm:TM Σ)(n0:nat), P tm -> HaltsAt tm n0 st -> n0<=BB.
 
 
 Lemma HaltTimeUpperBound_LE_NonHalt {st tm}:
@@ -669,10 +672,10 @@ Definition TM_upd tm s i t: TM Σ :=
 
 Lemma LE_HaltsAtES_1 {tm tm0 n st s t}:
   LE tm tm0 ->
-  HaltsAt Σ tm n st ->
+  HaltsAt tm n st ->
   Steps Σ tm n st (s,t) ->
   tm0 s (t 0%Z) = None ->
-  HaltsAt Σ tm0 n st.
+  HaltsAt tm0 n st.
 Proof.
   intros.
   unfold HaltsAt.
@@ -690,7 +693,7 @@ Ltac Σ_eq_dec s1 s2 :=
 
 Lemma LE_HaltsAtES_2 {tm tm0 n st s t tr}:
   LE tm tm0 ->
-  HaltsAt Σ tm n st ->
+  HaltsAt tm n st ->
   Steps Σ tm n st (s,t) ->
   tm0 s (t 0%Z) = Some tr ->
   LE (TM_upd tm s (t 0%Z) (Some tr)) tm0.
@@ -707,7 +710,7 @@ Qed.
 
 
 Lemma HaltTimeUpperBound_LE_Halt st tm n s t:
-  HaltsAt Σ tm n st ->
+  HaltsAt tm n st ->
   Steps Σ tm n st (s,t) ->
   n<=BB ->
   (forall tr, HaltTimeUpperBound st (LE (TM_upd tm s (t Z0) (Some tr)))) ->
@@ -903,8 +906,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_swap_0 tm n st:
-  HaltsAt Σ tm n st ->
-  HaltsAt Σ (TM_swap tm) n (ExecState_swap st).
+  HaltsAt tm n st ->
+  HaltsAt (TM_swap tm) n (ExecState_swap st).
 Proof.
   unfold HaltsAt.
   intros.
@@ -920,8 +923,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_swap tm n st:
-  HaltsAt Σ tm n st <->
-  HaltsAt Σ (TM_swap tm) n (ExecState_swap st).
+  HaltsAt tm n st <->
+  HaltsAt (TM_swap tm) n (ExecState_swap st).
 Proof.
   split.
   - apply HaltsAt_swap_0.
@@ -1157,8 +1160,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_rev_0 tm n st:
-  HaltsAt Σ tm n st ->
-  HaltsAt Σ (TM_rev tm) n (ExecState_rev st).
+  HaltsAt tm n st ->
+  HaltsAt (TM_rev tm) n (ExecState_rev st).
 Proof.
   unfold HaltsAt.
   intros.
@@ -1174,8 +1177,8 @@ Proof.
 Qed.
 
 Lemma HaltsAt_rev tm n st:
-  HaltsAt Σ tm n st <->
-  HaltsAt Σ (TM_rev tm) n (ExecState_rev st).
+  HaltsAt tm n st <->
+  HaltsAt (TM_rev tm) n (ExecState_rev st).
 Proof.
   split.
   - apply HaltsAt_rev_0.
@@ -18977,11 +18980,20 @@ Qed.
 Lemma BB5_value:
   BB5_value_statement.
 Proof.
+  unfold BB5_value_statement.
   split.
-  - intros tm n0.
-    apply allTM_HTUB.
-    trivial.
-  - apply BB5_lower_bound.
+  - intros tm n0 H.
+    invst H.
+    epose proof (allTM_HTUB _ _ _ H0) as H1.
+    Unshelve. 2: cbn; trivial.
+    unfold BB5.
+    unfold BB in H1.
+    lia.
+  - destruct BB5_lower_bound as [tm H].
+    exists tm.
+    replace (N.to_nat BB5) with (S (N.to_nat BB)).
+    1: ctor; apply H.
+    unfold BB,BB5. lia.
 Qed.
 
 Print Assumptions BB5_value.

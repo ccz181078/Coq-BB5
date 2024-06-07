@@ -11,7 +11,6 @@ This is a Coq project for proving BB(5)=47,176,870. This result is proved in `BB
 #### Note:
 
 - BB is S (max steps to halt) instead of Σ (max amount of nonzero symbols on the halting tape).
-- Due to a minor difference of the definition of "max steps to halt", the theorem proved in `BB52Theorem.v` is written as BB(5)=47,176,870-1.
 
 Most other files are from BusyCoq ([busycoq/verify at master · meithecatte/busycoq (github.com)](https://github.com/meithecatte/busycoq/tree/master/verify)). They provided the nonhalt proof of 12 non-trivial TMs. This part is not described in this document.
 
