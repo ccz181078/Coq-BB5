@@ -4,7 +4,7 @@ A Turing machine(TM) has type $St\to\Sigma\to ((St\times\{-1,+1\}\times\Sigma)+\
 
 An ExecState has type $St\times (\mathbb{Z}\to\Sigma)$ , means the current state and tape configuration after some steps.
 
-BB(5) is the maximum steps to halt for all TM with $|St|=5$ and $\Sigma=\{0,1\}$ and starts from empty tape.
+BB(5) is the maximum steps to halt for all TM with $|St|=5$ and $\Sigma=\{0,1\}$ and starts from empty tape (i.e. all positions of the initial tape have value $0$ ).
 
 This is a Coq project for proving BB(5)=47,176,870. This result is proved in `BB52Theorem.v`. The basic definitions for this theorem are in `BB52Statement.v`.
 
@@ -26,7 +26,7 @@ This is a trivial decider for one of these situations:
 2. The TM reaches an ExecState $0^\infty A(s,x)B0^\infty$ twice.
 3. The TM reaches an ExecState $0^\infty CBA(s,x)0^\infty$ , and $\forall C,\;0^\infty CBA(s,x)0^\infty \rightsquigarrow^+ 0^\infty CB^2A(s,x)0^\infty$ .
 
-Here we write an ExecState as a string, $0^\infty A(s,x)B0^\infty$ means current state is $s$ , current input is $x$ , the half-tape to the left(right) of the head is $0^\infty A$ ( $B0^\infty$ ), $A,B,C\dots$ are strings and $x,a,b,c\dots$ are elements of $\Sigma$.
+Here we write an ExecState as a string, $0^\infty A(s,x)B0^\infty$ meaning current state is $s$ , current input is $x$ , the half-tape to the left(right) of the head is $0^\infty A$ ( $B0^\infty$ ), $A,B,C\dots$ are strings and $x,a,b,c\dots$ are elements of $\Sigma$.
 
 $X\rightsquigarrow^+Y$ means $Y$ is reachable from $X$ after some steps (but not 0 step).
 
@@ -172,11 +172,23 @@ functional_extensionality_dep
 
 ## BB(4)
 
-BB(4)=107 is proved in `BB42Theorem.v`. We only use `loop1_decider, NGramCPS_decider, RepWL_ES_decider` in BB(4).
+BB(4)=107 is proved in `BB42Theorem.v`. We only use `loop1_decider, NGramCPS_decider, RepWL_ES_decider` for BB(4).
 
 This file doesn't depend on other files and can be compiled directly:
 
 ```
 coqc -Q . BusyCoq BB42Theorem.v
+```
+
+## BB(2,4)
+
+BB(2,4) is the maximum steps to halt for all TM with $|St|=2$ and $\Sigma=\{0,1,2,3\}$ and starts from empty tape.
+
+BB(2,4)=3932964 is proved in `BB24Theorem.v`. We only use `loop1_decider, NGramCPS_decider, RepWL_ES_decider` for BB(2,4).
+
+This file doesn't depend on other files and can be compiled directly:
+
+```
+coqc -Q . BusyCoq BB24Theorem.v
 ```
 
