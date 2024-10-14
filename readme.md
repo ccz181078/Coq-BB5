@@ -58,7 +58,7 @@ We use `PositiveMap.tree` (and sometimes together with a list) as the data struc
 
 This decider is the special case of CTL deciders ([The 30 to 34 CTL holdouts from BB(5) - Individual machines - The Busy Beaver Challenge (bbchallenge.org)](https://discuss.bbchallenge.org/t/the-30-to-34-ctl-holdouts-from-bb-5/141)).
 
-If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegExp}$ , and forall reachable ExecState, it can reach an ExecState $0^\infty A(s,x)B0^\infty$ , exists $R_1,R_2\in\mathrm{RegExp}$ , $R_1,R_2$ matches $A,xB$ (or $Ax,B$) and $(R_1,s,R_2)\in S_1$ (or $(R_1,s,R_2)\in S_2$ ), then the TM will never halt. $S_1$ and $S_2$ are needed because of the two directions of the TM's directed head: e.g. in $S_1$ the head points to $R_1$ and in $S_2$ it points to $R_2$.
+If we have finite sets $S_1,S_2$ of $\mathrm{RegExp}\times St\times \mathrm{RegExp}$ , and forall reachable ExecState, it can reach an ExecState $0^\infty A(s,x)B0^\infty$ , exists $R_1,R_2\in\mathrm{RegExp}$ , $R_1,R_2$ matches $A,xB$ (or $Ax,B$) and $(R_1,s,R_2)\in S_1$ (or $(R_1,s,R_2)\in S_2$ ), then the TM will never halt. $S_1$ and $S_2$ are needed because of the two directions of the TM's directed head: i.e. in $S_1$ the head points to $R_2$ and in $S_2$ it points to $R_1$.
 
 Regular expressions used in this decider (with parameters $n$ and $m$) are limited to be like $A_1A_2A_3\dots A_{n_0}$ and each $A_i$ is like $B^k$ or $B^mB^*$ , $B$ matches a fixed string of length $n$ , and $1\le k\le m-1$ .
 
