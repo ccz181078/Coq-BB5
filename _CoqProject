@@ -1,14 +1,14 @@
 -Q . BusyCoq
-CustomTactics.v
-Encodings.v
-ListTape.v
-Prelims.v
-CustomListRoutines.v
-Decider_NGramCPS.v
-Decider_RepWL.v
-TM_CoqBB5.v
-BB24Theorem.v
 BB52Statement.v
+CustomTactics.v
+Prelims.v
+Encodings.v
+CustomListRoutines.v
+TM_CoqBB5.v
+Decider_NGramCPS.v
+ListTape.v
+Decider_RepWL.v
+BB24Theorem.v
 BB52.v
 Finned1.v
 Finned3.v
