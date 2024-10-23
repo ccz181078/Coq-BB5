@@ -2,6 +2,7 @@ Require Import List.
 Require Import ZArith.
 Require Import FSets.FMapPositive.
 
+From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import CustomTactics.
 
 Definition is_inj{T1 T2}(f:T1->T2):=
@@ -16,6 +17,18 @@ Qed.
 
 Notation "x &&& y" := (if x then y else false) (at level 80, right associativity).
 Notation "x ||| y" := (if x then true else y) (at level 85, right associativity).
+
+Lemma andb_shortcut_spec(a b:bool):
+  (a&&&b) = (a&&b)%bool.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma orb_shortcut_spec(a b:bool):
+  (a|||b) = (a||b)%bool.
+Proof.
+  reflexivity.
+Qed.
 
 Definition set_ins{T}(enc:T->positive)(s:list T * PositiveMap.tree unit)(x:T):(list T * PositiveMap.tree unit)*bool :=
   let enc := (enc x) in
@@ -72,4 +85,68 @@ Proof.
   2: contradiction.
   unfold set_in in H.
   rewrite PositiveMap.gempty in H. cg.
+Qed.
+
+Definition St_list:= St0::St1::St2::St3::St4::nil.
+Definition Σ_list:= Σ0::Σ1::nil.
+Definition Dir_list := Dpos::Dneg::nil.
+
+Lemma St_list_spec:
+  forall s, In s St_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Lemma Σ_list_spec:
+  forall s, In s Σ_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Lemma Dir_list_spec:
+  forall s, In s Dir_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Definition forallb_St f :=
+  forallb f St_list.
+
+Definition forallb_Σ f :=
+  forallb f Σ_list.
+
+Definition forallb_Dir f :=
+  forallb f Dir_list.
+
+Lemma forallb_St_spec f:
+  forallb_St f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_St.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,St_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Σ_spec f:
+  forallb_Σ f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Σ.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Σ_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Dir_spec f:
+  forallb_Dir f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Dir.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Dir_list_spec.
+  - apply H.
 Qed.
