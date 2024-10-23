@@ -8,6 +8,7 @@ TM_CoqBB5.v
 TNF.v
 Decider_NGramCPS.v
 ListTape.v
+Decider_RepWL_Parameters.v
 Decider_RepWL.v
 BB24Theorem.v
 BB52.v
