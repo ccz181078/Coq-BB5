@@ -204,3 +204,55 @@ Lemma St_suc_neq x:
 Proof.
   destruct x; cbn; cg.
 Qed.
+
+Definition St_to_N(s1:St):N :=
+match s1 with
+| St0 => 1
+| St1 => 2
+| St2 => 3
+| St3 => 4
+| St4 => 5
+end.
+
+Definition Dir_to_N(d1:Dir):N :=
+match d1 with
+| Dpos => 1
+| Dneg => 0
+end.
+
+Definition Σ_to_N(o1:Σ):N :=
+match o1 with
+| Σ0 => 0
+| Σ1 => 1
+end.
+
+Definition Trans_to_N(tr:Trans Σ):list (N*N) :=
+let (s1,d1,o1):=tr in
+((St_to_N s1,6)::(Σ_to_N o1,2)::(Dir_to_N d1,2)::nil)%N.
+
+Definition option_Trans_to_N(tr:option (Trans Σ)):list (N*N) :=
+match tr with
+| None =>
+  ((0,6)::(Σ_to_N Σ1,2)::(Dir_to_N Dpos,2)::nil)%N
+| Some tr => Trans_to_N tr
+end.
+
+Fixpoint TM_to_N_0(ls:list (N*N))(v:N):N :=
+match ls with
+| nil => v
+| (a,b)::t => TM_to_N_0 t (v*b+a)
+end.
+
+Definition TM_to_N(tm:TM Σ):N :=
+  TM_to_N_0 (
+  (option_Trans_to_N (tm St0 Σ0))++
+  (option_Trans_to_N (tm St0 Σ1))++
+  (option_Trans_to_N (tm St1 Σ0))++
+  (option_Trans_to_N (tm St1 Σ1))++
+  (option_Trans_to_N (tm St2 Σ0))++
+  (option_Trans_to_N (tm St2 Σ1))++
+  (option_Trans_to_N (tm St3 Σ0))++
+  (option_Trans_to_N (tm St3 Σ1))++
+  (option_Trans_to_N (tm St4 Σ0))++
+  (option_Trans_to_N (tm St4 Σ1))++nil
+  ) 0.

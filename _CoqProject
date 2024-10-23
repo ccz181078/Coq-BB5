@@ -10,6 +10,7 @@ Decider_NGramCPS.v
 ListTape.v
 Decider_RepWL_Parameters.v
 Decider_RepWL.v
+Decider_Pipeline.v
 BB24Theorem.v
 BB52.v
 Finned1.v

@@ -29,20 +29,7 @@ Set Warnings "-abstract-large-number".
 
 
 
-Definition Dir_eqb(d1 d2:Dir):bool :=
-match d1,d2 with
-| Dpos,Dpos | Dneg,Dneg => true
-| _,_ => false
-end.
 
-Lemma Dir_eqb_spec d1 d2:
-  if Dir_eqb d1 d2 then d1=d2 else d1<>d2.
-Proof.
-  destruct d1,d2; cbn; cg.
-Qed.
-
-Ltac Dir_eq_dec s1 s2 :=
-  eq_dec Dir_eqb_spec Dir_eqb s1 s2.
 
 
 
@@ -2727,61 +2714,7 @@ Proof.
   apply tm_holdouts_13_spec,H.
 Qed.
 
-Inductive DeciderType :=
-| NG(hlen len:nat)
-| NG_LRU(len:nat)
-| RWL(len m:nat)
-| DNV(n:nat)(f:nat->Σ->nat)
-| WA(max_d:BinNums.Z)(n_l:nat)(f_l:nat->Σ->(nat*BinNums.Z))(n_r:nat)(f_r:nat->Σ->(nat*BinNums.Z))
-| Ha
-| Lp1
-| Holdout.
 
-
-Definition getDecider(x:DeciderType) :=
-match x with
-| NG hlen len =>
-  match hlen with
-  | O => NGramCPS_decider_impl2 len len 5000001
-  | _ => NGramCPS_decider_impl1 hlen len len 5000001
-  end
-| NG_LRU len =>
-  NGramCPS_LRU_decider len len 5000001
-| RWL len mnc => RepWL_ES_decider len mnc 320 150001
-| DNV n f => dfa_nfa_verifier n f
-| WA max_d n_l f_l n_r f_r => MITM_WDFA_verifier max_d n_l f_l n_r f_r 10000000
-| Ha => halt_decider_max
-| Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
-| Holdout => holdout_checker
-end.
-
-Lemma getDecider_spec x:
-  HaltDecider_WF (N.to_nat BB) (getDecider x).
-Proof.
-  destruct x; unfold getDecider.
-  - destruct hlen.
-    + apply NGramCPS_decider_impl2_spec.
-    + apply NGramCPS_decider_impl1_spec.
-  - apply NGramCPS_LRU_decider_spec.
-  - apply RepWL_ES_decider_spec.
-  - apply dfa_nfa_verifier_spec.
-  - apply MITM_WDFA_verifier_spec.
-  - apply halt_decider_max_spec.
-  - apply loop1_decider_WF.
-    unfold BB.
-    replace (Init.Nat.of_num_uint
-  (Number.UIntDecimal
-     (Decimal.D1
-        (Decimal.D0
-           (Decimal.D5 (Decimal.D0 (Decimal.D0 (Decimal.D0 (Decimal.D0 Decimal.Nil))))))))) with
-    (N.to_nat 1050000).
-    1: lia.
-    symmetry.
-    apply nat_eqb_N_spec.
-    vm_compute.
-    reflexivity.
-  - apply holdout_checker_spec.
-Qed.
 
 
 Definition tm_NG0:list ((TM Σ)*(DeciderType)) :=

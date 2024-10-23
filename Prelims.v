@@ -151,3 +151,17 @@ Proof.
   - apply H.
 Qed.
 
+Definition Dir_eqb(d1 d2:Dir):bool :=
+match d1,d2 with
+| Dpos,Dpos | Dneg,Dneg => true
+| _,_ => false
+end.
+
+Lemma Dir_eqb_spec d1 d2:
+  if Dir_eqb d1 d2 then d1=d2 else d1<>d2.
+Proof.
+  destruct d1,d2; cbn; cg.
+Qed.
+
+Ltac Dir_eq_dec s1 s2 :=
+  eq_dec Dir_eqb_spec Dir_eqb s1 s2.
