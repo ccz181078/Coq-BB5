@@ -1901,7 +1901,7 @@ Lemma loop1_decider0_spec tm n es d ls n0 ns:
   | Result_Halt s0 i0 =>
     exists n1 es0,
     n1<n+(length ls) /\
-    HaltsAt Σ tm n1 (InitES Σ Σ0) /\
+    TM_CoqBB5.HaltsAt Σ tm n1 (InitES Σ Σ0) /\
     Steps Σ tm n1 (InitES Σ Σ0) (ListES_toES es0) /\
     es0.(s)=s0 /\ es0.(m)=i0
   | Result_NonHalt => ~HaltsFromInit Σ Σ0 tm
@@ -1965,7 +1965,7 @@ Lemma halt_decider0_spec tm n es n2:
   | Result_Halt s0 i0 =>
     exists n1 es0,
     n1<n+n2 /\
-    HaltsAt Σ tm n1 (InitES Σ Σ0) /\
+    TM_CoqBB5.HaltsAt Σ tm n1 (InitES Σ Σ0) /\
     Steps Σ tm n1 (InitES Σ Σ0) (ListES_toES es0) /\
     es0.(s)=s0 /\ es0.(m)=i0
   | Result_NonHalt => False
@@ -1996,7 +1996,7 @@ Proof.
     + exists n2. exists ({| l := l0; r := r0; m := m0; s := s0 |}).
       repeat split.
       * lia.
-      * unfold HaltsAt.
+      * unfold TM_CoqBB5.HaltsAt.
         exists (ListES_toES {| l := l0; r := r0; m := m0; s := s0 |}).
         split; auto 1.
       * apply H.
@@ -2111,9 +2111,9 @@ Definition halt_time_verifier(tm:TM Σ)(n:nat):bool :=
 
 Lemma halt_time_verifier_spec tm n:
   halt_time_verifier tm n = true ->
-  HaltsAt _ tm n (InitES Σ Σ0).
+  TM_CoqBB5.HaltsAt _ tm n (InitES Σ Σ0).
 Proof.
-  unfold halt_time_verifier,HaltsAt.
+  unfold halt_time_verifier,TM_CoqBB5.HaltsAt.
   intro H.
   pose proof (ListES_Steps_spec tm n {| l := nil; r := nil; m := Σ0; s := St0 |}).
   destruct (ListES_Steps tm n {| l := nil; r := nil; m := Σ0; s := St0 |}).
@@ -2174,7 +2174,7 @@ Definition BB5_champion := (makeTM BR1 CL1 CR1 BR1 DR1 EL0 AL1 DL1 HR1 AL0).
 
 Lemma BB5_lower_bound:
   exists tm,
-  HaltsAt _ tm (N.to_nat BB) (InitES Σ Σ0).
+  TM_CoqBB5.HaltsAt _ tm (N.to_nat BB) (InitES Σ Σ0).
 Proof.
   exists BB5_champion.
   apply halt_time_verifier_spec.
