@@ -1,3 +1,5 @@
+Require Import ZArith.
+
 From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import ListTape.
 From BusyCoq Require Import Decider_RepWL.
