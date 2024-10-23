@@ -2,9 +2,11 @@ From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import ListTape.
 From BusyCoq Require Import Decider_RepWL.
 
+From BusyCoq Require Import CustomTactics.
+
 Definition halt_time_verifier(tm:TM Σ)(n:nat):bool :=
-  match ListES_Steps tm n {| l := nil; r := nil; m := Σ0; s := St0 |} with
-  | Some {| l:=_; r:=_; m:=m0; s:=s0 |} =>
+  match ListES_Steps tm n {| ListTape.l := nil; ListTape.r := nil; ListTape.m := Σ0; ListTape.s := St0 |} with
+  | Some {| ListTape.l:=_; ListTape.r:=_; ListTape.m :=m0; ListTape.s :=s0 |} =>
     match tm s0 m0 with
     | None => true
     | _ => false
@@ -18,8 +20,8 @@ Lemma halt_time_verifier_spec tm n:
 Proof.
   unfold halt_time_verifier,TM_CoqBB5.HaltsAt.
   intro H.
-  pose proof (ListES_Steps_spec tm n {| l := nil; r := nil; m := Σ0; s := St0 |}).
-  destruct (ListES_Steps tm n {| l := nil; r := nil; m := Σ0; s := St0 |}).
+  pose proof (ListES_Steps_spec tm n {| ListTape.l := nil; ListTape.r := nil; ListTape.m := Σ0; ListTape.s := St0 |}).
+  destruct (ListES_Steps tm n {| ListTape.l := nil; ListTape.r := nil; ListTape.m := Σ0; ListTape.s := St0 |}).
   2: cg.
   rewrite ListES_toES_O in H0.
   eexists.
