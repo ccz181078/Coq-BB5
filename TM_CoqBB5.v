@@ -1,5 +1,6 @@
 Require Import ZArith.
 Require Import Lia.
+Require Import List.
 
 From BusyCoq Require Import Prelims.
 From BusyCoq Require Import BB52Statement.
@@ -1193,3 +1194,301 @@ match s,i with
 | St4,Σ0 => E0
 | St4,Σ1 => E1
 end.
+
+Section TMwithExtraInfo.
+
+Hypothesis Σ:Set.
+Hypothesis Σ':Set.
+Hypothesis Σ0':Σ'.
+Hypothesis F:Σ'->Σ.
+
+Hypothesis tm:TM Σ.
+Hypothesis tm':TM Σ'.
+Hypothesis HF:
+  forall (s:St)(i:Σ'),
+  match tm' s i with
+  | Some tr =>
+    let (s',d,o) := tr in 
+    tm s (F i) = Some {| nxt:=s'; dir:=d; out:= F o |}
+  | None => tm s (F i) = None
+  end.
+
+Definition F_ES: (ExecState Σ')->(ExecState Σ) :=
+  fun st =>
+  let (s,t):=st in
+  (s,fun x => F (t x)).
+
+Lemma F_step st0 st1:
+  step Σ tm (F_ES st0) = Some st1->
+  exists st1',
+  step Σ' tm' st0 = Some st1' /\
+  F_ES st1' = st1.
+Proof.
+  destruct st0 as [s t].
+  cbn.
+  intro H.
+  pose proof (HF s (t 0%Z)) as H0.
+  destruct (tm s (F (t 0%Z))) as [[s1 d1 o1]|] eqn:E. 2: cg.
+  destruct (tm' s (t 0%Z)) as [[s1' d1' o1']|] eqn:E'. 2: cg.
+  invst H0; clear H0.
+  eexists.
+  split.
+  1: reflexivity.
+  cbn.
+  invst H.
+  f_equal.
+  unfold mov,upd.
+  fext.
+  destruct ((x + Dir_to_Z d1' =? 0)%Z); reflexivity.
+Qed.
+
+Lemma F_step_halt st0:
+  step Σ tm (F_ES st0) = None->
+  step Σ' tm' st0 = None.
+Proof.
+  unfold step.
+  destruct st0 as [s t]. cbn.
+  specialize (HF s (t Z0)).
+  destruct (tm' s (t 0%Z)); cbn; cg.
+  destruct t0. rewrite HF. cg.
+Qed.
+
+
+Lemma F_Steps n st0 st1:
+  Steps Σ tm n (F_ES st0) st1->
+  exists st1',
+  Steps Σ' tm' n st0 st1' /\
+  F_ES st1' = st1.
+Proof.
+gd st1.
+induction n; intros st1 H.
+- invst H.
+  exists st0.
+  split. 2:reflexivity.
+  ctor.
+- invst H.
+  destruct (IHn _ H1) as [st1' [H4 H5]].
+  subst.
+  destruct (F_step _ _ H3) as [st2 [H5 H6]].
+  exists st2.
+  split. 2: assumption.
+  ector; eauto.
+Qed.
+
+Lemma F_InitES:
+  InitES Σ (F Σ0') = 
+  F_ES (InitES Σ' Σ0').
+Proof.
+  reflexivity.
+Qed.
+
+Lemma F_HaltsFromInit:
+  HaltsFromInit Σ (F Σ0') tm ->
+  HaltsFromInit Σ' Σ0' tm'.
+Proof.
+  unfold HaltsFromInit,Halts,HaltsAt.
+  rewrite F_InitES.
+  intro H.
+  destruct H as [n [st' [H H0]]].
+  exists n.
+  destruct (F_Steps _ _ _ H) as [st [H1 H2]].
+  exists st.
+  split; auto.
+  destruct st,st'.
+  cbn in H2.
+  invst H2.
+  apply F_step_halt,H0.
+Qed.
+
+Lemma F_NonHaltsFromInit:
+  ~HaltsFromInit Σ' Σ0' tm' ->
+  ~HaltsFromInit Σ (F Σ0') tm.
+Proof.
+  pose proof F_HaltsFromInit.
+  tauto.
+Qed.
+
+End TMwithExtraInfo.
+
+Definition StΣ_neb(x1 x2:St*Σ) :=
+let (s1,i1):=x1 in
+let (s2,i2):=x2 in
+if St_eqb s1 s2 then negb (Σ_eqb i1 i2) else true.
+
+Definition Σ_history:Set :=
+  Σ*(list (St*Σ)).
+
+Definition Σ_history_0:Σ_history := (Σ0,nil).
+
+Definition TM_history(n:nat)(tm:TM Σ):TM Σ_history :=
+  fun s i =>
+  let (i0,i1):=i in
+  match tm s i0 with
+  | Some tr =>
+    let (s',d,o0):=tr in
+    Some {|
+      nxt := s';
+      dir := d;
+      out := (o0,firstn n ((s,i0)::i1));
+    |}
+  | None => None
+  end.
+
+
+
+Definition TM_history_LRU(tm:TM Σ):TM Σ_history :=
+  fun s i =>
+  let (i0,i1):=i in
+  match tm s i0 with
+  | Some tr =>
+    let (s',d,o0):=tr in
+    Some {|
+      nxt := s';
+      dir := d;
+      out := (o0,((s,i0)::(filter (StΣ_neb (s,i0)) i1)));
+    |}
+  | None => None
+  end.
+
+
+Lemma TM_history_HF n tm:
+  forall (s:St)(i:Σ_history),
+  match TM_history n tm s i with
+  | Some tr =>
+    let (s',d,o) := tr in 
+    tm s (fst i) = Some {| nxt:=s'; dir:=d; out:= fst o |}
+  | None => tm s (fst i) = None
+  end.
+Proof.
+  intros.
+  destruct i as [i0 i1].
+  cbn.
+  destruct (tm s i0) as [[s' d o0]|]; cbn; reflexivity.
+Qed.
+
+Lemma TM_history_NonHaltsFromInit n tm:
+  ~HaltsFromInit Σ_history Σ_history_0 (TM_history n tm) ->
+  ~HaltsFromInit Σ (fst Σ_history_0) tm.
+Proof.
+  apply F_NonHaltsFromInit.
+  apply TM_history_HF.
+Qed.
+
+
+Lemma TM_history_LRU_HF tm:
+  forall (s:St)(i:Σ_history),
+  match TM_history_LRU tm s i with
+  | Some tr =>
+    let (s',d,o) := tr in 
+    tm s (fst i) = Some {| nxt:=s'; dir:=d; out:= fst o |}
+  | None => tm s (fst i) = None
+  end.
+Proof.
+  intros.
+  destruct i as [i0 i1].
+  cbn.
+  destruct (tm s i0) as [[s' d o0]|]; cbn; reflexivity.
+Qed.
+
+Lemma TM_history_LRU_NonHaltsFromInit tm:
+  ~HaltsFromInit Σ_history Σ_history_0 (TM_history_LRU tm) ->
+  ~HaltsFromInit Σ (fst Σ_history_0) tm.
+Proof.
+  apply F_NonHaltsFromInit.
+  apply TM_history_LRU_HF.
+Qed.
+
+Definition Σ_history_enc(x:Σ_history):positive:=
+  let (x0,x1):=x in
+  match x0 with
+  | Σ0 => (listStΣ_enc x1)~0
+  | Σ1 => (listStΣ_enc x1)~1
+  end.
+
+Lemma Σ_history_enc_inj: is_inj Σ_history_enc.
+Proof.
+  intros x1 x2 H.
+  destruct x1 as [a1 b1].
+  destruct x2 as [a2 b2].
+  cbn in H.
+  destruct a1,a2; invst H; f_equal; apply listStΣ_enc_inj,H1.
+Qed.
+
+Definition Trans_eqb(tr1 tr2:Trans Σ):bool :=
+  let (s1,d1,o1):=tr1 in
+  let (s2,d2,o2):=tr2 in
+  St_eqb s1 s2 &&&
+  Dir_eqb d1 d2 &&&
+  Σ_eqb o1 o2.
+
+Lemma Trans_eqb_spec tr1 tr2:
+  if Trans_eqb tr1 tr2 then tr1=tr2 else tr1<>tr2.
+Proof.
+  destruct tr1 as [s1 d1 o1].
+  destruct tr2 as [s2 d2 o2].
+  cbn.
+  repeat rewrite shortcut_andb_spec.
+  St_eq_dec s1 s2.
+  - Dir_eq_dec d1 d2.
+    + Σ_eq_dec o1 o2.
+      * cbn. cg.
+      * cbn. cg.
+    + cbn. cg.
+  - cbn. cg.
+Qed.
+
+Ltac Trans_eq_dec s1 s2 := eq_dec Trans_eqb_spec Trans_eqb s1 s2.
+
+Definition option_eqb {T}(f:T->T->bool) (t1 t2:option T):bool :=
+match t1,t2 with
+| Some c1,Some c2 => f c1 c2
+| None,None => true
+| _,_ => false
+end.
+
+Lemma option_eqb_spec {T}(f:T->T->bool)(f_spec:forall t1 t2, if f t1 t2 then t1=t2 else t1<>t2) a1 a2:
+  if option_eqb f a1 a2 then a1=a2 else a1<>a2.
+Proof.
+  destruct a1 as [a1|];
+  destruct a2 as [a2|].
+  - cbn.
+    specialize (f_spec a1 a2).
+    destruct (f a1 a2); cg.
+  - cbn. cg.
+  - cbn. cg.
+  - cbn. cg.
+Qed.
+
+Ltac option_eq_dec f f_spec o1 o2 := eq_dec (option_eqb_spec f f_spec) (option_eqb f) o1 o2.
+
+Definition tm_eqb(tm0 tm1:TM Σ):bool :=
+  forallb_St (fun s0 =>
+  forallb_Σ (fun i0 =>
+  option_eqb Trans_eqb (tm0 s0 i0) (tm1 s0 i0))).
+
+Lemma tm_eqb_spec (tm0 tm1:TM Σ):
+  if tm_eqb tm0 tm1 then tm0=tm1 else tm0<>tm1.
+Proof.
+  unfold tm_eqb.
+  destruct (
+    forallb_St (fun s0 =>
+    forallb_Σ (fun i0 =>
+    option_eqb Trans_eqb (tm0 s0 i0) (tm1 s0 i0)))) eqn:E.
+  - fext.
+    fext.
+    rewrite forallb_St_spec in E.
+    specialize (E x).
+    rewrite forallb_Σ_spec in E.
+    specialize (E x0).
+    option_eq_dec Trans_eqb Trans_eqb_spec (tm0 x x0) (tm1 x x0); cg.
+  - intro X. subst.
+    assert (forallb_St
+        (fun s0 : St => forallb_Σ (fun i0 : Σ => option_eqb Trans_eqb (tm1 s0 i0) (tm1 s0 i0))) = true). {
+      rewrite forallb_St_spec.
+      intro s0.
+      rewrite forallb_Σ_spec.
+      intro i0.
+      option_eq_dec Trans_eqb Trans_eqb_spec (tm1 s0 i0) (tm1 s0 i0); cg.
+    }
+    cg.
+Qed.

@@ -5,6 +5,15 @@ Require Import FSets.FMapPositive.
 From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import CustomTactics.
 
+Definition BB:N := 47176869.
+
+Definition Dir_rev(d:Dir) :=
+match d with
+| Dneg => Dpos
+| Dpos => Dneg
+end.
+
+
 Definition is_inj{T1 T2}(f:T1->T2):=
   forall a b, f a = f b -> a = b.
 

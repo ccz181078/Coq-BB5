@@ -256,3 +256,52 @@ Definition TM_to_N(tm:TM Σ):N :=
   (option_Trans_to_N (tm St4 Σ0))++
   (option_Trans_to_N (tm St4 Σ1))++nil
   ) 0.
+
+Fixpoint listStΣ_enc(x:list (St*Σ)):positive:=
+match x with
+| nil => xH
+| (St0,Σ0)::t => (listStΣ_enc t)~0~0~0~0
+| (St0,Σ1)::t => (listStΣ_enc t)~1~0~0~0
+| (St1,Σ0)::t => (listStΣ_enc t)~0~1~0~0
+| (St1,Σ1)::t => (listStΣ_enc t)~1~1~0~0
+| (St2,Σ0)::t => (listStΣ_enc t)~0~0~1~0
+| (St2,Σ1)::t => (listStΣ_enc t)~1~0~1~0
+| (St3,Σ0)::t => (listStΣ_enc t)~0~1~1~0
+| (St3,Σ1)::t => (listStΣ_enc t)~1~1~1~0
+| (St4,Σ0)::t => (listStΣ_enc t)~0~0~0~1
+| (St4,Σ1)::t => (listStΣ_enc t)~1~0~0~1
+end.
+
+Lemma listStΣ_enc_inj: is_inj listStΣ_enc.
+Proof.
+  intros x1 x2 H.
+  gd x2.
+  induction x1 as [|h1 t1]; destruct x2 as [|h2 t2]; cbn; intros; cg.
+  - destruct h2 as [s i]; destruct s,i; invst H.
+  - destruct h1 as [s i]; destruct s,i; invst H.
+  - destruct h1 as [s1 i1]; destruct s1,i1;
+    destruct h2 as [s2 i2]; destruct s2,i2;
+    invst H;
+    f_equal; apply IHt1,H1.
+Qed.
+
+Definition Dir_enc(d:Dir):=
+match d with
+| Dpos => xI xH
+| Dneg => xH
+end.
+
+Lemma Dir_enc_inj: is_inj Dir_enc.
+Proof.
+  intros x1 x2 H.
+  destruct x1,x2; cbn in H; cg.
+Qed.
+
+Definition bool_enc(x:bool):=
+  if x then xI xH else xH.
+
+Lemma bool_enc_inj: is_inj bool_enc.
+Proof.
+  intros x1 x2 H.
+  destruct x1,x2; cbn in H; cg.
+Qed.

@@ -10,8 +10,9 @@ Decider_NGramCPS.v
 ListTape.v
 Decider_RepWL_Parameters.v
 Decider_RepWL.v
-Decider_Pipeline.v
-BB24Theorem.v
+Decider_Verifier_FAR.v
+Decider_Verifier_FAR_MITM_WDFA.v
+Translation.v
 BB52.v
 Finned1.v
 Finned3.v
@@ -40,3 +41,6 @@ Skelet17.v
 Skelet26.v
 Skelet34.v
 TM.v
+Sporadic_NonHalt.v
+Decider_Pipeline.v
+BB24Theorem.v

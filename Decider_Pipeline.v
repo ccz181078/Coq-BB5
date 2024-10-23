@@ -1,10 +1,20 @@
 Require Import ZArith.
+Require Import Lia.
+Require Import List.
 
 From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import ListTape.
-From BusyCoq Require Import Decider_RepWL.
-
+From BusyCoq Require Import TNF.
 From BusyCoq Require Import CustomTactics.
+From BusyCoq Require Import TM_CoqBB5.
+From BusyCoq Require Import Prelims.
+From BusyCoq Require Import Decider_RepWL.
+From BusyCoq Require Import Decider_NGramCPS.
+From BusyCoq Require Import Decider_Verifier_FAR.
+From BusyCoq Require Import Decider_Verifier_FAR_MITM_WDFA.
+From BusyCoq Require Import Sporadic_NonHalt.
+
+Set Warnings "-abstract-large-number".
 
 Definition halt_time_verifier(tm:TM Σ)(n:nat):bool :=
   match ListES_Steps tm n {| ListTape.l := nil; ListTape.r := nil; ListTape.m := Σ0; ListTape.s := St0 |} with
@@ -29,12 +39,10 @@ Proof.
   eexists.
   split.
   - apply H0.
-  - destruct l0 as [l0 r0 m0 s0].
+  - destruct l as [l0 r0 m0 s0].
     cbn.
     destruct (tm s0 m0); cg.
 Qed.
-
-Definition BB:N := 47176869.
 
 Fixpoint nat_eqb_N(n:nat)(m:N) :=
 match n,m with
@@ -49,8 +57,8 @@ Proof.
   gd m.
   induction n; intros.
   - cbn in H.
-    destruct m0; cbn; cg.
-  - destruct m0.
+    destruct m; cbn; cg.
+  - destruct m.
     + cbn in H. cg.
     + cbn in H.
       specialize (IHn (Pos.pred_N p) H). lia.
@@ -201,6 +209,93 @@ match ls with
 | h::t => length_tailrec0 t (N.succ n)
 end.
 Definition length_tailrec{T}(ls:list T):N := length_tailrec0 ls 0.
+
+Fixpoint find_tm(tm:TM Σ)(ls:list (TM Σ)):bool :=
+match ls with
+| nil => false
+| h::t => tm_eqb tm h ||| find_tm tm t
+end.
+
+Lemma find_tm_spec tm ls:
+  find_tm tm ls = true ->
+  In tm ls.
+Proof.
+  induction ls.
+  1: cbn; cg.
+  unfold find_tm. fold find_tm.
+  intro H.
+  rewrite shortcut_orb_spec in H.
+  rewrite Bool.orb_true_iff in H.
+  destruct H as [H|H].
+  - left.
+    pose proof (tm_eqb_spec tm a).
+    destruct (tm_eqb tm a); cg.
+  - right.
+    apply IHls,H.
+Qed.
+
+Definition Finned1 := makeTM BR1 EL0 CR1 BR1 DR1 CL1 EL0 BR0 HR1 AL1.
+Definition Finned2 := makeTM BR1 AR1 CR1 BL1 DL0 AR0 AR1 EL1 HR1 DL0.
+Definition Finned3 := makeTM BR1 ER1 CL1 BR1 AR0 DL0 BL1 DL1 HR1 AR0.
+Definition Finned4 := makeTM BR1 AL1 CL0 ER0 HR1 DL1 AR1 CL0 AR1 ER1.
+Definition Finned5 := makeTM BR1 AL1 CL0 ER0 HR1 DL1 AL1 CL0 AR1 ER1.
+Definition Skelet1 := makeTM BR1 DR1 CL1 CR0 AR1 DL1 ER0 BL0 HR1 CR1.
+Definition Skelet10 := makeTM BR1 AR0 CL0 AR1 ER1 DL1 CL1 DL0 HR1 BR0.
+Definition Skelet15 := makeTM BR1 HR1 CR1 BL1 DL1 ER1 BL1 DL0 AR1 CR0.
+Definition Skelet17 := makeTM BR1 HR1 CL0 ER1 DL0 CL1 AR1 BL1 BR0 AR0.
+Definition Skelet26 := makeTM BR1 DL1 CR1 BR0 AL1 CR1 EL1 AL0 CL1 HR1.
+Definition Skelet33 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 ER1.
+Definition Skelet34 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AR1.
+Definition Skelet35 := makeTM BR1 CL1 CR0 BR0 DL1 AL0 EL1 HR1 AL1 AL0.
+
+
+Lemma tm_holdouts_13_spec:
+  forall tm, In tm tm_holdouts_13 -> ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  intros.
+  cbn in H.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Finned1_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Finned2_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Finned3_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Finned4_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Finned5_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet1_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet10_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet15_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet17_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet26_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet33_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet34_nonhalt.
+  destruct H as [H|H].
+  1: subst; apply Sporadic_NonHalt.Skelet35_nonhalt.
+  contradiction.
+Qed.
+
+Definition holdout_checker tm := if find_tm tm tm_holdouts_13 then Result_NonHalt else Result_Unknown.
+
+Lemma holdout_checker_spec n: HaltDecider_WF n holdout_checker.
+Proof.
+  unfold HaltDecider_WF.
+  intro tm.
+  unfold holdout_checker.
+  pose proof (find_tm_spec tm tm_holdouts_13) as H.
+  destruct (find_tm tm tm_holdouts_13).
+  2: trivial.
+  specialize (H eq_refl).
+  apply tm_holdouts_13_spec,H.
+Qed.
 
 
 Inductive DeciderType :=

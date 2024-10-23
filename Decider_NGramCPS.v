@@ -9,6 +9,7 @@ From BusyCoq Require Import CustomTactics.
 From BusyCoq Require Import CustomListRoutines.
 From BusyCoq Require Import Encodings.
 From BusyCoq Require Import TM_CoqBB5.
+From BusyCoq Require Import TNF.
 
 Section CPS.
 
@@ -1204,3 +1205,89 @@ Qed.
 
 
 End NGramCPS.
+
+Definition NGramCPS_decider_impl1_0 (len_h len_l len_r m:nat) tm :=
+  NGramCPS_decider Σ_history len_l len_r Σ_history_enc (listT_enc Σ_history_enc) Σ_history_0 m (TM_history len_h tm).
+
+Definition NGramCPS_decider_impl2_0 (len_l len_r m:nat) tm :=
+  NGramCPS_decider Σ len_l len_r Σ_enc (listΣ_enc) Σ0 m tm.
+
+Definition NGramCPS_LRU_decider_0 (len_l len_r m:nat) tm :=
+  NGramCPS_decider Σ_history len_l len_r Σ_history_enc (listT_enc Σ_history_enc) Σ_history_0 m (TM_history_LRU tm).
+
+Lemma NGramCPS_decider_impl1_0_spec len_h len_l len_r m tm:
+  NGramCPS_decider_impl1_0 len_h len_l len_r m tm = true ->
+  ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  intro H.
+  unfold NGramCPS_decider_impl1_0 in H.
+  eapply TM_history_NonHaltsFromInit.
+  eapply NGramCPS_decider_spec.
+  3: apply H.
+  - apply Σ_history_enc_inj.
+  - apply listT_enc_inj,Σ_history_enc_inj.
+Qed.
+
+Lemma NGramCPS_decider_impl2_0_spec len_l len_r m tm:
+  NGramCPS_decider_impl2_0 len_l len_r m tm = true ->
+  ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  intro H.
+  unfold NGramCPS_decider_impl2_0 in H.
+  eapply NGramCPS_decider_spec; eauto 1.
+  - apply Σ_enc_inj.
+  - apply listΣ_inj.
+Qed.
+
+Lemma NGramCPS_LRU_decider_0_spec len_l len_r m tm:
+  NGramCPS_LRU_decider_0 len_l len_r m tm = true ->
+  ~HaltsFromInit Σ Σ0 tm.
+Proof.
+  intro H.
+  unfold NGramCPS_LRU_decider_0 in H.
+  eapply TM_history_LRU_NonHaltsFromInit.
+  eapply NGramCPS_decider_spec.
+  3: apply H.
+  - apply Σ_history_enc_inj.
+  - apply listT_enc_inj,Σ_history_enc_inj.
+Qed.
+
+
+Definition NGramCPS_decider_impl1 (len_h len_l len_r m:nat):HaltDecider :=
+  fun tm =>
+  if NGramCPS_decider_impl1_0 len_h len_l len_r m tm then Result_NonHalt else Result_Unknown.
+
+Definition NGramCPS_decider_impl2 (len_l len_r m:nat):HaltDecider :=
+  fun tm =>
+  if NGramCPS_decider_impl2_0 len_l len_r m tm then Result_NonHalt else Result_Unknown.
+
+Definition NGramCPS_LRU_decider (len_l len_r m:nat):HaltDecider :=
+  fun tm =>
+  if NGramCPS_LRU_decider_0 len_l len_r m tm then Result_NonHalt else Result_Unknown.
+
+Lemma NGramCPS_decider_impl1_spec len_h len_l len_r m BB:
+  HaltDecider_WF BB (NGramCPS_decider_impl1 len_h len_l len_r m).
+Proof.
+  intros tm.
+  unfold NGramCPS_decider_impl1.
+  pose proof (NGramCPS_decider_impl1_0_spec len_h len_l len_r m tm).
+  destruct (NGramCPS_decider_impl1_0 len_h len_l len_r m tm); tauto.
+Qed.
+
+Lemma NGramCPS_decider_impl2_spec len_l len_r m BB:
+  HaltDecider_WF BB (NGramCPS_decider_impl2 len_l len_r m).
+Proof.
+  intros tm.
+  unfold NGramCPS_decider_impl2.
+  pose proof (NGramCPS_decider_impl2_0_spec len_l len_r m tm).
+  destruct (NGramCPS_decider_impl2_0 len_l len_r m tm); tauto.
+Qed.
+
+Lemma NGramCPS_LRU_decider_spec len_l len_r m BB:
+  HaltDecider_WF BB (NGramCPS_LRU_decider len_l len_r m).
+Proof.
+  intros tm.
+  unfold NGramCPS_LRU_decider.
+  pose proof (NGramCPS_LRU_decider_0_spec len_l len_r m tm).
+  destruct (NGramCPS_LRU_decider_0 len_l len_r m tm); tauto.
+Qed.

@@ -805,28 +805,6 @@ Proof.
   ctor. ctor.
 Qed.
 
-
-Definition Dir_enc(d:Dir):=
-match d with
-| Dpos => xI xH
-| Dneg => xH
-end.
-
-Lemma Dir_enc_inj: is_inj Dir_enc.
-Proof.
-  intros x1 x2 H.
-  destruct x1,x2; cbn in H; cg.
-Qed.
-
-Definition bool_enc(x:bool):=
-  if x then xI xH else xH.
-
-Lemma bool_enc_inj: is_inj bool_enc.
-Proof.
-  intros x1 x2 H.
-  destruct x1,x2; cbn in H; cg.
-Qed.
-
 Definition RepeatWord_enc(x:RepeatWord):positive :=
   let (w0,mc,isc):=x in
   enc_list ((listΣ_enc w0)::(Pos.of_succ_nat mc)::(bool_enc isc)::nil).
