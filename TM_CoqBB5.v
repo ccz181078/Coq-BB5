@@ -4,6 +4,10 @@ Require Import Lia.
 From BusyCoq Require Import Prelims.
 From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import CustomTactics.
+From BusyCoq Require Import Encodings.
+
+
+
 
 
 Section TM.
@@ -717,3 +721,475 @@ Qed.
 End rev.
 
 End TM.
+
+Definition UnusedState(tm:TM Σ)(s:St): Prop :=
+  (forall s0 i,
+    match tm s0 i with
+    | None => True
+    | Some tr => nxt Σ tr <> s
+    end) /\
+  (forall i, tm s i = None) /\
+  s <> St0.
+
+Definition isUnusedState tm s: bool :=
+  forallb_St (fun s0 =>
+  forallb_Σ (fun i =>
+  match tm s0 i with
+  | None => true
+  | Some tr => negb (St_eqb (nxt Σ tr) s)
+  end)) &&&
+  forallb_Σ (fun i => match tm s i with None => true | _ => false end) &&&
+  negb (St_eqb s St0).
+
+Lemma isUnusedState_spec tm s:
+  if isUnusedState tm s then UnusedState tm s else ~UnusedState tm s.
+Proof.
+  unfold isUnusedState.
+  repeat rewrite andb_shortcut_spec.
+  destruct forallb_St eqn:E.
+  - destruct forallb_Σ eqn:E0.
+    + St_eq_dec s St0.
+      * cbn.
+        intro H0.
+        destruct H0 as [Ha [Hb Hc]].
+        cg.
+      * cbn.
+        repeat split; auto 1.
+        -- intros.
+           rewrite forallb_St_spec in E.
+           specialize (E s0).
+           rewrite forallb_Σ_spec in E.
+           specialize (E i).
+           destruct (tm s0 i). 2: trivial.
+           St_eq_dec (nxt _ t) s; cbn in E; cg.
+        -- intros.
+           rewrite forallb_Σ_spec in E0.
+           specialize (E0 i).
+           destruct (tm s i); cg.
+    + cbn.
+      intro H.
+      destruct H as [Ha [Hb Hc]].
+      assert (forallb_Σ (fun i : Σ => match tm s i with
+                             | Some _ => false
+                             | None => true
+                             end) = true). {
+        rewrite forallb_Σ_spec.
+        intro i.
+        rewrite Hb.
+        reflexivity.
+      } cg.
+  - cbn.
+    intros H.
+    destruct H as [Ha [Hb Hc]].
+    assert (forallb_St
+      (fun s0 : St =>
+       forallb_Σ
+         (fun i : Σ =>
+          match tm s0 i with
+          | Some tr => negb (St_eqb (nxt Σ tr) s)
+          | None => true
+          end)) = true). {
+      rewrite forallb_St_spec.
+      intro s0.
+      rewrite forallb_Σ_spec.
+      intro i.
+      specialize (Ha s0 i).
+      destruct (tm s0 i); cg.
+      St_eq_dec (nxt _ t) s; cbn; cg.
+    } cg.
+Qed.
+
+Definition UnusedState_ptr tm s1:=
+  (forall s0, UnusedState tm s0 <-> St_le s0 s1) \/
+  ((forall s0, ~UnusedState tm s0) /\ forall s0, St_le s1 s0).
+
+Lemma step_UnusedState {tm s0 t0 s t}:
+  step Σ tm (s0, t0) = Some (s, t) ->
+  ~ UnusedState tm s.
+Proof.
+  intros. intro.
+  cbn in H.
+  destruct H0 as [H0a [H0b H0c]].
+  specialize (H0a s0 (t0 Z0)).
+  destruct (tm s0 (t0 Z0)) as [[s' d o]|] eqn:E; cg.
+  invst H. cbn in H0a. cg.
+Qed.
+
+
+Lemma Steps_UnusedState {tm n s t}:
+  Steps Σ tm n (InitES Σ Σ0) (s,t) ->
+  ~ UnusedState tm s.
+Proof.
+  intro H.
+  gd s. gd t.
+  destruct n; intros.
+  - invst H.
+    intro H0.
+    destruct H0 as [H0a [H0b H0c]].
+    cg.
+  - invst H.
+    destruct st0 as [s0 t0].
+    eapply step_UnusedState,H3.
+Qed.
+
+Ltac Σ_eq_dec s1 s2 :=
+  eq_dec Σ_eqb_spec Σ_eqb s1 s2.
+
+Lemma Trans_swap_id s1 s2 t:
+  nxt Σ t <> s1 ->
+  nxt Σ t <> s2 ->
+  t = Trans_swap Σ s1 s2 t.
+Proof.
+  intros.
+  destruct t.
+  unfold Trans_swap.
+  f_equal.
+  cbn in H,H0.
+  unfold St_swap.
+  St_eq_dec s1 nxt; subst; try cg.
+  St_eq_dec s2 nxt; subst; try cg.
+Qed.
+
+
+Lemma HaltTimeUpperBound_LE_HaltsAtES_UnusedState{tm n s t bb}:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
+  forall s1 s2 d o,
+    UnusedState tm s1 ->
+    UnusedState tm s2 ->
+    HaltTimeUpperBound _ bb (InitES Σ Σ0) (LE Σ (TM_upd Σ Σ_eqb tm s (t Z0) (Some {| nxt:=s1; dir:=d; out:=o |}))) ->
+    HaltTimeUpperBound _ bb (InitES Σ Σ0) (LE Σ (TM_upd Σ Σ_eqb tm s (t Z0) (Some {| nxt:=s2; dir:=d; out:=o |}))).
+Proof.
+  intros.
+  St_eq_dec s1 s2; rename H4 into n0.
+  1: subst; auto 1.
+  pose proof (Steps_UnusedState H0) as H'0.
+  assert (U1:s1<>s) by (intro X; subst; contradiction).
+  assert (U2:s2<>s) by (intro X; subst; contradiction).
+  destruct H1 as [H1a [H1b H1c]].
+  destruct H2 as [H2a [H2b H2c]].
+  assert (H':TM_swap Σ s1 s2
+        (TM_upd Σ Σ_eqb tm s (t 0%Z) (Some {| nxt := s1; dir := d; out := o |})) =
+        (TM_upd Σ Σ_eqb tm s (t 0%Z) (Some {| nxt := s2; dir := d; out := o |}))). {
+    fext. fext.
+    unfold TM_upd,TM_swap,option_Trans_swap. cbn.
+    unfold St_swap. cbn.
+    St_eq_dec s1 x.
+    {
+      subst.
+      St_eq_dec s2 s; cg. cbn.
+      rewrite H1b,H2b.
+      St_eq_dec x s; cg. cbn. cg.
+    }
+    St_eq_dec s2 x.
+    {
+      subst.
+      St_eq_dec s1 s; cg. cbn.
+      rewrite H1b,H2b.
+      St_eq_dec x s; cg. cbn. cg.
+    }
+    St_eq_dec x s.
+    {
+      subst. cbn.
+      (Σ_eq_dec x0 (t Z0)).
+      - subst. f_equal.
+        cbn. f_equal. unfold St_swap.
+        St_eq_dec s1 s1; cg.
+      - specialize (H1a s x0).
+        specialize (H2a s x0).
+        destruct (tm s x0) as [[s' d1 o1]|]; cg. f_equal.
+        cbn in H1a,H2a.
+        erewrite <-Trans_swap_id; eauto 1.
+    }
+    cbn.
+    specialize (H1a x x0).
+    specialize (H2a x x0).
+    destruct (tm x x0) as [[s' d1 o1]|]; cg. f_equal.
+    cbn in H1a,H2a.
+    erewrite <-Trans_swap_id; eauto 1.
+  }
+  rewrite <-H'.
+  apply HaltTimeUpperBound_LE_swap_InitES; assumption.
+Qed.
+
+Definition TM0: TM Σ :=
+  fun x i => None.
+
+Lemma TM0_LE:
+  forall tm, LE Σ TM0 tm.
+Proof.
+  intros.
+  unfold LE.
+  intros.
+  right.
+  reflexivity.
+Qed.
+
+Lemma UnusedState_TM0 s1:
+  UnusedState TM0 s1 <->
+  s1 <> St0.
+Proof.
+split; intro.
+- intro H0. subst.
+  destruct H as [H [H0 H1]].
+  contradiction.
+- repeat split; auto 1.
+Qed.
+
+Lemma UnusedState_dec tm s:
+  (UnusedState tm s)\/(~UnusedState tm s).
+Proof.
+  pose proof (isUnusedState_spec tm s).
+  destruct (isUnusedState tm s); tauto.
+Qed.
+
+Lemma HaltTimeUpperBound_LE_HaltAtES_MergeUnusedState tm n s t (P:St->Prop) BB:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
+  n<=BB ->
+  ((exists s0, P s0 /\ UnusedState tm s0) \/
+   (forall s0, ~UnusedState tm s0)) ->
+  (forall s0, ~UnusedState tm s0 -> P s0) ->
+  (forall tr,
+    P (nxt _ tr) ->
+    HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)))) ->
+  HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ tm).
+Proof.
+  intros.
+  destruct H2 as [H2|H2].
+  - eapply HaltTimeUpperBound_LE_Halt; eauto 1.
+    1: apply Σ_eqb_spec.
+    intro.
+    destruct (UnusedState_dec tm (nxt _ tr)) as [H5|H5].
+    + destruct H2 as [s0 [H2a H2b]].
+      destruct tr as [s1 d1 o1].
+      cbn in H5.
+      eapply HaltTimeUpperBound_LE_HaltsAtES_UnusedState.
+      * apply H.
+      * apply H0.
+      * apply H2b.
+      * apply H5.
+      * apply H4,H2a.
+    + apply H4,H3,H5.
+  - eapply HaltTimeUpperBound_LE_Halt; eauto 1.
+    1: apply Σ_eqb_spec.
+    intro. apply H4,H3,H2.
+Qed.
+
+
+
+Lemma HaltTimeUpperBound_LE_HaltAtES_UnusedState_ptr {tm n s t s1 BB}:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
+  n<=BB ->
+  UnusedState_ptr tm s1 ->
+  (forall tr,
+    St_le s1 (nxt _ tr) ->
+    HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)))) ->
+  HaltTimeUpperBound _ BB (InitES Σ Σ0) (LE _ tm).
+Proof.
+  intros.
+  destruct H2 as [H2|H2].
+  - eapply HaltTimeUpperBound_LE_HaltAtES_MergeUnusedState with (P:=St_le s1); eauto 1.
+    + left.
+      exists s1.
+      rewrite H2.
+      split; unfold St_le; lia.
+    + intros. rewrite H2 in H4.
+      unfold St_le. unfold St_le in H4. lia.
+  - destruct H2 as [H2a H2b].
+    eapply HaltTimeUpperBound_LE_HaltAtES_MergeUnusedState with (P:=St_le s1); eauto 1.
+    tauto.
+Qed.
+
+Lemma HaltsAtES_Trans {tm n st s t}:
+  HaltsAt Σ tm n st ->
+  Steps Σ tm n st (s, t) ->
+  tm s (t Z0) = None.
+Proof.
+  intros.
+  destruct H as [[s0 t0] [Ha Hb]].
+  pose proof (Steps_unique _ Ha H0) as H.
+  invst H.
+  unfold step in Hb.
+  destruct (tm s (t Z0)); cg.
+  destruct t0; cg.
+Qed.
+
+Lemma UnusedState_upd {tm n s t tr s1}:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
+  UnusedState (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)) s1 <->
+  (UnusedState tm s1 /\ s1<>nxt _ tr).
+Proof.
+intros.
+split.
+- unfold UnusedState. intro.
+  destruct H1 as [H1a [H1b H1c]].
+  repeat split; auto 1.
+  + intros.
+    specialize (H1a s0 i).
+    unfold TM_upd in H1a.
+    St_eq_dec s0 s.
+    * Σ_eq_dec i (t Z0); cbn in H1a.
+      -- subst.
+         rewrite (HaltsAtES_Trans H H0). trivial.
+      -- apply H1a.
+    * apply H1a.
+  + intros.
+    specialize (H1b i).
+    unfold TM_upd in H1b.
+    St_eq_dec s1 s.
+    * Σ_eq_dec i (t Z0); cbn in H1b.
+      -- subst. cg.
+      -- apply H1b.
+    * apply H1b.
+  + intro H2. subst.
+    specialize (H1a s (t Z0)).
+    unfold TM_upd in H1a.
+    St_eq_dec s s; cg.
+    Σ_eq_dec (t Z0) (t Z0); cg.
+- intro H1.
+  destruct H1 as [H1 H1d].
+  pose proof H1 as U1.
+  unfold UnusedState.
+  destruct H1 as [H1a [H1b H1c]].
+  repeat split; auto 1.
+  + intros.
+    specialize (H1a s0 i).
+    unfold TM_upd.
+    St_eq_dec s0 s.
+    * Σ_eq_dec i (t Z0); cbn; cg.
+    * apply H1a.
+  + intros.
+    specialize (H1b i).
+    assert (E:s1<>s) by (intro; subst; apply (Steps_UnusedState H0),U1).
+    unfold TM_upd.
+    St_eq_dec s1 s; cg.
+    apply H1b.
+Qed.
+
+Lemma UnusedState_ptr_upd {tm n s t s1 tr}:
+  HaltsAt _ tm n (InitES Σ Σ0) ->
+  Steps _ tm n (InitES Σ Σ0) (s,t) ->
+  UnusedState_ptr tm s1 ->
+  St_le s1 (nxt _ tr) ->
+  UnusedState_ptr (TM_upd Σ Σ_eqb tm s (t Z0) (Some tr)) (if St_eqb s1 (nxt _ tr) then (St_suc s1) else s1).
+Proof.
+intros.
+St_eq_dec s1 (nxt _ tr).
+- unfold UnusedState_ptr.
+  unfold UnusedState_ptr in H1.
+  destruct H1 as [H1|[H1a H1b]].
+  + subst. clear H2.
+    St_eq_dec (nxt _ tr) (St_suc (nxt _ tr)).
+    * pose proof (St_suc_eq _ H2).
+      rewrite <-H2.
+      right.
+      split. 2: apply H3.
+      intros.
+      erewrite UnusedState_upd; eauto 1.
+      rewrite H1.
+      intro H'.
+      destruct H' as [H'0 H'1].
+      apply H'1.
+      apply St_to_nat_inj.
+      specialize (H3 s0).
+      unfold St_le in H3,H'0.
+      lia.
+    * left. intros.
+      erewrite UnusedState_upd; eauto 1.
+      rewrite H1.
+      pose proof (St_suc_neq _ H2).
+      unfold St_le.
+      assert (E0:s0 = nxt _ tr <-> St_to_nat s0 = St_to_nat (nxt _ tr)). {
+        split; intro.
+        - cg.
+        - apply St_to_nat_inj,H4.
+      }
+      rewrite E0.
+      lia.
+  + right. split.
+    * intro.
+      erewrite UnusedState_upd; eauto 1.
+      intro H'.
+      eapply H1a.
+      destruct H' as [H' _]. apply H'.
+    * intro. subst.
+      specialize (H1b s0).
+      pose proof (St_suc_le (nxt _ tr)) as H1.
+      unfold St_le.
+      unfold St_le in H1,H1b.
+      lia.
+- unfold UnusedState_ptr.
+  unfold UnusedState_ptr in H1.
+  destruct H1 as [H1|[H1a H1b]].
+  + assert (E:~St_le (nxt _ tr) s1). {
+      unfold St_le. unfold St_le in H2.
+      assert (St_to_nat (s1) <> St_to_nat (nxt _ tr)) by (intro X; apply H3,St_to_nat_inj,X).
+      lia.
+    }
+    left.
+    intro. rewrite <-H1.
+    erewrite UnusedState_upd; eauto 1.
+    rewrite <-H1 in E.
+    split; intro H4.
+    * apply H4.
+    * split. 1: apply H4.
+      intro X. subst. apply E,H4.
+  + right. split; auto 1.
+    intro.
+    erewrite UnusedState_upd; eauto 1.
+    intro H'. eapply H1a. apply H'.
+Qed.
+
+Definition AL0 := Some {| nxt:=St0; dir:=Dneg; out:=Σ0 |}.
+Definition AL1 := Some {| nxt:=St0; dir:=Dneg; out:=Σ1 |}.
+Definition AR0 := Some {| nxt:=St0; dir:=Dpos; out:=Σ0 |}.
+Definition AR1 := Some {| nxt:=St0; dir:=Dpos; out:=Σ1 |}.
+
+Definition BL0 := Some {| nxt:=St1; dir:=Dneg; out:=Σ0 |}.
+Definition BL1 := Some {| nxt:=St1; dir:=Dneg; out:=Σ1 |}.
+Definition BR0 := Some {| nxt:=St1; dir:=Dpos; out:=Σ0 |}.
+Definition BR1 := Some {| nxt:=St1; dir:=Dpos; out:=Σ1 |}.
+
+Definition CL0 := Some {| nxt:=St2; dir:=Dneg; out:=Σ0 |}.
+Definition CL1 := Some {| nxt:=St2; dir:=Dneg; out:=Σ1 |}.
+Definition CR0 := Some {| nxt:=St2; dir:=Dpos; out:=Σ0 |}.
+Definition CR1 := Some {| nxt:=St2; dir:=Dpos; out:=Σ1 |}.
+
+Definition DL0 := Some {| nxt:=St3; dir:=Dneg; out:=Σ0 |}.
+Definition DL1 := Some {| nxt:=St3; dir:=Dneg; out:=Σ1 |}.
+Definition DR0 := Some {| nxt:=St3; dir:=Dpos; out:=Σ0 |}.
+Definition DR1 := Some {| nxt:=St3; dir:=Dpos; out:=Σ1 |}.
+
+Definition EL0 := Some {| nxt:=St4; dir:=Dneg; out:=Σ0 |}.
+Definition EL1 := Some {| nxt:=St4; dir:=Dneg; out:=Σ1 |}.
+Definition ER0 := Some {| nxt:=St4; dir:=Dpos; out:=Σ0 |}.
+Definition ER1 := Some {| nxt:=St4; dir:=Dpos; out:=Σ1 |}.
+
+Definition HL0:option (Trans Σ) := None.
+Definition HL1:option (Trans Σ) := None.
+Definition HR0:option (Trans Σ) := None.
+Definition HR1:option (Trans Σ) := None.
+
+Definition makeTM:
+(option (Trans Σ))->(option (Trans Σ))->
+(option (Trans Σ))->(option (Trans Σ))->
+(option (Trans Σ))->(option (Trans Σ))->
+(option (Trans Σ))->(option (Trans Σ))->
+(option (Trans Σ))->(option (Trans Σ))->
+(TM Σ) :=
+fun A0 A1 B0 B1 C0 C1 D0 D1 E0 E1 s i =>
+match s,i with
+| St0,Σ0 => A0
+| St0,Σ1 => A1
+| St1,Σ0 => B0
+| St1,Σ1 => B1
+| St2,Σ0 => C0
+| St2,Σ1 => C1
+| St3,Σ0 => D0
+| St3,Σ1 => D1
+| St4,Σ0 => E0
+| St4,Σ1 => E1
+end.

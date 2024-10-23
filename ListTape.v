@@ -9,6 +9,7 @@ From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import CustomTactics.
 From BusyCoq Require Import CustomListRoutines.
 From BusyCoq Require Import Decider_NGramCPS.
+From BusyCoq Require Import TNF.
 
 Record ListES := {
   l: list Σ;

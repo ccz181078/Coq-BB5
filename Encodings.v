@@ -154,3 +154,53 @@ Proof.
   unfold listT_enc in H0.
   apply enc_list_inj,H0.
 Qed.
+
+Definition St_to_nat(x:St):nat:=
+match x with
+| St0 => 0
+| St1 => 1
+| St2 => 2
+| St3 => 3
+| St4 => 4
+end.
+
+Lemma St_to_nat_inj: is_inj St_to_nat.
+Proof.
+  intros x1 x2.
+  destruct x1,x2; cbn; cg.
+Qed.
+
+Definition St_suc(x:St):St :=
+match x with
+| St0 => St1
+| St1 => St2
+| St2 => St3
+| St3 => St4
+| St4 => St4
+end.
+
+Definition St_le(s1 s0:St):Prop :=
+  St_to_nat s0 <= St_to_nat s1.
+
+Lemma St_suc_le x:
+  St_le (St_suc x) x.
+Proof.
+  unfold St_le.
+  destruct x; cbn; lia.
+Qed.
+
+Lemma St_suc_eq x:
+  x = (St_suc x) ->
+  forall x0, St_le x x0.
+Proof.
+  destruct x; cbn; cg.
+  intros.
+  destruct x0; unfold St_le; cbn; lia.
+Qed.
+
+Lemma St_suc_neq x:
+  x <> (St_suc x) ->
+  St_to_nat (St_suc x) = S (St_to_nat x).
+Proof.
+  destruct x; cbn; cg.
+Qed.
