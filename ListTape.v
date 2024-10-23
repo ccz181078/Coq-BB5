@@ -10,8 +10,6 @@ From BusyCoq Require Import CustomTactics.
 From BusyCoq Require Import CustomListRoutines.
 From BusyCoq Require Import Decider_NGramCPS.
 
-Section ListTape_assumeSigma.
-
 Record ListES := {
   l: list Σ;
   r: list Σ;
@@ -2353,5 +2351,3 @@ Definition TNF_Node_list_to_N_list := map (fun (x:TNF_Node) => TM_to_N (TNF_tm x
 
 
 Compute (TM_to_N (makeTM BR1 HR1 CL0 ER0 DL0 CL1 AR1 BR0 DR0 DR1)).
-
-End ListTape_assumeSigma.
