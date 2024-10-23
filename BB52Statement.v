@@ -15,6 +15,12 @@ Inductive Dir:Set :=
 | Dneg
 | Dpos.
 
+Definition Dir_rev(d:Dir) :=
+match d with
+| Dneg => Dpos
+| Dpos => Dneg
+end.
+
 Definition Dir_to_Z(x:Dir) :=
 match x with
 | Dneg => Zneg 1

@@ -1,4 +1,4 @@
-(** * TM: Definition of Turing Machines *)
+(** * TM: Definition of Turing Machines from https://github.com/meithecatte/busycoq/ *)
 
 From Coq Require Import Bool.Sumbool.
 From Coq Require Import Lists.List. Export ListNotations.
