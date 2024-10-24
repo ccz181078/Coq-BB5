@@ -6,6 +6,8 @@ Encodings.v
 CustomListRoutines.v
 TM_CoqBB5.v
 TNF.v
+Decider_Halt.v
+Decider_Loop.v
 Decider_NGramCPS_Parameters.v
 Decider_NGramCPS.v
 ListTape.v

@@ -13,6 +13,7 @@ From BusyCoq Require Import Encodings.
 From BusyCoq Require Import CustomTactics.
 From BusyCoq Require Import Decider_Pipeline.
 
+From BusyCoq Require Import Decider_Loop.
 From BusyCoq Require Import Decider_NGramCPS.
 From BusyCoq Require Import Decider_NGramCPS_Parameters.
 From BusyCoq Require Import Decider_Verifier_FAR_MITM_WDFA_Parameters.
