@@ -61,16 +61,16 @@ Inductive Steps: TM->nat->ExecState->ExecState->Prop :=
   step tm st0 = Some st1 ->
   Steps tm (S n) st st1.
 
-Inductive HaltsAt(tm:TM): nat->ExecState->Prop :=
+Inductive HaltsAtPlusOne(tm:TM): nat->ExecState->Prop :=
 | HaltsAt_intro n st:
   (exists st', Steps tm n st st' /\ step tm st' = None) ->
-  HaltsAt tm (S n) st.
+  HaltsAtPlusOne tm (S n) st.
 
 End TM.
 
 Definition BB5 := 47176870%N.
 
 Definition BB5_value_statement :=
-  (forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB5) /\
-  (exists tm, HaltsAt Σ tm (N.to_nat BB5) (InitES Σ Σ0)).
+  (forall tm n0, HaltsAtPlusOne Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB5) /\
+  (exists tm, HaltsAtPlusOne Σ tm (N.to_nat BB5) (InitES Σ Σ0)).
 
