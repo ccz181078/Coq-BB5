@@ -1,3 +1,5 @@
+Set Warnings "-abstract-large-number".
+
 Require Import FSets.FMapPositive.
 Require Import Lia.
 Require Import List.
