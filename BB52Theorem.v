@@ -21,9 +21,6 @@ From BusyCoq Require Import Decider_RepWL_Parameters.
 From BusyCoq Require Import Sporadic_NonHalt.
 
 
-
-
-
 Definition check_tms(ls:list ((TM Σ)*DeciderType)):=
   map (fun (x:(TM Σ)*DeciderType)=> let (tm,d):=x in getDecider d tm) ls.
 
@@ -132,17 +129,11 @@ Proof.
     intro. trivial.
 Qed.
 
-
-
-
-
 Definition q0 := root_q_upd1_simplified.
 
 Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 20).
 
 Definition q_0 := q0.
-
-
 
 Definition q_1_def := q_suc q_0.
 Time Definition q_1 := Eval vm_compute in q_1_def.
