@@ -28,9 +28,9 @@ Definition halt_time_verifier(tm:TM Σ)(n:nat):bool :=
 
 Lemma halt_time_verifier_spec tm n:
   halt_time_verifier tm n = true ->
-  TM_CoqBB5.HaltsAt _ tm n (InitES Σ Σ0).
+  HaltsAt _ tm n (InitES Σ Σ0).
 Proof.
-  unfold halt_time_verifier,TM_CoqBB5.HaltsAt.
+  unfold halt_time_verifier,HaltsAt.
   intro H.
   pose proof (ListES_Steps_spec tm n {| ListTape.l := nil; ListTape.r := nil; ListTape.m := Σ0; ListTape.s := St0 |}).
   destruct (ListES_Steps tm n {| ListTape.l := nil; ListTape.r := nil; ListTape.m := Σ0; ListTape.s := St0 |}).
@@ -66,10 +66,10 @@ Qed.
 
 
 Definition halt_decider_max := halt_decider 47176870.
-Lemma halt_decider_max_spec: HaltDecider_WF (N.to_nat BB) halt_decider_max.
+Lemma halt_decider_max_spec: HaltDecider_WF (N.to_nat BB5_minus_one) halt_decider_max.
 Proof.
   eapply halt_decider_WF.
-  unfold BB.
+  unfold BB5_minus_one.
   replace (S (N.to_nat 47176869)) with (N.to_nat 47176870) by lia.
   replace (Init.Nat.of_num_uint
     (Number.UIntDecimal
@@ -89,7 +89,7 @@ Definition BB5_champion := (makeTM BR1 CL1 CR1 BR1 DR1 EL0 AL1 DL1 HR1 AL0).
 
 Lemma BB5_lower_bound:
   exists tm,
-  TM_CoqBB5.HaltsAt _ tm (N.to_nat BB) (InitES Σ Σ0).
+  HaltsAt _ tm (N.to_nat BB5_minus_one) (InitES Σ Σ0).
 Proof.
   exists BB5_champion.
   apply halt_time_verifier_spec.
@@ -117,15 +117,15 @@ Definition decider12 := (NGramCPS_decider_impl1 6 3 3 3200).
 Definition decider13 := (NGramCPS_decider_impl1 8 2 2 1600).
 Definition decider14 := (NGramCPS_decider_impl1 8 3 3 1600).
 
-Lemma decider2_WF: HaltDecider_WF (N.to_nat BB) decider2.
+Lemma decider2_WF: HaltDecider_WF (N.to_nat BB5_minus_one) decider2.
 Proof.
   apply loop1_decider_WF.
-  unfold BB.
+  unfold BB5_minus_one.
   lia.
 Qed.
 
 Lemma root_q_WF:
-  SearchQueue_WF (N.to_nat BB) root_q root.
+  SearchQueue_WF (N.to_nat BB5_minus_one) root_q root.
 Proof.
   apply SearchQueue_init_spec,root_WF.
 Qed.
@@ -134,7 +134,7 @@ Definition root_q_upd1:=
   (SearchQueue_upd root_q decider2).
 
 Lemma root_q_upd1_WF:
-  SearchQueue_WF (N.to_nat BB) root_q_upd1 root.
+  SearchQueue_WF (N.to_nat BB5_minus_one) root_q_upd1 root.
 Proof.
   apply SearchQueue_upd_spec.
   - apply root_q_WF.
@@ -163,7 +163,7 @@ Proof.
 Qed.
 
 Lemma root_q_upd1_simplified_WF:
-  SearchQueue_WF (N.to_nat BB) root_q_upd1_simplified root.
+  SearchQueue_WF (N.to_nat BB5_minus_one) root_q_upd1_simplified root.
 Proof.
   pose proof (root_q_upd1_WF).
   cbn in H.
@@ -315,7 +315,7 @@ match x with
 end.
 
 Lemma getDecider_spec x:
-  HaltDecider_WF (N.to_nat BB) (getDecider x).
+  HaltDecider_WF (N.to_nat BB5_minus_one) (getDecider x).
 Proof.
   destruct x; unfold getDecider.
   - destruct hlen.
@@ -327,7 +327,7 @@ Proof.
   - apply MITM_WDFA_verifier_spec.
   - apply halt_decider_max_spec.
   - apply loop1_decider_WF.
-    unfold BB.
+    unfold BB5_minus_one.
     replace (Init.Nat.of_num_uint
   (Number.UIntDecimal
      (Decimal.D1
