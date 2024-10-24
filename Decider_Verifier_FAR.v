@@ -716,7 +716,7 @@ End genNFA.
 
 
 Lemma dfa_nfa_decider_spec:
-  HaltDecider_WF (N.to_nat BB) dfa_nfa_decider.
+  HaltDecider_WF (N.to_nat BB5_minus_one) dfa_nfa_decider.
 Proof.
   unfold HaltDecider_WF.
   intro tm.
@@ -1018,7 +1018,7 @@ Definition dfa_nfa_verifier(n:nat)(f:nat->Σ->nat):HaltDecider :=
 fun tm => (dfa_nfa_decider (nat_n n) (nat_n_O n) (nat_n_enc n) (nat_n_list n) 1000000 (make_dfa f n) tm).
 
 Lemma dfa_nfa_verifier_spec n f:
-  HaltDecider_WF (N.to_nat BB) (dfa_nfa_verifier n f).
+  HaltDecider_WF (N.to_nat BB5_minus_one) (dfa_nfa_verifier n f).
 Proof.
   unfold dfa_nfa_verifier.
   apply dfa_nfa_decider_spec.

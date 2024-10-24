@@ -5,7 +5,7 @@ Require Import FSets.FMapPositive.
 From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import CustomTactics.
 
-Definition BB:N := 47176869.
+Definition BB5_minus_one:N := 47176869.
 
 Definition Dir_rev(d:Dir) :=
 match d with

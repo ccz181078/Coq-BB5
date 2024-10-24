@@ -1901,7 +1901,7 @@ Lemma loop1_decider0_spec tm n es d ls n0 ns:
   | Result_Halt s0 i0 =>
     exists n1 es0,
     n1<n+(length ls) /\
-    TM_CoqBB5.HaltsAt Σ tm n1 (InitES Σ Σ0) /\
+    HaltsAt Σ tm n1 (InitES Σ Σ0) /\
     Steps Σ tm n1 (InitES Σ Σ0) (ListES_toES es0) /\
     es0.(s)=s0 /\ es0.(m)=i0
   | Result_NonHalt => ~HaltsFromInit Σ Σ0 tm
@@ -1965,7 +1965,7 @@ Lemma halt_decider0_spec tm n es n2:
   | Result_Halt s0 i0 =>
     exists n1 es0,
     n1<n+n2 /\
-    TM_CoqBB5.HaltsAt Σ tm n1 (InitES Σ Σ0) /\
+    HaltsAt Σ tm n1 (InitES Σ Σ0) /\
     Steps Σ tm n1 (InitES Σ Σ0) (ListES_toES es0) /\
     es0.(s)=s0 /\ es0.(m)=i0
   | Result_NonHalt => False
@@ -1996,7 +1996,7 @@ Proof.
     + exists n2. exists ({| l := l0; r := r0; m := m0; s := s0 |}).
       repeat split.
       * lia.
-      * unfold TM_CoqBB5.HaltsAt.
+      * unfold HaltsAt.
         exists (ListES_toES {| l := l0; r := r0; m := m0; s := s0 |}).
         split; auto 1.
       * apply H.

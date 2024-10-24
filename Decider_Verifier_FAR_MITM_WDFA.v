@@ -561,7 +561,7 @@ Definition MITM_WDFA_verifier
   Result_Unknown.
 
 Lemma MITM_WDFA_verifier_spec max_d n_l wdfa_l n_r wdfa_r n:
-  HaltDecider_WF (N.to_nat BB) (MITM_WDFA_verifier max_d n_l wdfa_l n_r wdfa_r n).
+  HaltDecider_WF (N.to_nat BB5_minus_one) (MITM_WDFA_verifier max_d n_l wdfa_l n_r wdfa_r n).
 Proof.
   unfold HaltDecider_WF.
   intros.
