@@ -30,7 +30,6 @@ Skelet15.v
 Skelet1.v
 Skelet33.v
 Skelet35.v
-BB52Theorem.v
 Compute.v
 Finned2.v
 Finned4.v
@@ -46,5 +45,6 @@ Skelet34.v
 TM.v
 Sporadic_NonHalt.v
 Decider_Pipeline.v
+BB52Theorem.v
 BB42Theorem.v
 BB24Theorem.v
