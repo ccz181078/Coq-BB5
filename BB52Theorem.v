@@ -842,28 +842,3 @@ Proof.
 Qed.
 
 Print Assumptions BB5_value.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
