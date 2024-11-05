@@ -6,9 +6,9 @@ From CoqBB5 Require Import Translation.
 From CoqBB5 Require Import TM_CoqBB5.
 From CoqBB5 Require Import ListTape.
 
-From BusyCoq Require Import
-  Finned1 Finned2 Finned3 Finned4 Finned5
-  Skelet1 Skelet10 Skelet15 Skelet17 Skelet26 Skelet33 Skelet34 Skelet35.
+Require Import
+  BusyCoq.(Finned1 Finned2 Finned3 Finned4 Finned5
+  Skelet1 Skelet10 Skelet15 Skelet17 Skelet26 Skelet33 Skelet34 Skelet35).
 
 Definition Finned1 := makeTM BR1 EL0 CR1 BR1 DR1 CL1 EL0 BR0 HR1 AL1.
 Definition Finned2 := makeTM BR1 AR1 CR1 BL1 DL0 AR0 AR1 EL1 HR1 DL0.
