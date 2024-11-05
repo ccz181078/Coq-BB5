@@ -118,40 +118,9 @@ functional_extensionality_dep
 
 ## Build
 
-This project have been tested with Coq8.18.0. It can be compiled by executing these commands:
+To build this project run the `make` command. If you run it in `Coq-BB5/CoqBB5`, make sure to first run the `make` command in `Coq-BB5/BusyCoq`. Equivalently you can just run the `make` command at the root of `Coq-BB5` which will run both for you.
 
-```
-coqc -Q . BusyCoq LibTactics.v
-coqc -Q . BusyCoq Helper.v
-coqc -Q . BusyCoq TM.v
-coqc -Q . BusyCoq Compute.v
-coqc -Q . BusyCoq Flip.v
-coqc -Q . BusyCoq Permute.v
-coqc -Q . BusyCoq Individual.v
-coqc -Q . BusyCoq BB52.v
-coqc -Q . BusyCoq Individual52.v
-coqc -Q . BusyCoq Finned.v
-coqc -Q . BusyCoq Finned1.v
-coqc -Q . BusyCoq Finned2.v
-coqc -Q . BusyCoq Finned3.v
-coqc -Q . BusyCoq Finned4.v
-coqc -Q . BusyCoq Finned5.v
-coqc -Q . BusyCoq Skelet10.v
-coqc -Q . BusyCoq FixedBin.v
-coqc -Q . BusyCoq ShiftOverflow.v
-coqc -Q . BusyCoq ShiftOverflowBins.v
-coqc -Q . BusyCoq Skelet26.v
-coqc -Q . BusyCoq Skelet15.v
-coqc -Q . BusyCoq Skelet33.v
-coqc -Q . BusyCoq Skelet34.v
-coqc -Q . BusyCoq Skelet35.v
-coqc -Q . BusyCoq Skelet17.v
-coqc -Q . BusyCoq Skelet1.v
-coqc -Q . BusyCoq BB52Statement.v
-coqc -Q . BusyCoq BB52Theorem.v
-```
-
-`Skelet1.v` takes about 10min to do some computation.
+`Coq-BB5/BusyCoq/Skelet1.v` takes about 10min to do some computation.
 
 `BB52Theorem.v` takes about 12h (and about 4GB memory usage), you will see messages like this:
 
