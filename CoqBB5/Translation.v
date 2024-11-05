@@ -2,11 +2,11 @@ Require Import Lia.
 Require Import ZArith.
 
 (* mei's busycoq *)
-Require Import BusyCoq.Individual52.
-Require Import BusyCoq.Permute.
-Require Import BusyCoq.Flip.
-Require Import BusyCoq.Compute.
-Require Import BusyCoq.TM.
+From BusyCoq Require Import Individual52.
+From BusyCoq Require Import Permute.
+From BusyCoq Require Import Flip.
+From BusyCoq Require Import Compute.
+From BusyCoq Require Import TM.
 
 (* mxdys' Coq-BB5 *)
 From CoqBB5 Require Import CustomTactics.
