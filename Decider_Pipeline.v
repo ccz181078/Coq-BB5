@@ -47,46 +47,6 @@ Proof.
     destruct (tm s0 m0); cg.
 Qed.
 
-Fixpoint nat_eqb_N(n:nat)(m:N) :=
-match n,m with
-| O,N0 => true
-| S n0,Npos _ => nat_eqb_N n0 (N.pred m)
-| _,_ => false
-end.
-
-Lemma nat_eqb_N_spec n m :
-  nat_eqb_N n m = true -> n = N.to_nat m.
-Proof.
-  gd m.
-  induction n; intros.
-  - cbn in H.
-    destruct m; cbn; cg.
-  - destruct m.
-    + cbn in H. cg.
-    + cbn in H.
-      specialize (IHn (Pos.pred_N p) H). lia.
-Qed.
-
-
-Definition halt_decider_max := halt_decider 47176870.
-Lemma halt_decider_max_spec: HaltDecider_WF (N.to_nat BB5_minus_one) halt_decider_max.
-Proof.
-  eapply halt_decider_WF.
-  unfold BB5_minus_one.
-  replace (S (N.to_nat 47176869)) with (N.to_nat 47176870) by lia.
-  replace (Init.Nat.of_num_uint
-    (Number.UIntDecimal
-       (Decimal.D4
-          (Decimal.D7
-             (Decimal.D1
-                (Decimal.D7 (Decimal.D6 (Decimal.D8 (Decimal.D7 (Decimal.D0 Decimal.Nil))))))))))
-  with (N.to_nat 47176870).
-  1: apply Nat.le_refl.
-  symmetry.
-  apply nat_eqb_N_spec.
-  vm_compute.
-  reflexivity.
-Time Qed.
 
 Definition BB5_champion := (makeTM BR1 CL1 CR1 BR1 DR1 EL0 AL1 DL1 HR1 AL0).
 

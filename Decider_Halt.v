@@ -1,11 +1,14 @@
 Require Import Lia.
+Require Import ZArith.
 
 From BusyCoq Require Import TM_CoqBB5.
 From BusyCoq Require Import BB52Statement.
 From BusyCoq Require Import CustomTactics.
 From BusyCoq Require Import TNF.
 From BusyCoq Require Import ListTape.
+From BusyCoq Require Import Prelims.
 
+Set Warnings "-abstract-large-number".
 
 Fixpoint halt_decider0(tm:TM Σ)(n:nat)(es:ListES):HaltDecideResult :=
 match n with
@@ -86,4 +89,44 @@ Proof.
   - contradiction.
   - trivial.
 Qed.
+
+Fixpoint nat_eqb_N(n:nat)(m:N) :=
+match n,m with
+| O,N0 => true
+| S n0,Npos _ => nat_eqb_N n0 (N.pred m)
+| _,_ => false
+end.
+
+Lemma nat_eqb_N_spec n m :
+  nat_eqb_N n m = true -> n = N.to_nat m.
+Proof.
+  gd m.
+  induction n; intros.
+  - cbn in H.
+    destruct m; cbn; cg.
+  - destruct m.
+    + cbn in H. cg.
+    + cbn in H.
+      specialize (IHn (Pos.pred_N p) H). lia.
+Qed.
+
+Definition halt_decider_max := halt_decider 47176870.
+Lemma halt_decider_max_spec: HaltDecider_WF (N.to_nat BB5_minus_one) halt_decider_max.
+Proof.
+  eapply halt_decider_WF.
+  unfold BB5_minus_one.
+  replace (S (N.to_nat 47176869)) with (N.to_nat 47176870) by lia.
+  replace (Init.Nat.of_num_uint
+    (Number.UIntDecimal
+       (Decimal.D4
+          (Decimal.D7
+             (Decimal.D1
+                (Decimal.D7 (Decimal.D6 (Decimal.D8 (Decimal.D7 (Decimal.D0 Decimal.Nil))))))))))
+  with (N.to_nat 47176870).
+  1: apply Nat.le_refl.
+  symmetry.
+  apply nat_eqb_N_spec.
+  vm_compute.
+  reflexivity.
+Time Qed.
 
