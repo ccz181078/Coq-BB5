@@ -2,14 +2,14 @@ Require Import List.
 Require Import Lia.
 Require Import ZArith.
 
-From BusyCoq Require Import CustomTactics.
-From BusyCoq Require Import Prelims.
-From BusyCoq Require Import Encodings.
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import ListTape.
-From BusyCoq Require Import Decider_RepWL.
-From BusyCoq Require Import Decider_Verifier_FAR.
-From BusyCoq Require Import TNF.
+From CoqBB5 Require Import CustomTactics.
+From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import ListTape.
+From CoqBB5 Require Import Decider_RepWL.
+From CoqBB5 Require Import Decider_Verifier_FAR.
+From CoqBB5 Require Import TNF.
 
 Section MITMWFAR.
 

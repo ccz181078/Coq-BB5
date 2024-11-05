@@ -1,4 +1,4 @@
--Q . BusyCoq
+-Q . CoqBB5
 BB52Statement.v
 CustomTactics.v
 Prelims.v
@@ -20,32 +20,6 @@ Decider_Verifier_FAR.v
 Decider_Verifier_FAR_MITM_WDFA_Parameters.v
 Decider_Verifier_FAR_MITM_WDFA.v
 Translation.v
-BB52.v
-Finned1.v
-Finned3.v
-Finned5.v
-FixedBin.v
-Helper.v
-Individual.v
-Permute.v
-ShiftOverflow.v
-Skelet15.v
-Skelet1.v
-Skelet33.v
-Skelet35.v
-Compute.v
-Finned2.v
-Finned4.v
-Finned.v
-Flip.v
-Individual52.v
-LibTactics.v
-ShiftOverflowBins.v
-Skelet10.v
-Skelet17.v
-Skelet26.v
-Skelet34.v
-TM.v
 Sporadic_NonHalt.v
 Decider_Pipeline.v
 BB52Theorem.v

@@ -1,8 +1,8 @@
 Require Import List.
 
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import TM_CoqBB5.
-From BusyCoq Require Import Decider_Pipeline.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import Decider_Pipeline.
 
 Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR0 HR1 AL1 CL0 DR1 CL1 CL1 ER0 BL1 ER1,RWL 2 3)::

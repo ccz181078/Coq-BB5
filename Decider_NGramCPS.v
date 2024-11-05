@@ -3,13 +3,13 @@ Require Import Lia.
 Require Import List.
 Require Import FSets.FMapPositive.
 
-From BusyCoq Require Import Prelims.
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import CustomTactics.
-From BusyCoq Require Import CustomListRoutines.
-From BusyCoq Require Import Encodings.
-From BusyCoq Require Import TM_CoqBB5.
-From BusyCoq Require Import TNF.
+From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import CustomTactics.
+From CoqBB5 Require Import CustomListRoutines.
+From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import TNF.
 
 Section CPS.
 

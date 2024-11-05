@@ -2,9 +2,9 @@ Require Import Lia.
 Require Import List.
 Require Import ZArith.
 
-From BusyCoq Require Import CustomTactics.
-From BusyCoq Require Import Prelims.
-From BusyCoq Require Import Encodings.
+From CoqBB5 Require Import CustomTactics.
+From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import Encodings.
 
 Fixpoint pop_back{T}(x:T)(ls:list T):(list T) :=
   match ls with

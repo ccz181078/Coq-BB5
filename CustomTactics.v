@@ -1,5 +1,5 @@
 Require Import Logic.FunctionalExtensionality.
-From BusyCoq Require Import BB52Statement.
+From CoqBB5 Require Import BB52Statement.
 
 Ltac invst H := inversion H; subst.
 Ltac ctor := constructor.

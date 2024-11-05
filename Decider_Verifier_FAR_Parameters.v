@@ -1,8 +1,8 @@
 Require Import List.
 
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import TM_CoqBB5.
-From BusyCoq Require Import Decider_Pipeline.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import Decider_Pipeline.
 
 Definition DFA_from_list(ls:list(nat*nat))(x:nat)(i:Σ) :=
   let (a,b) := nth x ls (0,0) in

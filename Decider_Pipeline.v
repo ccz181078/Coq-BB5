@@ -2,20 +2,20 @@ Require Import ZArith.
 Require Import Lia.
 Require Import List.
 
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import ListTape.
-From BusyCoq Require Import TNF.
-From BusyCoq Require Import CustomTactics.
-From BusyCoq Require Import TM_CoqBB5.
-From BusyCoq Require Import Prelims.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import ListTape.
+From CoqBB5 Require Import TNF.
+From CoqBB5 Require Import CustomTactics.
+From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import Prelims.
 
-From BusyCoq Require Import Decider_Halt.
-From BusyCoq Require Import Decider_Loop.
-From BusyCoq Require Import Decider_NGramCPS.
-From BusyCoq Require Import Decider_RepWL.
-From BusyCoq Require Import Decider_Verifier_FAR.
-From BusyCoq Require Import Decider_Verifier_FAR_MITM_WDFA.
-From BusyCoq Require Import Sporadic_NonHalt.
+From CoqBB5 Require Import Decider_Halt.
+From CoqBB5 Require Import Decider_Loop.
+From CoqBB5 Require Import Decider_NGramCPS.
+From CoqBB5 Require Import Decider_RepWL.
+From CoqBB5 Require Import Decider_Verifier_FAR.
+From CoqBB5 Require Import Decider_Verifier_FAR_MITM_WDFA.
+From CoqBB5 Require Import Sporadic_NonHalt.
 
 Set Warnings "-abstract-large-number".
 

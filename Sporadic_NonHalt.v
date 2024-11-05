@@ -1,10 +1,10 @@
 Require Import List.
 
-From BusyCoq Require Import CustomTactics.
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import Translation.
-From BusyCoq Require Import TM_CoqBB5.
-From BusyCoq Require Import ListTape.
+From CoqBB5 Require Import CustomTactics.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import Translation.
+From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import ListTape.
 
 From BusyCoq Require Import
   Finned1 Finned2 Finned3 Finned4 Finned5

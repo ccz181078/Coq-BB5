@@ -2,8 +2,8 @@ Require Import List.
 Require Import ZArith.
 Require Import FSets.FMapPositive.
 
-From BusyCoq Require Import BB52Statement.
-From BusyCoq Require Import CustomTactics.
+From CoqBB5 Require Import BB52Statement.
+From CoqBB5 Require Import CustomTactics.
 
 Definition BB5_minus_one:N := 47176869.
 

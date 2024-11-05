@@ -1,9 +1,9 @@
 Require Import List.
 Require Import ZArith.
 
-From BusyCoq Require Import TM_CoqBB5.
-From BusyCoq Require Import Decider_Verifier_FAR_MITM_WDFA.
-From BusyCoq Require Import Decider_Pipeline.
+From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import Decider_Verifier_FAR_MITM_WDFA.
+From CoqBB5 Require Import Decider_Pipeline.
 
 Notation "( a , b ; c , d )" := (a%nat,b%Z,c%nat,d%Z).
 
