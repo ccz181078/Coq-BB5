@@ -12,7 +12,7 @@ From BusyCoq Require Import TM.
 From CoqBB5 Require Import CustomTactics.
 From CoqBB5 Require Import BB52Statement.
 From CoqBB5 Require Import ListTape.
-From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import TM.
 
 Definition to_St(x:Q):St :=
   match x with

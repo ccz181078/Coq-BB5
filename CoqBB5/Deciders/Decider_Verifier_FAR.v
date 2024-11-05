@@ -11,7 +11,7 @@ From CoqBB5 Require Import BB52Statement.
 From CoqBB5 Require Import Prelims.
 From CoqBB5 Require Import ListTape.
 From CoqBB5 Require Import Decider_RepWL.
-From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import TM.
 From CoqBB5 Require Import TNF.
 
 Section DFA_NFA_verifier.

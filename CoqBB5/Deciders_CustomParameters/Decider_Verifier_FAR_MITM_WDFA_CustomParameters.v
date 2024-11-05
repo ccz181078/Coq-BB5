@@ -1,7 +1,7 @@
 Require Import List.
 Require Import ZArith.
 
-From CoqBB5 Require Import TM_CoqBB5.
+From CoqBB5 Require Import TM.
 From CoqBB5 Require Import Decider_Verifier_FAR_MITM_WDFA.
 From CoqBB5 Require Import Decider_Pipeline.
 
