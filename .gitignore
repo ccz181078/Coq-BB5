@@ -1,3 +1,4 @@
+.DS_Store
 Makefile.coq
 Makefile.coq.conf
 *.vo
@@ -23,3 +24,4 @@ verify/verify
 verify/skelet1
 perf.data*
 flamegraph.svg
+*.coq-native

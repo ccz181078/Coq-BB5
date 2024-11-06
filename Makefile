@@ -1,18 +1,7 @@
-# Inspired from https://github.com/palmskog/coq-program-verification-template
+SUBDIRS := BusyCoq/. CoqBB5/.
 
-all: Makefile.coq
-	@+$(MAKE) -f Makefile.coq all
+all: $(SUBDIRS)
+$(SUBDIRS):
+		$(MAKE) -C $@
 
-clean: Makefile.coq
-	@+$(MAKE) -f Makefile.coq cleanall
-	@rm -f Makefile.coq Makefile.coq.conf
-
-Makefile.coq: _CoqProject
-	$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq
-
-force _CoqProject Makefile: ;
-
-%: Makefile.coq force
-	@+$(MAKE) -f Makefile.coq $@
-
-.PHONY: all clean force
+.PHONY: all $(SUBDIRS)
