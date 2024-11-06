@@ -24,3 +24,4 @@ verify/verify
 verify/skelet1
 perf.data*
 flamegraph.svg
+*.coq-native

@@ -122,7 +122,7 @@ To build this project run the `make` command. If you run it in `Coq-BB5/CoqBB5`,
 
 `Coq-BB5/BusyCoq/Skelet1.v` takes about 10min to do some computation.
 
-`BB52Theorem.v` takes about 12h (and about 4GB memory usage), you will see messages like this:
+`BB52Theorem.v` takes about 2.5h with `coq-native` (`opam install coq-native`) and 10h to 12h with default `vm_compute` (and about 4GB memory usage), you will see messages like this:
 
 ```
 ...

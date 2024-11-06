@@ -556,7 +556,7 @@ Proof.
 Qed.
 
 Ltac q_rw q_x q_x_def :=
-  assert (H:q_x = q_x_def) by (vm_cast_no_check (eq_refl q_x));
+  assert (H:q_x = q_x_def) by (native_cast_no_check (eq_refl q_x));
   rewrite H; unfold q_x_def; clear H; apply iter_S.
 
 Lemma q_200_spec: q_200 = Nat.iter 200 q_suc q_0.
