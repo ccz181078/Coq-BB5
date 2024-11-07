@@ -138,7 +138,7 @@ Proof.
     intro. trivial.
 Qed.
 
-Definition q0 := root_q_upd1_simplified.
+Definition q0 := root3_q. 
 
 Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 20).
 
@@ -543,8 +543,7 @@ Time Definition q_198 := Eval native_compute in q_198_def.
 Definition q_199_def := q_suc q_198.
 Time Definition q_199 := Eval native_compute in q_199_def.
 Definition q_200_def := q_suc q_199.
-Time Definition q_200 := Eval native_compute in q_200_def.
-
+Definition q_200 := Eval native_compute in q_200_def.
 
 Lemma iter_S{A}(f:A->A)(x x0:A) n:
   x0 = Nat.iter n f x ->
@@ -560,7 +559,8 @@ Ltac q_rw q_x q_x_def :=
   rewrite H; unfold q_x_def; clear H; apply iter_S.
 
 Lemma q_200_spec: q_200 = Nat.iter 200 q_suc q_0.
-q_rw q_200 q_200_def.
+Proof.
+  q_rw q_200 q_200_def.
 q_rw q_199 q_199_def.
 q_rw q_198 q_198_def.
 q_rw q_197 q_197_def.
@@ -763,9 +763,8 @@ q_rw q_1 q_1_def.
 reflexivity.
 Time Qed.
 
-
 Lemma q_200_WF:
-  SearchQueue_WF (N.to_nat BB5_minus_one) q_200 root.
+  SearchQueue_WF (N.to_nat BB5_minus_one) q_200 root3.
 Proof.
   rewrite q_200_spec.
   generalize 200.
@@ -773,7 +772,7 @@ Proof.
   induction n.
   - replace (Nat.iter 0 q_suc q_0) with q_0 by reflexivity.
     unfold q_0,q0.
-    apply root_q_upd1_simplified_WF.
+    apply SearchQueue_init_spec, root3_WF.
   - replace (Nat.iter (S n) q_suc q_0) with (q_suc (Nat.iter n q_suc q_0)) by (apply iter_S; reflexivity).
     remember (Nat.iter n q_suc q_0) as q.
     clear Heqq.
@@ -783,15 +782,14 @@ Proof.
     + apply decider_all_spec.
 Qed.
 
-
 Lemma q_200_empty:
   q_200 = (nil,nil).
 Proof.
   reflexivity.
 Qed.
 
-Lemma root_HTUB:
-  TNF_Node_HTUB (N.to_nat BB5_minus_one) root.
+Lemma root3_HTUB:
+  TNF_Node_HTUB (N.to_nat BB5_minus_one) root3.
 Proof.
   epose proof q_200_WF.
   unfold SearchQueue_WF in H.
@@ -801,6 +799,31 @@ Proof.
   intros.
   contradiction.
 Qed.
+
+Lemma SearchQueue_WF_implies_TNF_Node_HTUB BB (q : SearchQueue) root :
+  (  let (q1, q2) := q in
+     (forall x : TNF_Node, In x (q1 ++ q2) -> TNF_Node_HTUB BB x)) ->
+  SearchQueue_WF BB q root ->
+  TNF_Node_HTUB BB root.
+Proof.
+  intros. red in H0.
+  destruct q as [q1 q2].
+  eapply H0.
+  eauto.
+Qed.
+
+Lemma root_HTUB:
+  TNF_Node_HTUB (N.to_nat BB5_minus_one) root.
+Proof.
+  eapply SearchQueue_WF_implies_TNF_Node_HTUB.
+  2: eapply root_q_upd1_simplified_WF.
+  cbn -[BB5_minus_one]. intros x H.
+  decompose [or] H; subst; try tauto.
+  - admit.
+  - admit.
+  - refine root3_HTUB.
+  - admit.
+Admitted.
 
 Lemma TM0_HTUB:
   HaltTimeUpperBound Σ (N.to_nat BB5_minus_one) (InitES Σ Σ0) (LE Σ (TM0)).
@@ -820,7 +843,6 @@ Proof.
   right.
   reflexivity.
 Qed.
-
 
 Lemma BB5_upperbound:
   forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB5_minus_one.

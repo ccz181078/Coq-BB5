@@ -93,8 +93,34 @@ Proof.
   apply SearchQueue_init_spec,root_WF.
 Qed.
 
+Lemma root1_q_WF:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root1_q root1.
+Proof.
+  apply SearchQueue_init_spec,root1_WF.
+Qed.
+
+Lemma root2_q_WF:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root2_q root2.
+Proof.
+  apply SearchQueue_init_spec,root2_WF.
+Qed.
+
+Lemma root3_q_W:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root3_q root3.
+Proof.
+  apply SearchQueue_init_spec,root3_WF.
+Qed.
+
+Lemma root4_q_WF:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root4_q root4.
+Proof.
+  apply SearchQueue_init_spec,root4_WF.
+Qed.
+
 Definition root_q_upd1:=
   (SearchQueue_upd root_q decider2).
+
+Eval cbv in root_q_upd1.
 
 Lemma root_q_upd1_WF:
   SearchQueue_WF (N.to_nat BB5_minus_one) root_q_upd1 root.
@@ -112,6 +138,8 @@ Definition first_trans_is_R(x:TNF_Node):bool :=
 
 Definition root_q_upd1_simplified:SearchQueue:=
   (filter first_trans_is_R (fst root_q_upd1), nil).
+
+Eval cbv in root_q_upd1_simplified.
 
 Lemma TM_rev_upd'_TM0 s0 o0:
   (TM_upd' (TM0) St0 Σ0 (Some {| nxt := s0; dir := Dneg; out := o0 |})) =
