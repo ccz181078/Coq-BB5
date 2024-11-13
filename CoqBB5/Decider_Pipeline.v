@@ -120,8 +120,6 @@ Qed.
 Definition root_q_upd1:=
   (SearchQueue_upd root_q decider2).
 
-Eval cbv in root_q_upd1.
-
 Lemma root_q_upd1_WF:
   SearchQueue_WF (N.to_nat BB5_minus_one) root_q_upd1 root.
 Proof.
@@ -138,8 +136,6 @@ Definition first_trans_is_R(x:TNF_Node):bool :=
 
 Definition root_q_upd1_simplified:SearchQueue:=
   (filter first_trans_is_R (fst root_q_upd1), nil).
-
-Eval cbv in root_q_upd1_simplified.
 
 Lemma TM_rev_upd'_TM0 s0 o0:
   (TM_upd' (TM0) St0 Σ0 (Some {| nxt := s0; dir := Dneg; out := o0 |})) =
