@@ -31,6 +31,8 @@ Deciders_CustomParameters/Decider_Verifier_FAR_CustomParameters.v
 Deciders_CustomParameters/Decider_Verifier_FAR_MITM_WDFA_CustomParameters.v
 
 BB52TheoremPrelim.v
+BB52Theorem_root1.v
+BB52Theorem_root2.v
 BB52Theorem_root3.v
 BB52Theorem_root4.v
 BB52Theorem.v

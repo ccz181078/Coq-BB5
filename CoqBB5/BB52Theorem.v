@@ -1,5 +1,5 @@
 From CoqBB5 Require Import BB52TheoremPrelim.
-From CoqBB5 Require Import BB52Theorem_root3 BB52Theorem_root4.
+From CoqBB5 Require Import BB52Theorem_root1 BB52Theorem_root2 BB52Theorem_root3 BB52Theorem_root4.
 
 Lemma SearchQueue_WF_implies_TNF_Node_HTUB BB (q : SearchQueue) root :
   (  let (q1, q2) := q in
@@ -20,11 +20,11 @@ Proof.
   2: eapply root_q_upd1_simplified_WF.
   cbn -[BB5_minus_one]. intros x H.
   decompose [or] H; subst; try tauto.
-  - admit.
-  - admit.
-  - refine root3_HTUB.
-  - refine root4_HTUB.
-Admitted.
+  - apply root1_HTUB.
+  - apply root2_HTUB.
+  - apply root3_HTUB.
+  - apply root4_HTUB.
+Qed.
 
 Lemma TM0_HTUB:
   HaltTimeUpperBound Σ (N.to_nat BB5_minus_one) (InitES Σ Σ0) (LE Σ (TM0)).
