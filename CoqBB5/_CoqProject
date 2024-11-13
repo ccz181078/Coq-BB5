@@ -34,7 +34,10 @@ BB52TheoremPrelim.v
 BB52Theorem_root1.v
 BB52Theorem_root2.v
 BB52Theorem_root3.v
+
+BB52Theorem_root4_trivial.v
 BB52Theorem_root4.v
+
 BB52Theorem.v
 # BB42Theorem.v
 # BB24Theorem.v
