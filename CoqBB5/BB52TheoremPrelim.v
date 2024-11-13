@@ -165,6 +165,15 @@ Proof.
     + apply decider_all_spec.
 Qed.
 
+Lemma iter_S{A}(f:A->A)(x x0:A) n:
+  x0 = Nat.iter n f x ->
+  f x0 = Nat.iter (S n) f x.
+Proof.
+  intro H.
+  rewrite H.
+  reflexivity.
+Qed.
+
 (* Lemma root_HTUB: *)
 (*   TNF_Node_HTUB (N.to_nat BB5_minus_one) root. *)
 (* Proof. *)
