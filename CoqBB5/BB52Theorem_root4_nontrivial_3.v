@@ -2,9 +2,9 @@ From CoqBB5 Require Import BB52TheoremPrelim.
 
 Definition q_1_manual := (SearchQueue_upds root4_q decider_all 0).
 
-Definition root4_nontrivial_2 := nth 1 (fst q_1_manual) root.
+Definition root4_nontrivial_3 := nth 4 (fst q_1_manual) root.
 
-Definition q_0 := SearchQueue_init root4_nontrivial_2.
+Definition q_0 := SearchQueue_init root4_nontrivial_3.
 
 Definition q_1_def := q_suc q_0.
 Time Definition q_1 := Eval native_compute in q_1_def.
@@ -623,7 +623,7 @@ Proof.
 Qed.
 
 Lemma q_200_WF:
-  SearchQueue_WF (N.to_nat BB5_minus_one) q_200 root4_nontrivial_2.
+  SearchQueue_WF (N.to_nat BB5_minus_one) q_200 root4_nontrivial_3.
 Proof.
   rewrite q_200_spec.
   apply q_200_WF_gen.
@@ -643,8 +643,8 @@ Proof.
   congruence.
 Qed.
 
-Lemma root4_nontrivial_2_HTUB:
-  TNF_Node_HTUB (N.to_nat BB5_minus_one) root4_nontrivial_2.
+Lemma root4_nontrivial_3_HTUB:
+  TNF_Node_HTUB (N.to_nat BB5_minus_one) root4_nontrivial_3.
 Proof.
   epose proof q_200_WF.
   unfold SearchQueue_WF in H.

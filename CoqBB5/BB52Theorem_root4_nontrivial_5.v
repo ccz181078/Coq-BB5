@@ -639,8 +639,9 @@ Proof.
   all: try (intros []; try congruence).
   all: try destruct s0; cbn; try tauto.
   all: try congruence.
-  destruct H0. specialize (H0 Σ0). cbn in *. 
-  congruence.
+  - destruct H0. specialize (H0 Σ0). cbn in *. 
+    congruence.
+  - cbv in H. specialize (H St1 Σ0). cbn in *. congruence.
 Qed.
 
 Lemma root4_nontrivial_5_HTUB:
