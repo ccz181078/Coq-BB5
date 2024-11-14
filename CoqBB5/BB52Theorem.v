@@ -1,5 +1,5 @@
 From CoqBB5 Require Import BB52TheoremPrelim.
-From CoqBB5 Require Import BB52Theorem_root1 BB52Theorem_root2 BB52Theorem_root3 BB52Theorem_root4.
+From CoqBB5 Require Import TNF_Roots.BB52Theorem_root1 TNF_Roots.BB52Theorem_root2 TNF_Roots.BB52Theorem_root3 TNF_Roots.BB52Theorem_root4.
 
 Lemma SearchQueue_WF_implies_TNF_Node_HTUB BB (q : SearchQueue) root :
   (  let (q1, q2) := q in
