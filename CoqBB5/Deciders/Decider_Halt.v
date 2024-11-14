@@ -128,5 +128,5 @@ Proof.
   apply nat_eqb_N_spec.
   vm_compute.
   reflexivity.
-Time Qed.
+Qed.
 

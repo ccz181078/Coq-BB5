@@ -5,7 +5,7 @@ Definition q0 := root1_q.
 Definition q_0 := q0.
 
 Definition q_1_def := q_suc q_0.
-Time Definition q_1 := Eval native_compute in q_1_def.
+Definition q_1 := Eval native_compute in q_1_def.
 
 Lemma iter_S{A}(f:A->A)(x x0:A) n:
   x0 = Nat.iter n f x ->
