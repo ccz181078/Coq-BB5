@@ -12,7 +12,7 @@ Coq-BB5 relies on the [busycoq](https://github.com/meithecatte/busycoq/tree/3336
 
 ## Usage
 
-Assuming that you have [installed Coq](https://github.com/coq/coq/blob/master/INSTALL.md):
+Assuming that you have [installed Coq](https://github.com/coq/coq/blob/master/INSTALL.md), the following command will compile the proof of `BB(5) = 47,176,870` (see `CoqBB5/README.md` for compiling the other results):
 
 ```
 cd BusyCoq && make -j 13 && cd ../CoqBB5 && make -j 13
