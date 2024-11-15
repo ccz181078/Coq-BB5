@@ -3,9 +3,9 @@ SUBDIRS := BusyCoq CoqBB5
 all: $(SUBDIRS)
 
 BusyCoq:
-		$(MAKE) -C $@
+	$(MAKE) -C $@
 
 CoqBB5: BusyCoq
-		$(MAKE) -C $@
+	$(MAKE) -C $@
 
 .PHONY: all $(SUBDIRS)
