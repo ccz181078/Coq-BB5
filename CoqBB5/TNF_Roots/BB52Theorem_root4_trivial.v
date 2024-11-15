@@ -1,3 +1,8 @@
+(* TNF Root 1RB---_0RA---_------_------_------ *)
+(* TNF Root 1RB---_1RA---_------_------_------ *)
+(* TNF Root 1RB---_0RB---_------_------_------ *)
+(* TNF Root 1RB---_1RB---_------_------_------ *)
+
 From CoqBB5 Require Import BB52TheoremPrelim.
 
 Definition q_1_manual := (SearchQueue_upds root4_q decider_all 0).

@@ -47,5 +47,5 @@ TNF_Roots/BB52Theorem_root4_nontrivial_8.v
 TNF_Roots/BB52Theorem_root4.v
 
 BB52Theorem.v
-# BB42Theorem.v
-# BB24Theorem.v
+BB42Theorem.v
+BB24Theorem.v

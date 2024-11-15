@@ -71,7 +71,7 @@ match ls with
 | h::t => TM_ins_all' t (TM_ins_all h mp)
 end.
 
-Time Definition tm_decider_table :=
+Definition tm_decider_table :=
   Eval vm_compute in (TM_ins_all' tm_list (PositiveMap.empty DeciderType)).
 
 Definition table_based_decider(tm:TM Σ):HaltDecideResult :=

@@ -1,3 +1,5 @@
+(* TNF Root 0RB---_------_------_------_------ *)
+
 From CoqBB5 Require Import BB52TheoremPrelim.
 
 Definition q_0 := root3_q. 
