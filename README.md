@@ -12,4 +12,12 @@ Coq-BB5 relies on the [busycoq](https://github.com/meithecatte/busycoq/tree/3336
 
 ## Usage
 
-Assuming that you have [installed Coq](https://github.com/coq/coq/blob/master/INSTALL.md), you can run `make` at the root of this repository which will first compile `BusyCoq` and then `CoqBB5`. Equivalently you can run `make` first in the `BusyCoq` folder and then in the `CoqBB5` folder.
+Assuming that you have [installed Coq](https://github.com/coq/coq/blob/master/INSTALL.md):
+
+```
+cd BusyCoq && make -j 13 && cd ../CoqBB5 && make -j 13
+```
+
+Replace `13` with the number of cores you want to use.
+
+The proof will compile in about 45 minutes with 13 cores using `native_compute` (`opam install coq-native`) and in about 3 hours using `vm_compute` and consume in all cases about 4Gb of RAM.

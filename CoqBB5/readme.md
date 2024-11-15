@@ -118,7 +118,7 @@ functional_extensionality_dep
 
 ## Build
 
-To build this project run the `make -j 13` command (replace 13 by the number of cores you want to use). If you run it in `Coq-BB5/CoqBB5`, make sure to first run the `make -j 13` command in `Coq-BB5/BusyCoq`. Equivalently you can just run the `make -j 13` command at the root of `Coq-BB5` which will run both for you.
+To build this project run the `make -j 13` command (replace 13 by the number of cores you want to use). If you run it in `Coq-BB5/CoqBB5`, make sure to first run the `make -j 13` command in `Coq-BB5/BusyCoq`.
 
 `Coq-BB5/BusyCoq/Skelet1.v` takes about 10min to do some computation.
 
