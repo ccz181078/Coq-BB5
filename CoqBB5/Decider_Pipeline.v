@@ -93,6 +93,30 @@ Proof.
   apply SearchQueue_init_spec,root_WF.
 Qed.
 
+Lemma root1_q_WF:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root1_q root1.
+Proof.
+  apply SearchQueue_init_spec,root1_WF.
+Qed.
+
+Lemma root2_q_WF:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root2_q root2.
+Proof.
+  apply SearchQueue_init_spec,root2_WF.
+Qed.
+
+Lemma root3_q_W:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root3_q root3.
+Proof.
+  apply SearchQueue_init_spec,root3_WF.
+Qed.
+
+Lemma root4_q_WF:
+  SearchQueue_WF (N.to_nat BB5_minus_one) root4_q root4.
+Proof.
+  apply SearchQueue_init_spec,root4_WF.
+Qed.
+
 Definition root_q_upd1:=
   (SearchQueue_upd root_q decider2).
 

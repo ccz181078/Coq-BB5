@@ -1,7 +1,11 @@
-SUBDIRS := BusyCoq/. CoqBB5/.
+SUBDIRS := BusyCoq CoqBB5
 
 all: $(SUBDIRS)
-$(SUBDIRS):
-		$(MAKE) -C $@
+
+BusyCoq:
+	$(MAKE) -C $@
+
+CoqBB5: BusyCoq
+	$(MAKE) -C $@
 
 .PHONY: all $(SUBDIRS)

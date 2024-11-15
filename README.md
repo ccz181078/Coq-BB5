@@ -12,4 +12,14 @@ Coq-BB5 relies on the [busycoq](https://github.com/meithecatte/busycoq/tree/3336
 
 ## Usage
 
-Assuming that you have [installed Coq](https://github.com/coq/coq/blob/master/INSTALL.md), you can run `make` at the root of this repository which will first compile `BusyCoq` and then `CoqBB5`. Equivalently you can run `make` first in the `BusyCoq` folder and then in the `CoqBB5` folder.
+Assuming that you have [installed Coq](https://github.com/coq/coq/blob/master/INSTALL.md), the following command will compile the proof of `BB(5) = 47,176,870` (see `CoqBB5/README.md` for compiling the other results):
+
+```
+make -j 13
+```
+
+Replace `13` with the number of cores you want to use. Alternatively you can also run `cd BusyCoq && make -j 13 && cd ../CoqBB5 && make -j 13`.
+
+The proof will compile in about 45 minutes with 13 cores using `native_compute` (`opam install coq-native`) and in about 3 hours using `vm_compute` and consume in all cases about 4Gb of RAM.
+
+When using `native_compute` you may have to run `ulimit -s unlimited` before compiling the proof.

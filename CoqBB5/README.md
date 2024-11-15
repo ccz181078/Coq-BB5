@@ -118,21 +118,15 @@ functional_extensionality_dep
 
 ## Build
 
-To build this project run the `make` command. If you run it in `Coq-BB5/CoqBB5`, make sure to first run the `make` command in `Coq-BB5/BusyCoq`. Equivalently you can just run the `make` command at the root of `Coq-BB5` which will run both for you.
+To build this project run the `make -j 13` command (replace 13 by the number of cores you want to use). If you run it in `Coq-BB5/CoqBB5`, make sure to first run the `make -j 13` command in `Coq-BB5/BusyCoq`. Alternatively you can also run `make -j 13` at the root of this repo which will run both for you.
 
 `Coq-BB5/BusyCoq/Skelet1.v` takes about 10min to do some computation.
 
-`BB52Theorem.v` takes about 2.5h with `coq-native` (`opam install coq-native`) and 10h to 12h with default `vm_compute` (and about 4GB memory usage), you will see messages like this:
+`BB52Theorem.v` takes about 36 minutes with 13 cores and `coq-native` (`opam install coq-native`) and about 2h47 with 13 cores and `vm_compute` (and about 4GB memory usage). When using `native_compute` you may have to run `ulimit -s unlimited` before compiling the proof.
+
+At the end of the compilation you should see:
 
 ```
-...
-Finished transaction in 214.144 secs (213.937u,0.s) (successful)
-Finished transaction in 362.645 secs (362.437u,0.s) (successful)
-Finished transaction in 0. secs (0.u,0.s) (successful)
-Finished transaction in 0. secs (0.u,0.s) (successful)
-...
-Finished transaction in 0. secs (0.u,0.s) (successful)
-Finished transaction in 1.291 secs (0.156u,0.046s) (successful)
 Axioms:
 functional_extensionality_dep
   : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),

@@ -513,6 +513,142 @@ Qed.
 
 Definition root := {| TNF_tm:=TM0; TNF_cnt:=CountHaltTrans (TM0); TNF_ptr:=St1 |}.
 
+Definition TM1 : TM Σ := (makeTM AR0 None None None None None None None None None).
+Definition root1 := {| TNF_tm:=TM1; TNF_cnt:=CountHaltTrans (TM1); TNF_ptr:=St1 |}.
+
+Definition TM2 : TM Σ := (makeTM AR1 None None None None None None None None None).
+Definition root2 := {| TNF_tm:=TM2; TNF_cnt:=CountHaltTrans (TM2); TNF_ptr:=St1 |}.
+
+Definition TM3 : TM Σ := (makeTM BR0 None None None None None None None None None).
+Definition root3 := {| TNF_tm:=TM3; TNF_cnt:=CountHaltTrans (TM3); TNF_ptr:=St2 |}.
+
+Definition TM4 : TM Σ := (makeTM BR1 None None None None None None None None None).
+Definition root4 := {| TNF_tm:=TM4; TNF_cnt:=CountHaltTrans (TM4); TNF_ptr:=St2 |}.
+
+Lemma UnusedState_TM1 s1:
+  UnusedState TM1 s1 <->
+    s1 <> St0.
+Proof.
+  split; intro.
+  - intro H0. subst.
+    destruct H as [H [H0 H1]].
+    contradiction.
+  - repeat split; auto 1.
+    2:{ intros []; cbv.
+        all: destruct s1; cbv; try congruence.
+    }
+    cbv. intros [] []; try congruence; auto.
+Qed.
+
+Lemma UnusedState_TM2 s1:
+  UnusedState TM2 s1 <->
+    s1 <> St0.
+Proof.
+  split; intro.
+  - intro H0. subst.
+    destruct H as [H [H0 H1]].
+    contradiction.
+  - repeat split; auto 1.
+    2:{ intros []; cbv.
+        all: destruct s1; cbv; try congruence.
+    }
+    cbv. intros [] []; try congruence; auto.
+Qed.
+
+Lemma UnusedState_TM3 s1:
+  UnusedState TM3 s1 <->
+    s1 <> St0 /\ s1 <> St1.
+Proof.
+  split; intro.
+  - split; intro H0.
+    + subst.
+      destruct H as [H [H0 H1]].
+      contradiction.
+    + subst. red in H.
+      cbv in H.
+      destruct H as [H [H0 H1]].
+      specialize (H St0 Σ0).
+      cbv in *. congruence.
+  - repeat split; auto 1.
+    2:{ intros []; cbv.
+        all: destruct s1; cbv; try firstorder congruence.
+    }
+    cbv. intros [] []; try congruence; auto.
+    firstorder congruence.
+    firstorder congruence.
+Qed.
+
+Lemma UnusedState_TM4 s1:
+  UnusedState TM4 s1 <->
+    s1 <> St0 /\ s1 <> St1.
+Proof.
+  split; intro.
+  - split; intro H0.
+    + subst.
+      destruct H as [H [H0 H1]].
+      contradiction.
+    + subst. red in H.
+      cbv in H.
+      destruct H as [H [H0 H1]].
+      specialize (H St0 Σ0).
+      cbv in *. congruence.
+  - repeat split; auto 1.
+    2:{ intros []; cbv.
+        all: destruct s1; cbv; try firstorder congruence.
+    }
+    cbv. intros [] []; try congruence; auto.
+    firstorder congruence.
+    firstorder congruence.
+Qed.
+
+Lemma root1_WF: TNF_Node_WF root1.
+Proof.
+  repeat split.
+  1: cbn; cg.
+  unfold UnusedState_ptr.
+  left.
+  intros.
+  rewrite UnusedState_TM1.
+  destruct s0; unfold St_le; cbn; split; intro; cg; lia.
+Qed.
+
+Lemma root2_WF: TNF_Node_WF root2.
+Proof.
+  repeat split.
+  1: cbn; cg.
+  unfold UnusedState_ptr.
+  left.
+  intros.
+  rewrite UnusedState_TM2.
+  destruct s0; unfold St_le; cbn; split; intro; cg; lia.
+Qed.
+
+Lemma root3_WF: TNF_Node_WF root3.
+Proof.
+  repeat split.
+  1: cbn; cg.
+  unfold UnusedState_ptr.
+  left.
+  intros.
+  rewrite UnusedState_TM3.
+  destruct s0; unfold St_le; cbn; split; intro; cg.
+  all: try now firstorder congruence.
+  all: lia.
+Qed.
+
+Lemma root4_WF: TNF_Node_WF root4.
+Proof.
+  repeat split.
+  1: cbn; cg.
+  unfold UnusedState_ptr.
+  left.
+  intros.
+  rewrite UnusedState_TM4.
+  destruct s0; unfold St_le; cbn; split; intro; cg.
+  all: try now firstorder congruence.
+  all: lia.
+Qed.
+
 Lemma root_WF: TNF_Node_WF root.
 Proof.
   repeat split.
@@ -525,10 +661,13 @@ Proof.
 Qed.
 
 Definition root_q := SearchQueue_init root.
+Definition root1_q := SearchQueue_init root1.
+Definition root2_q := SearchQueue_init root2.
+Definition root3_q := SearchQueue_init root3.
+Definition root4_q := SearchQueue_init root4.
 
 End TNF.
 
 Definition TNF_Node_list_to_N_list := map (fun (x:TNF_Node) => TM_to_N (TNF_tm x)).
 
-
-Compute (TM_to_N (makeTM BR1 HR1 CL0 ER0 DL0 CL1 AR1 BR0 DR0 DR1)).
+(* Compute (TM_to_N (makeTM BR1 HR1 CL0 ER0 DL0 CL1 AR1 BR0 DR0 DR1)). *)
