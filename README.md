@@ -21,3 +21,5 @@ cd BusyCoq && make -j 13 && cd ../CoqBB5 && make -j 13
 Replace `13` with the number of cores you want to use.
 
 The proof will compile in about 45 minutes with 13 cores using `native_compute` (`opam install coq-native`) and in about 3 hours using `vm_compute` and consume in all cases about 4Gb of RAM.
+
+When using `native_compute` you may have to run `ulimit -s unlimited` before compiling the proof.

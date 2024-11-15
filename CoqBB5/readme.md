@@ -122,7 +122,9 @@ To build this project run the `make -j 13` command (replace 13 by the number of 
 
 `Coq-BB5/BusyCoq/Skelet1.v` takes about 10min to do some computation.
 
-`BB52Theorem.v` takes about 36 minutes with 13 cores and `coq-native` (`opam install coq-native`) and about 2h47 with 13 cores and `vm_compute` (and about 4GB memory usage), at the end of the compilation you should see:
+`BB52Theorem.v` takes about 36 minutes with 13 cores and `coq-native` (`opam install coq-native`) and about 2h47 with 13 cores and `vm_compute` (and about 4GB memory usage). When using `native_compute` you may have to run `ulimit -s unlimited` before compiling the proof.
+
+At the end of the compilation you should see:
 
 ```
 Axioms:
