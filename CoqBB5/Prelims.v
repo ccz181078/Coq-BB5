@@ -39,17 +39,28 @@ Proof.
   reflexivity.
 Qed.
 
-Definition set_ins{T}(enc:T->positive)(s:list T * PositiveMap.tree unit)(x:T):(list T * PositiveMap.tree unit)*bool :=
+
+(* A set of encoded things of type T is represented as: `list T * PositiveMap.tree unit`
+
+An encoding function `enc:T->positive` is given which transforms objects of T into keys of
+the PositiveMap.tree unit (which can be seen as a set of positive).
+
+When inserting an object in the set, the object is kept as it in `list T` and added using the encoding in the `PositiveMap.tree unit`.
+*)
+
+Definition SetOfEncodings T : Type := list T * PositiveMap.tree unit.
+
+Definition set_ins{T}(enc:T->positive)(s: SetOfEncodings T)(x:T):(SetOfEncodings T)*bool :=
   let enc := (enc x) in
   match PositiveMap.find enc (snd s) with
   | None => ((x::fst s, PositiveMap.add enc tt (snd s)),false)
   | Some _ => (s,true)
   end.
 
-Definition set_in{T}(enc:T->positive)(s:list T * PositiveMap.tree unit)(x:T):Prop :=
+Definition set_in{T}(enc:T->positive)(s:SetOfEncodings T)(x:T):Prop :=
   PositiveMap.find (enc x) (snd s) = Some tt.
 
-Definition set_WF{T}(enc:T->positive)(s:list T * PositiveMap.tree unit):Prop :=
+Definition set_WF{T}(enc:T->positive)(s:SetOfEncodings T):Prop :=
   forall (x:T),
     set_in enc s x <->
     In x (fst s).

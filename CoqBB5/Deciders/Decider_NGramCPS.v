@@ -559,11 +559,8 @@ Proof.
   reflexivity.
 Qed.
 
-Definition xset_impl:Type := (PositiveMap.tree ((list Σ)*(PositiveMap.tree unit))).
-Definition mset_impl:Type := (list MidWord)*(PositiveMap.tree unit).
-
-
-
+Definition xset_impl:Type := (PositiveMap.tree (SetOfEncodings Σ)).
+Definition mset_impl:Type := SetOfEncodings MidWord.
 
 
 Definition xset_in(xs:xset_impl)(x:list Σ):Prop :=
@@ -578,7 +575,7 @@ Definition xset_in(xs:xset_impl)(x:list Σ):Prop :=
   | nil => False
   end.
 
-Definition xset_ins0(xs:xset_impl)(v:(list Σ)*(PositiveMap.tree unit))(x1:list Σ)(x2:Σ):xset_impl*bool :=
+Definition xset_ins0(xs:xset_impl)(v:SetOfEncodings Σ)(x1:list Σ)(x2:Σ):xset_impl*bool :=
   let (v',flag):=(set_ins Σ_enc v x2) in
   (PositiveMap.add (listΣ_enc x1) v' xs, flag).
 
@@ -1165,7 +1162,7 @@ Proof.
 Qed.
 
 
-Lemma xset_WF_empty: (xset_WF (PositiveMap.empty (list Σ * PositiveMap.tree unit))).
+Lemma xset_WF_empty: (xset_WF (PositiveMap.empty (SetOfEncodings Σ))).
 Proof.
   unfold xset_WF.
   intros.
@@ -1188,12 +1185,12 @@ Proof.
   apply NGramCPS_decider_0_spec.
   split.
   {
-    destruct ((xset_ins (PositiveMap.empty (list Σ * PositiveMap.tree unit)) (repeat Σ0 (S nl)))) as [ls' flag] eqn:E.
+    destruct ((xset_ins (PositiveMap.empty (SetOfEncodings Σ)) (repeat Σ0 (S nl)))) as [ls' flag] eqn:E.
     apply (xset_ins_spec _ _ _ _ _ xset_WF_empty E).
   }
   split.
   {
-    destruct ((xset_ins (PositiveMap.empty (list Σ * PositiveMap.tree unit)) (repeat Σ0 (S nr)))) as [rs' flag] eqn:E.
+    destruct ((xset_ins (PositiveMap.empty (SetOfEncodings Σ)) (repeat Σ0 (S nr)))) as [rs' flag] eqn:E.
     apply (xset_ins_spec _ _ _ _ _ xset_WF_empty E).
   }
   {

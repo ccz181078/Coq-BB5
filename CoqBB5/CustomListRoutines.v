@@ -69,6 +69,9 @@ Proof.
 Qed.
 
 
+(* Compute pop_back' 0 [ 1 ; 2 ; 3 ; 4 ]. 
+   = ([0; 1; 2; 3], 4)
+*)
 Fixpoint pop_back'{T}(x:T)(ls:list T):(list T)*T :=
   match ls with
   | nil => (nil,x)
