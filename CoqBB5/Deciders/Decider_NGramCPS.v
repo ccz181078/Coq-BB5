@@ -9,6 +9,8 @@ This file contains:
   - `NGramCPS_decider_impl2`: standard NGramCPS, Σ = {0,1}.
   - `NGramCPS_LRU_decider`: uses an LRU cache (i.e. maintain a list of St x Σ and for each update (current_state, input) remove it from the list and push it to the front of the list) for update history.
 
+See the comment of `update_AES_MidWord` for a concrete example illustrating parts of the NGramCPS technique.
+
 The original NGramCPS implementation (i.e. `NGramCPS_decider_impl2`) was introduced by Nathan Fenner: https://github.com/Nathan-Fenner/bb-simple-n-gram-cps.
 
 A core strength of this implementation is that it is using generic tape alphabet Σ and can thus be used easily with *augmented* alphabets (`NGramCPS_decider_impl1` and `NGramCPS_LRU_decider`), which allows to decide a lot more machines than the original NGramCPS implementation (i.e. `NGramCPS_decider_impl2`). 
