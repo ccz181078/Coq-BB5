@@ -388,6 +388,8 @@ end.
 
 (** The NGramCPS decider implementation.
 
+The function seeds the Abstract Exec State (AES) search with the initial local context (MidWord): `Σ0..Σ0 [A Σ0] Σ0..Σ0` and left/right n-grams `Σ0..Σ0`.
+
 Args:
 - m: nat, gas parameter.
 - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
