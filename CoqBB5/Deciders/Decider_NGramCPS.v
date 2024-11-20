@@ -1,3 +1,22 @@
+(**
+
+This file contains:
+
+1. The implementation of the general NGramCPS decider (search for 'Begin: NGramCPS decider implementation')
+2. The lemmas and proofs leading to the correctness of the decider (search for 'Begin: Proofs')
+3. The definitions of the three variants of the decider that are used in the BB5 pipeline:
+  - `NGramCPS_decider_impl1`: uses a fixed size queue for update history (i.e. record the last k updates where k is a constant). In practice it mainly amounts to setting Σ to Σ_history = Σ'*(list (St*Σ')) with Σ' = {0,1}
+
+  - `NGramCPS_decider_impl2`: standard NGramCPS, Σ = {0,1}
+
+  - `NGramCPS_LRU_decider`: uses an LRU cache (i.e. maintain a list of St x Σ and for each update (current_state, input) remove it from the list and push it to the front of the list) for update history.
+
+NGramCPS without tape augmentation (i.e. `NGramCPS_decider_impl2`) was introduced by Nathan Fenner: https://github.com/Nathan-Fenner/bb-simple-n-gram-cps.
+
+See the implementation part of the file (search for 'Begin: NGramCPS decider implementation') for comments on the implementation.
+
+**)
+
 Require Import ZArith.
 Require Import Lia.
 Require Import List.
@@ -57,8 +76,6 @@ Proof.
     tauto.
 Qed.
 
-
-
 Lemma CPS_correct tm S st:
   InT st S ->
   isClosed tm S ->
@@ -73,7 +90,6 @@ Proof.
   apply (Steps_NonHalt _ H5 H3 H1).
 Qed.
 
-
 End CPS.
 
 Section NGramCPS.
@@ -82,6 +98,23 @@ Hypothesis Σ:Set.
 Hypothesis len_l:nat.
 Hypothesis len_r:nat.
 
+Hypothesis Σ_enc: Σ->positive.
+Hypothesis Σ_enc_inj: is_inj Σ_enc.
+Hypothesis listΣ_enc: (list Σ)->positive.
+Hypothesis listΣ_enc_inj: is_inj listΣ_enc.
+
+Hypothesis Σ0:Σ.
+
+(* Begin: NGramCPS decider implementation *)
+
+(** A `MidWord` represents a local TM configuration/context consisting of:
+  1. A left-ngram `l:list Σ`
+  2. A right-ngram `r:list Σ`
+  3. The symbol under the head `m:Σ`
+  4. The state of the machine `s:St`
+
+  Note that the left-ngrams are stored in reverse: left-ngram '100' is stored as '001'.
+**)
 Record MidWord:Set := {
   l:list Σ;
   r:list Σ;
@@ -89,124 +122,226 @@ Record MidWord:Set := {
   s:St;
 }.
 
+(** For efficiency reasons, throughout Coq-BB5 sets of objects are represented as 
+`SetOfEncodings` (see Prelims.v) which essentially consist of a `PositiveMap.tree unit`, 
+meaning that objects are encoded as positive natural numbers keys of a map mapping to unit.
+This allows to efficiently test the presence of an object in a set.
+
+Hence, we define encoding functions mapping `MidWord` to positive for this purpose (also see Encodings.v).
+**)
+Definition MidWord_enc(mw:MidWord):positive :=
+  let (l,r,m,s):=mw in
+  enc_list ((St_enc s)::(Σ_enc m)::(listΣ_enc l)::(listΣ_enc r)::nil).
+
+
+(** The `xset_impl` structure is used to store ngrams in the following way:
+Imagine we have seen the right-ngram '001', then it will be stored in the xset,
+using Python notations and ignoring encodings: {'00': {'1'}}.
+
+If we later see the right-ngram '000', the structure will be updated to: {'00': {'1', '0'}}.
+
+This is useful as in the NGramCPS method, we need to keep track of characters on the 'falling edges'
+of the ngrams, see https://github.com/Nathan-Fenner/bb-simple-n-gram-cps.
+**)
+Definition xset_impl:Type := (PositiveMap.tree (SetOfEncodings Σ)).
+
+
+(** The `mset_impl` structure is used to keep track of the local contexts that we have visited. 
+A layer of encoding is used, see `SetOfEncodings` in Prelims.v.
+**)
+Definition mset_impl:Type := SetOfEncodings MidWord.
+
+(** AES means Abstract Exec State. 
+This structure keeps track of the {left,right}-ngrams and local contexts that have been visited.
+**)
+Record AES_impl := {
+  lset': xset_impl;
+  rset': xset_impl;
+  mset': mset_impl;
+}.
+
+(* Subroutine for xset insertion *)
+Definition xset_ins0(xs:xset_impl)(v:SetOfEncodings Σ)(x1:list Σ)(x2:Σ):xset_impl*bool :=
+  let (v',flag):=(set_ins Σ_enc v x2) in
+  (PositiveMap.add (listΣ_enc x1) v' xs, flag).
+
+(** xset insertion.
+
+  See the comment on `xset_impl` for the structure of the xset.
+
+  Args:
+  - xs: xset_impl, the xset to insert the ngram in.
+  - x: list Σ, the ngram to insert.
+
+  Returns:
+  - :xset_impl, the potentially updated xset.
+  - :bool, true if the ngram was already in the set, else false.
+**)
+Definition xset_ins(xs:xset_impl)(x:list Σ):xset_impl*bool :=
+  match x with
+  | h::t =>
+    let (x1,x2):=pop_back' h t in
+    match PositiveMap.find (listΣ_enc x1) xs with
+    | Some v =>
+      xset_ins0 xs v x1 x2
+    | None =>
+      xset_ins0 xs (nil, PositiveMap.empty unit) x1 x2
+    end
+  | nil => (xs,false)
+  end.
+
+(* Subroutine for mset insertion. *)
+Definition mset_ins0(ms:mset_impl)(mw:MidWord):mset_impl*bool :=
+  set_ins MidWord_enc ms mw.
+
+(** mset insertion.
+
+  See the comment of `mset_impl` for the structure of the mset.
+
+  The routine is more complex than its name suggests:
+
+  1. In practice, this routine is called while we have a list `q` of local contexts to visit.
+  2. The function will construct new local contexts based on:
+      a. `ls: list Σ`, the possible end symbols of an ngram that have been seen (as given by an xset[ngram], see `xset_impl` comment).
+      b. `f: Σ->MidWord`, a function that constructs a MidWord from symbols of this list. The function depends on whether we were dealing with
+          a left or right ngram. See `update_AES_MidWord` for when this function is constructed.
+      c. `f` will be applied to each element of `ls`, and the resulting MidWords will be added to the beginning of the list `q` and to the mset `ms` 
+          if they were not already in `ms`: that way, these new contexts will be later visited by `update_AES`.
+
+  Args:
+  - q: list MidWord, the list of `MidWords` that currently need to be visited by the NGramCPS decider.
+  - ms: mset_impl, the current mset, keeping track of all seen local contexts.
+  - flag: bool, a flag that set the returned bool to false if false. In the NGramCPS decider, this flag is always true.
+  - f: Σ->MidWord, a function that constructs a MidWord from a symbol (it is applied to each symbol of `ls`).
+  - ls: list Σ, the list of ending symbols of an ngram that have been seen. In practice,
+                this is the set of symbols contained in xset[ngram] (see `xset_impl` comment).
+
+  Returns:
+  - :list MidWord, the list `q` updated at its beginning with the potentially new `MidWords` that need to be visited.
+  - :mset_impl, the potentially updated mset.
+  - :bool, true if no changes were made to the mset AND `flag` was true, else false. 
+           In the NGramCps decider, `flag` is always true so this corresponds to true if no changes were made and false otherwise.
+
+**)
+Fixpoint mset_ins(q:list MidWord)(ms:mset_impl)(flag:bool)(f:Σ->MidWord)(ls:list Σ):((list MidWord)*mset_impl)*bool :=
+match ls with
+| nil => ((q,ms),flag)
+| h::t =>
+  let (ms',flag'):=mset_ins0 ms (f h) in
+  let q' := if flag' then q else ((f h)::q) in
+  mset_ins q' ms' (andb flag flag') f t
+end.
+
+(** xset_as_list is a utility function that returns the list of symbols contained in an xset[ngram].
+    See the comment on `xset_impl` for the structure of the xset.
+
+  Args:
+  - xs: xset_impl, the xset to extract the ngram from.
+  - x1: list Σ, the ngram to extract.
+
+  Returns:
+  - :list Σ, the list of symbols contained in the xset[ngram] or nil if the ngram was not in the xset.
+**)
+Definition xset_as_list(xs:xset_impl)(x1:list Σ):list Σ :=
+  match PositiveMap.find (listΣ_enc x1) xs with
+  | Some v => fst v
+  | None => nil
+  end.
+
+Definition update_AES_MidWord(tm:TM Σ)(q:list MidWord)(mw:MidWord)(SI:AES_impl):((list MidWord)*AES_impl)*bool :=
+let (l0,r0,m0,s0):=mw in
+let (ls,rs,ms):=SI in
+  match l0,r0 with
+  | hl::l1,hr::r1 =>
+    match tm s0 m0 with
+    | Some tr =>
+      let (s1,d,o):=tr in
+      match d with
+      | Dpos =>
+        let (ls',flag1):= xset_ins ls l0 in
+        match
+          mset_ins q ms true
+            (fun x => {|
+              l:=o::(pop_back hl l1);
+              m:=hr;
+              r:=r1++(x::nil);
+              s:=s1;
+            |}) (xset_as_list rs r1)
+        with (q',ms',flag2) =>
+          ((q',{| lset':=ls'; rset':=rs; mset':=ms' |}), andb flag1 flag2)
+        end
+      | Dneg =>
+        let (rs',flag1):= xset_ins rs r0 in
+        match
+          mset_ins q ms true
+            (fun x => {|
+              r:=o::(pop_back hr r1);
+              m:=hl;
+              l:=l1++(x::nil);
+              s:=s1;
+            |}) (xset_as_list ls l1)
+        with (q',ms',flag2) =>
+          ((q',{| lset':=ls; rset':=rs'; mset':=ms' |}), andb flag1 flag2)
+        end
+      end
+    | _ => ((q,SI),false)
+    end
+  | _,_ => ((q,SI),false)
+  end.
+
+Fixpoint update_AES(tm:TM Σ)(ms:list MidWord)(SI:AES_impl)(flag:bool)(n:nat):AES_impl*bool*nat :=
+  match n with
+  | O => (SI,false,O)
+  | S n0 =>
+    match ms with
+    | nil => (SI,flag,n0)
+    | mw::ms0 =>
+      let (S',flag'):=update_AES_MidWord tm ms0 mw SI in
+      let (q',SI'):=S' in
+      update_AES tm q' SI' (andb flag flag') n0
+    end
+  end.
+
+Definition check_InitES_InAES (S:AES_impl):bool:=
+  let (ls,rs,ms):=S in
+  (snd (mset_ins0 ms {| l:=repeat Σ0 len_l; r:=repeat Σ0 len_r; m:=Σ0; s:=St0 |}) &&
+  snd (xset_ins ls (repeat Σ0 len_l)) &&
+  snd (xset_ins rs (repeat Σ0 len_r))) %bool.
+
+Fixpoint NGramCPS_decider_0(m n:nat)(tm:TM Σ)(S:AES_impl):bool :=
+match m with
+| O => false
+| S m0 =>
+  match update_AES tm (fst (mset' S)) S true n with
+  | (S',flag,n0) =>
+      if flag then check_InitES_InAES S'
+      else NGramCPS_decider_0 m0 n0 tm S'
+  end
+end.
+
+Definition NGramCPS_decider(m:nat)(tm:TM Σ):bool :=
+  match len_l,len_r with
+  | S _,S _ =>
+    NGramCPS_decider_0 m m tm
+    {|
+      lset':=fst (xset_ins (PositiveMap.empty _) (repeat Σ0 len_l));
+      rset':=fst (xset_ins (PositiveMap.empty _) (repeat Σ0 len_r));
+      mset':=fst (mset_ins0 (nil,PositiveMap.empty _) {| l:=repeat Σ0 len_l; r:=repeat Σ0 len_r; m:=Σ0; s:=St0 |});
+    |}
+  | _,_ => false
+  end. 
+
+(* End: NGramCPS decider implementation *)
+
+
+(* Begin: Proofs *)
+(* Begin: tape segment utils and specs *)
+
 Fixpoint tape_seg(t:Z->Σ)(x:Z)(d:Dir)(n:nat):list Σ :=
   match n with
   | O => nil
   | S n0 => (t x)::(tape_seg t (x+(Dir_to_Z d))%Z d n0)
   end.
-
-
-
-Definition MidWord_matches(st:ExecState Σ)(mw:MidWord):Prop :=
-  let (s,t) := st in
-  let (l0,r0,m0,s0):=mw in
-  s = s0 /\
-  m0 = t Z0 /\
-  l0 = tape_seg t ((-1)%Z) Dneg len_l /\
-  r0 = tape_seg t (1%Z) Dpos len_r.
-
-Record AbstractES:Type := {
-  lset: (list Σ)->Prop;
-  rset: (list Σ)->Prop;
-  mset: MidWord->Prop;
-}.
-
-Definition xset_matches(t:Z->Σ)(xs:(list Σ)->Prop)(d:Dir)(len:nat):Prop :=
-  forall n:nat,
-  1<n ->
-  exists ls,
-  xs ls /\
-  ls = tape_seg t ((Z.of_nat n)*(Dir_to_Z d)%Z) d len.
-
-
-Definition InAES(st:ExecState Σ)(S:AbstractES):Prop :=
-  let (s,t) := st in
-  let (ls,rs,ms) := S in
-  (exists mw, ms mw /\ MidWord_matches st mw) /\
-  xset_matches t ls Dneg len_l /\
-  xset_matches t rs Dpos len_r.
-
-
-Definition AES_isClosed(tm:TM Σ)(S:AbstractES):Prop :=
-  forall st0,
-  InAES st0 S ->
-  exists st1,
-  step Σ tm st0 = Some st1 /\
-  InAES st1 S.
-
-Lemma AES_Closed_NonHalt tm S st:
-  InAES st S ->
-  AES_isClosed tm S ->
-  ~Halts _ tm st.
-Proof.
-  intros.
-  eapply CPS_correct.
-  1: apply H.
-  unfold isClosed.
-  unfold AES_isClosed in H0.
-  intros st0 H1.
-  specialize (H0 st0 H1).
-  destruct H0 as [st1 [H0a H0b]].
-  exists 0.
-  exists st1.
-  split. 2: assumption.
-  cbn.
-  ector.
-  - ector.
-  - assumption.
-Qed.
-
-
-Definition AES_CloseAt(tm:TM Σ)(S:AbstractES)(mw:MidWord):Prop :=
-  let (ls,rs,ms) := S in
-  let (l0,r0,m0,s0):=mw in
-  match l0,r0 with
-  | hl::l1,hr::r1 =>
-    match tm s0 m0 with
-    | Some tr =>
-    let (s1,d,o):=tr in
-      match d with
-      | Dpos => 
-        ls l0 /\
-        forall x:Σ, rs (r1++(x::nil)) ->
-        ms {|
-          l:=o::(pop_back hl l1);
-          m:=hr;
-          r:=r1++(x::nil);
-          s:=s1;
-        |}
-      | Dneg =>
-        rs r0 /\
-        forall x:Σ, ls (l1++(x::nil)) ->
-        ms {|
-          r:=o::(pop_back hr r1);
-          m:=hl;
-          l:=l1++(x::nil);
-          s:=s1;
-        |}
-      end
-    | _ => False
-    end
-  | _,_ => False
-  end.
-
-
-Definition AES_isClosed'(tm:TM Σ)(S:AbstractES):Prop :=
-  let (ls,rs,ms) := S in
-  forall mw,
-  ms mw ->
-  AES_CloseAt tm S mw.
-
-
-Lemma tape_seg_hd h t1 t x d len:
-  h :: t1 = tape_seg t x d len ->
-  h = t x.
-Proof.
-  destruct len.
-  - cbn. intro. cg.
-  - cbn. intro.
-    invst H. cg. 
-Qed.
 
 Lemma tape_seg_spec t x d len:
   (forall n:nat,
@@ -293,7 +428,6 @@ Proof.
   rewrite H0.
   f_equal. lia.
 Qed.
-  
 
 Lemma tape_seg_mov_upd_2 hr r1 t d o len:
   hr :: r1 = tape_seg t (Dir_to_Z d) d len ->
@@ -335,6 +469,52 @@ intros.
     destruct d; unfold Dir_to_Z,Dir_rev; lia.
 Qed.
 
+Lemma tape_seg__repeat_Σ0 x d len:
+  repeat Σ0 len = tape_seg (fun _ : Z => Σ0) x d len.
+Proof.
+  gd x. gd d.
+  induction len; cbn; intros; cg.
+Qed.
+  
+(* End: tape segment utils and specs *)
+
+(* Begin: MidWord utils and specs*)
+
+Definition MidWord_matches(st:ExecState Σ)(mw:MidWord):Prop :=
+  let (s,t) := st in
+  let (l0,r0,m0,s0):=mw in
+  s = s0 /\
+  m0 = t Z0 /\
+  l0 = tape_seg t ((-1)%Z) Dneg len_l /\
+  r0 = tape_seg t (1%Z) Dpos len_r.
+
+
+Lemma MidWord_enc_inj: is_inj MidWord_enc.
+Proof.
+  intros x1 x2 H.
+  destruct x1 as [l1 r1 m1 s1].
+  destruct x2 as [l2 r2 m2 s2].
+  unfold MidWord_enc in H.
+  pose proof (enc_list_inj _ _ H). clear H.
+  invst H0.
+  rewrite (St_enc_inj _ _ H1).
+  rewrite (Σ_enc_inj _ _ H2).
+  rewrite (listΣ_enc_inj _ _ H3).
+  rewrite (listΣ_enc_inj _ _ H4).
+  reflexivity.
+Qed.
+
+(* End: MidWord utils and specs*)
+
+(* Begin: xset utils and specs *)
+
+Definition xset_matches(t:Z->Σ)(xs:(list Σ)->Prop)(d:Dir)(len:nat):Prop :=
+  forall n:nat,
+  1<n ->
+  exists ls,
+  xs ls /\
+  ls = tape_seg t ((Z.of_nat n)*(Dir_to_Z d)%Z) d len.
+
 Lemma xset_matches_mov_upd_1 t ls d o len:
   xset_matches t ls d len ->
   xset_matches (mov Σ (upd Σ t o) d) ls d len.
@@ -365,7 +545,6 @@ Proof.
   rewrite H2.
   f_equal. lia.
 Qed.
-
 Lemma xset_matches_mov_upd_2 t rs d o len:
   xset_matches t rs d len ->
   rs (tape_seg t (Dir_to_Z d) d len) ->
@@ -420,7 +599,298 @@ Proof.
     destruct d; unfold Dir_to_Z,Dir_rev; lia.
 Qed.
 
+Definition xset_in(xs:xset_impl)(x:list Σ):Prop :=
+  match x with
+  | h::t =>
+    let (x1,x2):=pop_back' h t in
+    match PositiveMap.find (listΣ_enc x1) xs with
+    | Some v =>
+      set_in Σ_enc v x2
+    | None => False
+    end
+  | nil => False
+  end.
 
+Definition xset_WF(xs:xset_impl):Prop :=
+  forall (x1:list Σ)(x2:Σ),
+    xset_in xs (x1++x2::nil) <->
+    match PositiveMap.find (listΣ_enc x1) xs with
+    | Some v =>
+      In x2 (fst v)
+    | None => False
+    end.
+
+Lemma xset_WF_1 xs x1 v:
+  xset_WF xs ->
+  PositiveMap.find (listΣ_enc x1) xs = Some v ->
+  set_WF Σ_enc v.
+Proof.
+  unfold xset_WF.
+  intros.
+  unfold xset_in in H.
+  unfold set_WF.
+  intro x2.
+  specialize (H x1 x2).
+  destruct x1 as [|h t]; cbn in H.
+  2: rewrite pop_back'__push_back in H.
+  1,2: rewrite H0 in H; apply H.
+Qed.
+
+Lemma xset_WF_2 xs x1 v':
+  xset_WF xs ->
+  set_WF Σ_enc v' ->
+  xset_WF (PositiveMap.add (listΣ_enc x1) v' xs).
+Proof.
+  unfold xset_WF,xset_in,set_WF.
+  intros.
+  destruct x0 as [|h t]; cbn.
+  - specialize (H nil x2).
+    cbn in H.
+    rewrite PositiveMapAdditionalFacts.gsspec.
+    destruct (PositiveMap.E.eq_dec (listΣ_enc nil)); auto 1.
+  - rewrite pop_back'__push_back.
+    specialize (H (h::t) x2).
+    cbn in H.
+    rewrite pop_back'__push_back in H.
+    rewrite PositiveMapAdditionalFacts.gsspec.
+    destruct (PositiveMap.E.eq_dec (listΣ_enc (h :: t))); auto 1.
+Qed.
+
+Lemma xset_ins_spec xs h t xs' flag:
+  xset_WF xs ->
+  xset_ins xs (h :: t) = (xs', flag) ->
+  (xset_WF xs' /\
+  (flag=true -> (xs'=xs /\ xset_in xs (h :: t)))).
+Proof.
+  intros.
+  cbn in H0.
+  destruct (pop_back' h t) as [x1 x2] eqn:E.
+  destruct (PositiveMap.find (listΣ_enc x1) xs) as [v|] eqn:E0.
+  - unfold xset_ins0 in H0.
+    destruct (set_ins Σ_enc v x2) as [v' flag0] eqn:E1.
+    invst H0. clear H0.
+    assert (W0:set_WF Σ_enc v). {
+      eapply xset_WF_1.
+      + apply H.
+      + apply E0.
+    }
+    destruct (set_ins_spec _ Σ_enc_inj _ _ _ _ W0 E1) as [H0a H0b].
+    split.
+    1: apply xset_WF_2; assumption.
+    intro; subst.
+    specialize (H0b eq_refl).
+    destruct H0b; subst.
+    split.
+    1: apply PositiveMapAdditionalFacts.gsident,E0.
+    cbn. rewrite E,E0. assumption.
+  - unfold xset_ins0 in H0.
+    destruct (set_ins Σ_enc (nil, PositiveMap.empty unit)) as [v' flag0] eqn:E1.
+    invst H0. clear H0.
+    destruct (set_ins_spec _ Σ_enc_inj _ _ _ _ (empty_set_WF Σ_enc) E1) as [H0a H0b].
+    split.
+    1: apply xset_WF_2; assumption.
+    intro; subst.
+    specialize (H0b eq_refl).
+    destruct H0b; subst.
+    unfold set_ins in E1.
+    cbn in E1. rewrite PositiveMap.gempty in E1. invst E1.
+Qed.
+
+Lemma xset_as_list_spec xs x1 x2:
+  xset_WF xs ->
+  xset_in xs (x1 ++ x2 :: nil) ->
+  In x2 (xset_as_list xs x1).
+Proof.
+  intros.
+  unfold xset_WF in H.
+  unfold xset_in in H0.
+  unfold xset_as_list.
+  destruct x1 as [|h t].
+  - specialize (H nil x2).
+    assert (H1:nil++x2::nil = (x2::nil)) by reflexivity.
+    rewrite H1 in H,H0.
+    unfold pop_back' in H0.
+    destruct (PositiveMap.find (listΣ_enc nil) xs) as [v|] eqn:E.
+    2: contradiction.
+    rewrite <-H.
+    unfold xset_in.
+    unfold pop_back'.
+    rewrite E.
+    apply H0.
+  - specialize (H (h::t) x2).
+    assert (H1:(h::t)++x2::nil = h::(t++x2::nil)) by reflexivity.
+    rewrite H1 in H,H0.
+    rewrite pop_back'__push_back in H0.
+    destruct (PositiveMap.find (listΣ_enc (h :: t)) xs) as [v|] eqn:E.
+    2: contradiction.
+    rewrite <-H.
+    cbn.
+    rewrite pop_back'__push_back,E.
+    apply H0.
+Qed.
+
+Lemma xset_WF_empty: (xset_WF (PositiveMap.empty (SetOfEncodings Σ))).
+Proof.
+  unfold xset_WF.
+  intros.
+  unfold xset_in.
+  destruct x1; cbn; rewrite PositiveMap.gempty.
+  2: rewrite pop_back'__push_back.
+  2: rewrite PositiveMap.gempty.
+  1,2: tauto.
+Qed.
+
+(* End: xset utils and specs *)
+
+(* Begin: mset utils and specs *)
+
+Definition mset_in(ms:mset_impl)(x:MidWord):Prop := set_in MidWord_enc ms x.
+
+Definition mset_WF(ms:mset_impl):Prop :=
+  set_WF MidWord_enc ms.
+
+Lemma mset_ins0_spec ms mw ms' flag:
+  mset_WF ms ->
+  mset_ins0 ms mw = (ms',flag) ->
+  (mset_WF ms' /\
+  (flag=true -> (ms'=ms /\ mset_in ms mw))).
+Proof.
+  apply set_ins_spec.
+  unfold is_inj.
+  intros.
+  apply MidWord_enc_inj,H.
+Qed.
+
+Lemma mset_ins_spec q ms flag f ls q' ms' flag2:
+  mset_WF ms ->
+  mset_ins q ms flag f ls = (q',ms',flag2) ->
+  (mset_WF ms' /\
+  (flag2=true -> (flag=true /\ q'=q /\ ms'=ms /\
+  (forall x2, In x2 ls -> mset_in ms (f x2))))).
+Proof.
+  gd flag2. gd ms'. gd q'. gd flag. gd ms. gd q.
+  induction ls; intros.
+  - cbn in H0. invst H0.
+    split. 1: assumption.
+    intro H1.
+    repeat split; auto 1.
+    intros x2 H2.
+    destruct H2.
+  - cbn in H0.
+  destruct (mset_ins0 ms (f a)) as [ms'0 flag'] eqn:E.
+  destruct (mset_ins0_spec _ _ _ _ H E) as [H1a H1b].
+  specialize (IHls _ _ _ _ _ _ H1a H0).
+  destruct IHls as [H2a H2b].
+  split. 1: assumption.
+  intro; subst.
+  specialize (H2b eq_refl).
+  destruct H2b as [H2b [H2c [H2d H2e]]].
+  rewrite Bool.andb_true_iff in H2b.
+  destruct H2b.
+  subst.
+  specialize (H1b eq_refl).
+  destruct H1b as [H1b H1c].
+  subst.
+  repeat split; cg.
+  intros x2 H3.
+  cbn in H3.
+  destruct H3 as [H3|H3]; subst; auto.
+Qed.
+
+(* End: mset utils and specs *)
+
+(* Begin: Abstract Exec State utils and specs *)
+
+Record AbstractES:Type := {
+  lset: (list Σ)->Prop;
+  rset: (list Σ)->Prop;
+  mset: MidWord->Prop;
+}.
+
+Definition InAES(st:ExecState Σ)(S:AbstractES):Prop :=
+  let (s,t) := st in
+  let (ls,rs,ms) := S in
+  (exists mw, ms mw /\ MidWord_matches st mw) /\
+  xset_matches t ls Dneg len_l /\
+  xset_matches t rs Dpos len_r.
+
+Definition AES_isClosed(tm:TM Σ)(S:AbstractES):Prop :=
+  forall st0,
+  InAES st0 S ->
+  exists st1,
+  step Σ tm st0 = Some st1 /\
+  InAES st1 S.
+
+Lemma AES_Closed_NonHalt tm S st:
+  InAES st S ->
+  AES_isClosed tm S ->
+  ~Halts _ tm st.
+Proof.
+  intros.
+  eapply CPS_correct.
+  1: apply H.
+  unfold isClosed.
+  unfold AES_isClosed in H0.
+  intros st0 H1.
+  specialize (H0 st0 H1).
+  destruct H0 as [st1 [H0a H0b]].
+  exists 0.
+  exists st1.
+  split. 2: assumption.
+  cbn.
+  ector.
+  - ector.
+  - assumption.
+Qed.
+
+Definition AES_CloseAt(tm:TM Σ)(S:AbstractES)(mw:MidWord):Prop :=
+  let (ls,rs,ms) := S in
+  let (l0,r0,m0,s0):=mw in
+  match l0,r0 with
+  | hl::l1,hr::r1 =>
+    match tm s0 m0 with
+    | Some tr =>
+    let (s1,d,o):=tr in
+      match d with
+      | Dpos => 
+        ls l0 /\
+        forall x:Σ, rs (r1++(x::nil)) ->
+        ms {|
+          l:=o::(pop_back hl l1);
+          m:=hr;
+          r:=r1++(x::nil);
+          s:=s1;
+        |}
+      | Dneg =>
+        rs r0 /\
+        forall x:Σ, ls (l1++(x::nil)) ->
+        ms {|
+          r:=o::(pop_back hr r1);
+          m:=hl;
+          l:=l1++(x::nil);
+          s:=s1;
+        |}
+      end
+    | _ => False
+    end
+  | _,_ => False
+  end.
+
+Definition AES_isClosed'(tm:TM Σ)(S:AbstractES):Prop :=
+  let (ls,rs,ms) := S in
+  forall mw,
+  ms mw ->
+  AES_CloseAt tm S mw.
+
+Lemma tape_seg_hd h t1 t x d len:
+  h :: t1 = tape_seg t x d len ->
+  h = t x.
+Proof.
+  destruct len.
+  - cbn. intro. cg.
+  - cbn. intro.
+    invst H. cg. 
+Qed.
 
 Lemma AES_isClosed'_correct tm S:
   AES_isClosed' tm S ->
@@ -531,125 +1001,6 @@ Proof.
   }
 Qed.
 
-Hypothesis Σ_enc: Σ->positive.
-Hypothesis Σ_enc_inj: is_inj Σ_enc.
-Hypothesis listΣ_enc: (list Σ)->positive.
-Hypothesis listΣ_enc_inj: is_inj listΣ_enc.
-
-
-
-
-
-Definition MidWord_enc(mw:MidWord):positive :=
-  let (l,r,m,s):=mw in
-  enc_list ((St_enc s)::(Σ_enc m)::(listΣ_enc l)::(listΣ_enc r)::nil).
-
-Lemma MidWord_enc_inj: is_inj MidWord_enc.
-Proof.
-  intros x1 x2 H.
-  destruct x1 as [l1 r1 m1 s1].
-  destruct x2 as [l2 r2 m2 s2].
-  unfold MidWord_enc in H.
-  pose proof (enc_list_inj _ _ H). clear H.
-  invst H0.
-  rewrite (St_enc_inj _ _ H1).
-  rewrite (Σ_enc_inj _ _ H2).
-  rewrite (listΣ_enc_inj _ _ H3).
-  rewrite (listΣ_enc_inj _ _ H4).
-  reflexivity.
-Qed.
-
-Definition xset_impl:Type := (PositiveMap.tree (SetOfEncodings Σ)).
-Definition mset_impl:Type := SetOfEncodings MidWord.
-
-
-Definition xset_in(xs:xset_impl)(x:list Σ):Prop :=
-  match x with
-  | h::t =>
-    let (x1,x2):=pop_back' h t in
-    match PositiveMap.find (listΣ_enc x1) xs with
-    | Some v =>
-      set_in Σ_enc v x2
-    | None => False
-    end
-  | nil => False
-  end.
-
-Definition xset_ins0(xs:xset_impl)(v:SetOfEncodings Σ)(x1:list Σ)(x2:Σ):xset_impl*bool :=
-  let (v',flag):=(set_ins Σ_enc v x2) in
-  (PositiveMap.add (listΣ_enc x1) v' xs, flag).
-
-Definition xset_ins(xs:xset_impl)(x:list Σ):xset_impl*bool :=
-  match x with
-  | h::t =>
-    let (x1,x2):=pop_back' h t in
-    match PositiveMap.find (listΣ_enc x1) xs with
-    | Some v =>
-      xset_ins0 xs v x1 x2
-    | None =>
-      xset_ins0 xs (nil, PositiveMap.empty unit) x1 x2
-    end
-  | nil => (xs,false)
-  end.
-
-Definition xset_as_list(xs:xset_impl)(x1:list Σ):list Σ :=
-  match PositiveMap.find (listΣ_enc x1) xs with
-  | Some v => fst v
-  | None => nil
-  end.
-
-Definition xset_WF(xs:xset_impl):Prop :=
-  forall (x1:list Σ)(x2:Σ),
-    xset_in xs (x1++x2::nil) <->
-    match PositiveMap.find (listΣ_enc x1) xs with
-    | Some v =>
-      In x2 (fst v)
-    | None => False
-    end.
-
-
-Definition mset_in(ms:mset_impl)(x:MidWord):Prop := set_in MidWord_enc ms x.
-
-Definition mset_WF(ms:mset_impl):Prop :=
-  set_WF MidWord_enc ms.
-
-Definition mset_ins0(ms:mset_impl)(mw:MidWord):mset_impl*bool :=
-  set_ins MidWord_enc ms mw.
-
-Lemma mset_ins0_spec ms mw ms' flag:
-  mset_WF ms ->
-  mset_ins0 ms mw = (ms',flag) ->
-  (mset_WF ms' /\
-  (flag=true -> (ms'=ms /\ mset_in ms mw))).
-Proof.
-  apply set_ins_spec.
-  unfold is_inj.
-  intros.
-  apply MidWord_enc_inj,H.
-Qed.
-
-
-Fixpoint mset_ins(q:list MidWord)(ms:mset_impl)(flag:bool)(f:Σ->MidWord)(ls:list Σ):((list MidWord)*mset_impl)*bool :=
-  match ls with
-  | nil => ((q,ms),flag)
-  | h::t =>
-    let (ms',flag'):=mset_ins0 ms (f h) in
-    let q' := if flag' then q else ((f h)::q) in
-    mset_ins q' ms' (andb flag flag') f t
-  end.
-
-
-
-
-
-
-Record AES_impl := {
-  lset': xset_impl;
-  rset': xset_impl;
-  mset': mset_impl;
-}.
-
-
 Definition AES_impl_to_AES(x:AES_impl):AbstractES :=
   let (ls,rs,ms):=x in
   {|
@@ -663,213 +1014,6 @@ Definition AES_impl_WF(x:AES_impl):Prop :=
   xset_WF ls /\
   xset_WF rs /\
   mset_WF ms.
-
-Definition update_AES_MidWord(tm:TM Σ)(q:list MidWord)(mw:MidWord)(SI:AES_impl):((list MidWord)*AES_impl)*bool :=
-let (l0,r0,m0,s0):=mw in
-let (ls,rs,ms):=SI in
-  match l0,r0 with
-  | hl::l1,hr::r1 =>
-    match tm s0 m0 with
-    | Some tr =>
-      let (s1,d,o):=tr in
-      match d with
-      | Dpos =>
-        let (ls',flag1):= xset_ins ls l0 in
-        match
-          mset_ins q ms true
-            (fun x => {|
-              l:=o::(pop_back hl l1);
-              m:=hr;
-              r:=r1++(x::nil);
-              s:=s1;
-            |}) (xset_as_list rs r1)
-        with (q',ms',flag2) =>
-          ((q',{| lset':=ls'; rset':=rs; mset':=ms' |}), andb flag1 flag2)
-        end
-      | Dneg =>
-        let (rs',flag1):= xset_ins rs r0 in
-        match
-          mset_ins q ms true
-            (fun x => {|
-              r:=o::(pop_back hr r1);
-              m:=hl;
-              l:=l1++(x::nil);
-              s:=s1;
-            |}) (xset_as_list ls l1)
-        with (q',ms',flag2) =>
-          ((q',{| lset':=ls; rset':=rs'; mset':=ms' |}), andb flag1 flag2)
-        end
-      end
-    | _ => ((q,SI),false)
-    end
-  | _,_ => ((q,SI),false)
-  end.
-
-
-Fixpoint update_AES(tm:TM Σ)(ms:list MidWord)(SI:AES_impl)(flag:bool)(n:nat):AES_impl*bool*nat :=
-  match n with
-  | O => (SI,false,O)
-  | S n0 =>
-    match ms with
-    | nil => (SI,flag,n0)
-    | mw::ms0 =>
-      let (S',flag'):=update_AES_MidWord tm ms0 mw SI in
-      let (q',SI'):=S' in
-      update_AES tm q' SI' (andb flag flag') n0
-    end
-  end.
-
-
-Lemma xset_WF_1 xs x1 v:
-  xset_WF xs ->
-  PositiveMap.find (listΣ_enc x1) xs = Some v ->
-  set_WF Σ_enc v.
-Proof.
-  unfold xset_WF.
-  intros.
-  unfold xset_in in H.
-  unfold set_WF.
-  intro x2.
-  specialize (H x1 x2).
-  destruct x1 as [|h t]; cbn in H.
-  2: rewrite pop_back'__push_back in H.
-  1,2: rewrite H0 in H; apply H.
-Qed.
-
-Lemma xset_WF_2 xs x1 v':
-  xset_WF xs ->
-  set_WF Σ_enc v' ->
-  xset_WF (PositiveMap.add (listΣ_enc x1) v' xs).
-Proof.
-  unfold xset_WF,xset_in,set_WF.
-  intros.
-  destruct x0 as [|h t]; cbn.
-  - specialize (H nil x2).
-    cbn in H.
-    rewrite PositiveMapAdditionalFacts.gsspec.
-    destruct (PositiveMap.E.eq_dec (listΣ_enc nil)); auto 1.
-  - rewrite pop_back'__push_back.
-    specialize (H (h::t) x2).
-    cbn in H.
-    rewrite pop_back'__push_back in H.
-    rewrite PositiveMapAdditionalFacts.gsspec.
-    destruct (PositiveMap.E.eq_dec (listΣ_enc (h :: t))); auto 1.
-Qed.
-
-
-
-Lemma xset_ins_spec xs h t xs' flag:
-  xset_WF xs ->
-  xset_ins xs (h :: t) = (xs', flag) ->
-  (xset_WF xs' /\
-  (flag=true -> (xs'=xs /\ xset_in xs (h :: t)))).
-Proof.
-  intros.
-  cbn in H0.
-  destruct (pop_back' h t) as [x1 x2] eqn:E.
-  destruct (PositiveMap.find (listΣ_enc x1) xs) as [v|] eqn:E0.
-  - unfold xset_ins0 in H0.
-    destruct (set_ins Σ_enc v x2) as [v' flag0] eqn:E1.
-    invst H0. clear H0.
-    assert (W0:set_WF Σ_enc v). {
-      eapply xset_WF_1.
-      + apply H.
-      + apply E0.
-    }
-    destruct (set_ins_spec _ Σ_enc_inj _ _ _ _ W0 E1) as [H0a H0b].
-    split.
-    1: apply xset_WF_2; assumption.
-    intro; subst.
-    specialize (H0b eq_refl).
-    destruct H0b; subst.
-    split.
-    1: apply PositiveMapAdditionalFacts.gsident,E0.
-    cbn. rewrite E,E0. assumption.
-  - unfold xset_ins0 in H0.
-    destruct (set_ins Σ_enc (nil, PositiveMap.empty unit)) as [v' flag0] eqn:E1.
-    invst H0. clear H0.
-    destruct (set_ins_spec _ Σ_enc_inj _ _ _ _ (empty_set_WF Σ_enc) E1) as [H0a H0b].
-    split.
-    1: apply xset_WF_2; assumption.
-    intro; subst.
-    specialize (H0b eq_refl).
-    destruct H0b; subst.
-    unfold set_ins in E1.
-    cbn in E1. rewrite PositiveMap.gempty in E1. invst E1.
-Qed.
-
-
-
-
-Lemma mset_ins_spec q ms flag f ls q' ms' flag2:
-  mset_WF ms ->
-  mset_ins q ms flag f ls = (q',ms',flag2) ->
-  (mset_WF ms' /\
-  (flag2=true -> (flag=true /\ q'=q /\ ms'=ms /\
-  (forall x2, In x2 ls -> mset_in ms (f x2))))).
-Proof.
-gd flag2. gd ms'. gd q'. gd flag. gd ms. gd q.
-induction ls; intros.
-- cbn in H0. invst H0.
-  split. 1: assumption.
-  intro H1.
-  repeat split; auto 1.
-  intros x2 H2.
-  destruct H2.
-- cbn in H0.
-  destruct (mset_ins0 ms (f a)) as [ms'0 flag'] eqn:E.
-  destruct (mset_ins0_spec _ _ _ _ H E) as [H1a H1b].
-  specialize (IHls _ _ _ _ _ _ H1a H0).
-  destruct IHls as [H2a H2b].
-  split. 1: assumption.
-  intro; subst.
-  specialize (H2b eq_refl).
-  destruct H2b as [H2b [H2c [H2d H2e]]].
-  rewrite Bool.andb_true_iff in H2b.
-  destruct H2b.
-  subst.
-  specialize (H1b eq_refl).
-  destruct H1b as [H1b H1c].
-  subst.
-  repeat split; cg.
-  intros x2 H3.
-  cbn in H3.
-  destruct H3 as [H3|H3]; subst; auto.
-Qed.
-
-Lemma xset_as_list_spec xs x1 x2:
-  xset_WF xs ->
-  xset_in xs (x1 ++ x2 :: nil) ->
-  In x2 (xset_as_list xs x1).
-Proof.
-  intros.
-  unfold xset_WF in H.
-  unfold xset_in in H0.
-  unfold xset_as_list.
-  destruct x1 as [|h t].
-  - specialize (H nil x2).
-    assert (H1:nil++x2::nil = (x2::nil)) by reflexivity.
-    rewrite H1 in H,H0.
-    unfold pop_back' in H0.
-    destruct (PositiveMap.find (listΣ_enc nil) xs) as [v|] eqn:E.
-    2: contradiction.
-    rewrite <-H.
-    unfold xset_in.
-    unfold pop_back'.
-    rewrite E.
-    apply H0.
-  - specialize (H (h::t) x2).
-    assert (H1:(h::t)++x2::nil = h::(t++x2::nil)) by reflexivity.
-    rewrite H1 in H,H0.
-    rewrite pop_back'__push_back in H0.
-    destruct (PositiveMap.find (listΣ_enc (h :: t)) xs) as [v|] eqn:E.
-    2: contradiction.
-    rewrite <-H.
-    cbn.
-    rewrite pop_back'__push_back,E.
-    apply H0.
-Qed.
-
 
 Lemma update_AES_MidWord_spec tm q mw SI:
   AES_impl_WF SI ->
@@ -951,8 +1095,6 @@ Proof.
   }
 Qed.
 
-
-
 Lemma update_AES_spec tm q SI flag n:
   AES_impl_WF SI ->
   match update_AES tm q SI flag n with
@@ -998,7 +1140,6 @@ Proof.
         destruct (Hmw1 eq_refl) as [_ [Hmw1a _]]. cg.
 Qed.
 
-
 Lemma update_AES_Closed tm SI flag n:
   AES_impl_WF SI ->
   match update_AES tm (fst (mset' SI)) SI flag n with
@@ -1031,15 +1172,6 @@ Proof.
   - apply H1,H2.
 Qed.
 
-
-Hypothesis Σ0:Σ.
-Lemma tape_seg__repeat_Σ0 x d len:
-  repeat Σ0 len = tape_seg (fun _ : Z => Σ0) x d len.
-Proof.
-  gd x. gd d.
-  induction len; cbn; intros; cg.
-Qed.
-
 Lemma InitES_InAES_cond (S:AbstractES):
   let (ls,rs,ms):=S in
   ls (repeat Σ0 len_l) ->
@@ -1067,13 +1199,6 @@ Proof.
     1: apply H0.
     apply tape_seg__repeat_Σ0.
 Qed.
-
-
-Definition check_InitES_InAES (S:AES_impl):bool:=
-  let (ls,rs,ms):=S in
-  (snd (mset_ins0 ms {| l:=repeat Σ0 len_l; r:=repeat Σ0 len_r; m:=Σ0; s:=St0 |}) &&
-  snd (xset_ins ls (repeat Σ0 len_l)) &&
-  snd (xset_ins rs (repeat Σ0 len_r))) %bool.
 
 Lemma check_InitES_InAES_spec S:
   AES_impl_WF S ->
@@ -1112,29 +1237,9 @@ Proof.
     apply H0,eq_refl.
 Qed.
 
-Fixpoint NGramCPS_decider_0(m n:nat)(tm:TM Σ)(S:AES_impl):bool :=
-match m with
-| O => false
-| S m0 =>
-  match update_AES tm (fst (mset' S)) S true n with
-  | (S',flag,n0) =>
-      if flag then check_InitES_InAES S'
-      else NGramCPS_decider_0 m0 n0 tm S'
-  end
-end.
+(* End: Abstract Exec State utils and specs *)
 
-Definition NGramCPS_decider(m:nat)(tm:TM Σ):bool :=
-  match len_l,len_r with
-  | S _,S _ =>
-    NGramCPS_decider_0 m m tm
-    {|
-      lset':=fst (xset_ins (PositiveMap.empty _) (repeat Σ0 len_l));
-      rset':=fst (xset_ins (PositiveMap.empty _) (repeat Σ0 len_r));
-      mset':=fst (mset_ins0 (nil,PositiveMap.empty _) {| l:=repeat Σ0 len_l; r:=repeat Σ0 len_r; m:=Σ0; s:=St0 |});
-    |}
-  | _,_ => false
-  end.
-
+(* Begin: NGramCPS decider spec *)
 
 Lemma NGramCPS_decider_0_spec m n tm S:
   AES_impl_WF S ->
@@ -1160,19 +1265,6 @@ Proof.
     + apply H1a.
     + apply H0.
 Qed.
-
-
-Lemma xset_WF_empty: (xset_WF (PositiveMap.empty (SetOfEncodings Σ))).
-Proof.
-  unfold xset_WF.
-  intros.
-  unfold xset_in.
-  destruct x1; cbn; rewrite PositiveMap.gempty.
-  2: rewrite pop_back'__push_back.
-  2: rewrite PositiveMap.gempty.
-  1,2: tauto.
-Qed.
-
 
 Lemma NGramCPS_decider_spec m tm:
   NGramCPS_decider m tm = true ->
@@ -1200,6 +1292,8 @@ Proof.
   }
 Qed.
 
+(* End: NGramCPS decider spec *)
+(* End: Proofs *)
 
 End NGramCPS.
 
@@ -1248,7 +1342,6 @@ Proof.
   - apply Σ_history_enc_inj.
   - apply listT_enc_inj,Σ_history_enc_inj.
 Qed.
-
 
 Definition NGramCPS_decider_impl1 (len_h len_l len_r m:nat):HaltDecider :=
   fun tm =>
