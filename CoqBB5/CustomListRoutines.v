@@ -6,6 +6,11 @@ From CoqBB5 Require Import CustomTactics.
 From CoqBB5 Require Import Prelims.
 From CoqBB5 Require Import Encodings.
 
+(* Compute pop_back 0 [ 1 ; 2 ; 3 ; 4 ]. 
+   = [0; 1; 2; 3]
+   Compute pop_back 0 nil. 
+   = nil
+*)
 Fixpoint pop_back{T}(x:T)(ls:list T):(list T) :=
   match ls with
   | h::t =>
@@ -71,13 +76,14 @@ Qed.
 
 (* Compute pop_back' 0 [ 1 ; 2 ; 3 ; 4 ]. 
    = ([0; 1; 2; 3], 4)
+   Compute pop_back' 0 nil. 
+   = (nil, 0)
 *)
 Fixpoint pop_back'{T}(x:T)(ls:list T):(list T)*T :=
   match ls with
   | nil => (nil,x)
   | h :: t => let (a,b):=pop_back' h t in (x::a,b)
   end.
-
 
 Lemma pop_back'__push_back{T} (h:T) t x2:
   pop_back' h (t ++ x2 :: nil) = (h::t,x2).
