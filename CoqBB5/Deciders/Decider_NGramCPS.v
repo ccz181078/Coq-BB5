@@ -5,13 +5,13 @@ This file contains:
 1. The implementation of the general NGramCPS decider (search for 'Begin: NGramCPS decider implementation')
 2. The lemmas and proofs leading to the correctness of the decider (search for 'Begin: Proofs')
 3. The definitions of the three variants of the decider that are used in the BB5 pipeline:
-  - `NGramCPS_decider_impl1`: uses a fixed size queue for update history (i.e. record the last k updates where k is a constant). In practice it mainly amounts to setting Σ to Σ_history = Σ'*(list (St*Σ')) with Σ' = {0,1}
-
-  - `NGramCPS_decider_impl2`: standard NGramCPS, Σ = {0,1}
-
+  - `NGramCPS_decider_impl1`: uses a fixed size queue for update history (i.e. record the last k updates where k is a constant). In practice it mainly amounts to setting Σ to Σ_history = Σ'*(list (St*Σ')) with Σ' = {0,1}.
+  - `NGramCPS_decider_impl2`: standard NGramCPS, Σ = {0,1}.
   - `NGramCPS_LRU_decider`: uses an LRU cache (i.e. maintain a list of St x Σ and for each update (current_state, input) remove it from the list and push it to the front of the list) for update history.
 
-NGramCPS without tape augmentation (i.e. `NGramCPS_decider_impl2`) was introduced by Nathan Fenner: https://github.com/Nathan-Fenner/bb-simple-n-gram-cps.
+The original NGramCPS implementation (i.e. `NGramCPS_decider_impl2`) was introduced by Nathan Fenner: https://github.com/Nathan-Fenner/bb-simple-n-gram-cps.
+
+A core strength of this implementation is that it is using generic tape alphabet Σ and can thus be used easily with *augmented* alphabets (`NGramCPS_decider_impl1` and `NGramCPS_LRU_decider`), which allows to decide a lot more machines than the original NGramCPS implementation (i.e. `NGramCPS_decider_impl2`). 
 
 See the implementation part of the file (search for 'Begin: NGramCPS decider implementation') for comments on the implementation.
 
@@ -160,6 +160,22 @@ Record AES_impl := {
   mset': mset_impl;
 }.
 
+(** xset_as_list is a utility function that returns the list of symbols contained in an xset[ngram].
+    See the comment on `xset_impl` for the structure of the xset.
+
+  Args:
+  - xs: xset_impl, the xset to extract the ngram from.
+  - x1: list Σ, the ngram to extract.
+
+  Returns:
+  - :list Σ, the list of symbols contained in the xset[ngram] or nil if the ngram was not in the xset.
+**)
+Definition xset_as_list(xs:xset_impl)(x1:list Σ):list Σ :=
+  match PositiveMap.find (listΣ_enc x1) xs with
+  | Some v => fst v
+  | None => nil
+  end.
+
 (* Subroutine for xset insertion *)
 Definition xset_ins0(xs:xset_impl)(v:SetOfEncodings Σ)(x1:list Σ)(x2:Σ):xset_impl*bool :=
   let (v',flag):=(set_ins Σ_enc v x2) in
@@ -205,8 +221,9 @@ Definition mset_ins0(ms:mset_impl)(mw:MidWord):mset_impl*bool :=
       a. `ls: list Σ`, the possible end symbols of an ngram that have been seen (as given by an xset[ngram], see `xset_impl` comment).
       b. `f: Σ->MidWord`, a function that constructs a MidWord from symbols of this list. The function depends on whether we were dealing with
           a left or right ngram. See `update_AES_MidWord` for when this function is constructed.
-      c. `f` will be applied to each element of `ls`, and the resulting MidWords will be added to the beginning of the list `q` and to the mset `ms` 
-          if they were not already in `ms`: that way, these new contexts will be later visited by `update_AES`.
+      c. `f` will be applied to each element of `ls` to construct potentially new MidWords.
+  3. The resulting new local contexts, if they are not already in `ms`, will be added (as return parameters) 
+     to the beginning of the list `q` and to the mset `ms`. That way, these new contexts will be later visited by `update_AES`.
 
   Args:
   - q: list MidWord, the list of `MidWords` that currently need to be visited by the NGramCPS decider.
@@ -232,22 +249,38 @@ match ls with
   mset_ins q' ms' (andb flag flag') f t
 end.
 
-(** xset_as_list is a utility function that returns the list of symbols contained in an xset[ngram].
-    See the comment on `xset_impl` for the structure of the xset.
+(** Given a local context (`MidWord`) to visit, this function updates the Abstract Exec State (AES).
+
+  This function implements the core logic of the NGramCPS technique (see https://github.com/Nathan-Fenner/bb-simple-n-gram-cps).
+  The function is called for each MidWord that needs to be visited by the NGramCPS decider.
+
+  Example:
+
+  Consider the local context `110 C>0 010`, and assume the following transition is `1LB`.
+
+  The TM transitions to: `11 B>0 1010`. 
+  
+  1. The 'falling' right-ngram is '010', this ngram will be added (if not in) to the AES right xset.
+     i.e. the right xset entry for '01' will be '{0}' or '{0,1}', see `xset_impl` comment.
+  2. We let the ngram fall, and have `?11 B>0 101`. The function will query the left xset of `11` to know which bit(s) to add.
+     e.g. If the left xset entry for '11' is '{0,1}', we will construct the local contexts `111 B>0 101` and `011 B>0 101`.
+          These new local contexts will be added to the mset and prepended to the list of MidWords to visit if not already in.
+  3. The function will return the (potentially) updated list of MidWords to visit, the (potentially) updated AES, 
+     and (assuming no halting transition) false if and only if the AES **was** updated.
 
   Args:
-  - xs: xset_impl, the xset to extract the ngram from.
-  - x1: list Σ, the ngram to extract.
+  - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+  - q: list MidWord, the list of MidWords that remain to be visited by the NGramCPS decider (not including `mw`).
+  - mw: MidWord, the currently visited MidWord.
+  - SI: AES_impl, the current AES.
 
   Returns:
-  - :list Σ, the list of symbols contained in the xset[ngram] or nil if the ngram was not in the xset.
-**)
-Definition xset_as_list(xs:xset_impl)(x1:list Σ):list Σ :=
-  match PositiveMap.find (listΣ_enc x1) xs with
-  | Some v => fst v
-  | None => nil
-  end.
+  - :list MidWord, the (potentially) updated list of MidWords that need to be visited by the NGramCPS decider.
+  - :AES_impl, the (potentially) updated AES.
+  - :bool, false if the machine halted or empty left/right ngrams (should never happen)
+           otherwise false if the AES was updated, else true.
 
+**)
 Definition update_AES_MidWord(tm:TM Σ)(q:list MidWord)(mw:MidWord)(SI:AES_impl):((list MidWord)*AES_impl)*bool :=
 let (l0,r0,m0,s0):=mw in
 let (ls,rs,ms):=SI in
@@ -289,6 +322,26 @@ let (ls,rs,ms):=SI in
   | _,_ => ((q,SI),false)
   end.
 
+
+(** This function perfoms the BFS on local contexts (MidWords) that need to be visited by the NGramCPS decider.
+
+  This function is the core of the NGramCPS decider.
+
+  Args:
+  - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+  - ms: list MidWord, the list of MidWords that remain to be visited by the NGramCPS decider.
+  - SI: AES_impl, the current Abstract Exec State (AES), keeping track of seen ngrams and local contexts.
+  - flag: bool, a flag that is true if the AES was updated in the previous iteration.
+  - n: nat, a gas parameter representing the maximum number of MidWords that the function will visit.
+
+  Returns:
+  - :AES_impl, the (potentially) updated AES.
+  - :bool, true if and only if the AES is closed and no halting transitions are reached. 
+           false means that we need to keep searching.
+  - :nat, the remaining gas. 
+
+
+**)
 Fixpoint update_AES(tm:TM Σ)(ms:list MidWord)(SI:AES_impl)(flag:bool)(n:nat):AES_impl*bool*nat :=
   match n with
   | O => (SI,false,O)
@@ -302,12 +355,24 @@ Fixpoint update_AES(tm:TM Σ)(ms:list MidWord)(SI:AES_impl)(flag:bool)(n:nat):AE
     end
   end.
 
+(* This check is used to make proofs easier but comes for free as InitES is in the AES since the beginning. *)
 Definition check_InitES_InAES (S:AES_impl):bool:=
   let (ls,rs,ms):=S in
   (snd (mset_ins0 ms {| l:=repeat Σ0 len_l; r:=repeat Σ0 len_r; m:=Σ0; s:=St0 |}) &&
   snd (xset_ins ls (repeat Σ0 len_l)) &&
   snd (xset_ins rs (repeat Σ0 len_r))) %bool.
 
+(** The NGramCPS decider implementation auxiliary routine.
+
+Args:
+- m n: nat, gas parameters.
+- tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+- S: AES_impl, the current Abstract Exec State (AES) which keep tracks of seen ngrams and local contexts (MidWord).
+
+Returns:
+- bool, true if the machine doesn't halt thanks to the NGramCPS argument (i.e. the AES is closed and has no halting local context).
+        false if the argument is non conclusive: the machine may halt.
+**)
 Fixpoint NGramCPS_decider_0(m n:nat)(tm:TM Σ)(S:AES_impl):bool :=
 match m with
 | O => false
@@ -319,6 +384,25 @@ match m with
   end
 end.
 
+(** The NGramCPS decider implementation.
+
+Args:
+- m: nat, gas parameter.
+- tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+
+Implicit Section Args:
+- Σ: tape alphabet (generic, this allows for augmentations which give the decider its full potential).
+- len_l: nat, the length of left ngrams.
+- len_r: nat, the length of right ngrams.
+- Σ_enc: Σ->positive, an encoding function for Σ.
+- listΣ_enc: (list Σ)->positive, an encoding function for list Σ.
+- Σ0: Σ, the 0 symbol of Σ.
+
+Returns:
+- bool, true if the machine doesn't halt thanks to the NGramCPS argument (i.e. the AES is closed and has no halting local context).
+        false if the argument is non conclusive: the machine may halt.
+
+**)
 Definition NGramCPS_decider(m:nat)(tm:TM Σ):bool :=
   match len_l,len_r with
   | S _,S _ =>
