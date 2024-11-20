@@ -325,7 +325,7 @@ let (ls,rs,ms):=SI in
   end.
 
 
-(** This function perfoms the BFS on local contexts (MidWords) that need to be visited by the NGramCPS decider.
+(** This function perfoms the DFS on local contexts (MidWords) that need to be visited by the NGramCPS decider.
 
   This function is the core of the NGramCPS decider.
 
