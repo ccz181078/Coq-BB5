@@ -264,7 +264,7 @@ end.
   
   1. The 'falling' right-ngram is '010', this ngram will be added (if not in) to the AES right xset.
      i.e. the right xset entry for '01' will be '{0}' or '{0,1}', see `xset_impl` comment.
-  2. We let the ngram fall, and have `?11 B>0 101`. The function will query the left xset of `11` to know which bit(s) to add.
+  2. We let the ngram fall, and have `?11 B>0 101`. Using `xset_as_list`, the function will query the left xset of `11` to know which bit(s) to add.
      e.g. If the left xset entry for '11' is '{0,1}', we will construct the local contexts `111 B>0 101` and `011 B>0 101`.
           These new local contexts will be added to the mset and prepended to the list of MidWords to visit if not already in.
   3. The function will return the (potentially) updated list of MidWords to visit, the (potentially) updated AES, 
