@@ -308,12 +308,20 @@ Definition SearchQueue_WF (q:SearchQueue) x0:=
   (forall x, In x (q1++q2) -> TNF_Node_WF x) /\
   ((forall x, In x (q1++q2) -> TNF_Node_HTUB x) -> TNF_Node_HTUB x0).
 
+(* for printing *)
+Definition insert_node (h : TNF_Node) (r : list TNF_Node) t (q2 : list TNF_Node) :=
+  (r++t,q2).
+
+(* for printing *)
+Definition drop_node (h : TNF_Node) (t : list TNF_Node) (q2 : list TNF_Node) :=
+  (t,q2).
+
 Definition SearchQueue_upd(q:SearchQueue)(f:HaltDecider) :=
   match q with
   | (h::t,q2) =>
     match f (TNF_tm h) with
-    | Result_Halt s i => ((TNF_Node_expand h s i)++t,q2)
-    | Result_NonHalt => (t,q2)
+    | Result_Halt s i => insert_node h (TNF_Node_expand h s i) t q2
+    | Result_NonHalt => drop_node h t q2
     | Result_Unknown => (t,h::q2)
     end
   | _ => q
