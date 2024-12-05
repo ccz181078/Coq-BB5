@@ -189,25 +189,25 @@ Definition printTM : (option (Trans Σ) * option (Trans Σ) * option (Trans Σ) 
       printTrans B0 ++ printTrans B1 ++ "_" ++
       printTrans C0 ++ printTrans C1 ++ "_" ++
       printTrans D0 ++ printTrans D1 ++ "_" ++
-      printTrans E0 ++ printTrans E1 ++ "_".
+      printTrans E0 ++ printTrans E1.
 
 Definition printTNF_Node n b :=
   printTM (unmakeTM n.(TNF_tm)) ++ ";" ++ (if (b : bool) then "halt" else "nonhalt").
 
 Redirect "printers" Recursive Extraction printTNF_Node.
 
-Extraction insert_node.
+Extraction node_halt.
 
-Extract Constant insert_node => "fun h r t q2 ->
+Extract Constant node_halt => "fun h a ->
   let _ = print_endline (String.of_seq (List.to_seq (Printers.printTNF_Node (Obj.magic h) true))) in
-  (app r t, q2)
+  a
 ".
 
-Extraction drop_node.
+Extraction node_nonhalt.
 
-Extract Constant drop_node => "fun h t q2 ->
+Extract Constant node_nonhalt => "fun h a ->
   let _ = print_endline (String.of_seq (List.to_seq (Printers.printTNF_Node (Obj.magic h) false))) in
-  (t, q2)
+  a
 ".
 
 Redirect "code" Recursive Extraction q_200. 
