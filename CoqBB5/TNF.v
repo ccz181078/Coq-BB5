@@ -308,7 +308,10 @@ Definition SearchQueue_WF (q:SearchQueue) x0:=
   (forall x, In x (q1++q2) -> TNF_Node_WF x) /\
   ((forall x, In x (q1++q2) -> TNF_Node_HTUB x) -> TNF_Node_HTUB x0).
 
-(* for printing *)
+(**
+The following two definitions are needed for printing purpose: the OCaml extraction will insert print statements
+in place of these definitions. See BB52Extraction.v.
+**)
 Definition node_halt (h : TNF_Node) {A} : A -> A := fun a => a.
 Definition node_nonhalt (h : TNF_Node) {A} : A -> A := fun a => a.
 
