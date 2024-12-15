@@ -192,7 +192,7 @@ Definition printTM : (option (Trans Σ) * option (Trans Σ) * option (Trans Σ) 
       printTrans E0 ++ printTrans E1.
 
 Definition printTNF_Node n b :=
-  printTM (unmakeTM n.(TNF_tm)) ++ ";" ++ (if (b : bool) then "halt" else "nonhalt").
+  printTM (unmakeTM n.(TNF_tm)) ++ "," ++ (if (b : bool) then "halt" else "nonhalt").
 
 Redirect "printers" Recursive Extraction printTNF_Node.
 
