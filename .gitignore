@@ -1,3 +1,11 @@
+
+*.native
+.vscode
+*.ml
+*.out
+*.csv
+*.zst
+_build
 OUTSTANDING.*
 .DS_Store
 Makefile.coq
