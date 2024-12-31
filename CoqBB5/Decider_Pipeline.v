@@ -63,24 +63,24 @@ Time Qed.
 
 Definition decider0 := HaltDecider_nil.
 Definition decider1 := halt_decider 130.
-Definition decider2 := (loop1_decider 130 (1::2::4::8::16::32::64::128::256::512::nil)).
+Definition decider2 := ((loop1_decider 130 (1::2::4::8::16::32::64::128::256::512::nil)), LOOP1_params_130_512).
 
-Definition decider3 := (NGramCPS_decider_impl2 1 1 100).
-Definition decider4 := (NGramCPS_decider_impl2 2 2 200).
-Definition decider5 := (NGramCPS_decider_impl2 3 3 400).
-Definition decider6 := (NGramCPS_decider_impl1 2 2 2 1600).
-Definition decider7 := (NGramCPS_decider_impl1 2 3 3 1600).
+Definition decider3 := ((NGramCPS_decider_impl2 1 1 100), NGRAM_CPS_IMPL2_params_1_1_100).
+Definition decider4 := ((NGramCPS_decider_impl2 2 2 200),NGRAM_CPS_IMPL2_params_2_2_200).
+Definition decider5 := ((NGramCPS_decider_impl2 3 3 400),NGRAM_CPS_IMPL2_params_3_3_400).
+Definition decider6 := ((NGramCPS_decider_impl1 2 2 2 1600),NGRAM_CPS_IMPL1_params_2_2_2_1600).
+Definition decider7 := ((NGramCPS_decider_impl1 2 3 3 1600),NGRAM_CPS_IMPL1_params_2_3_3_1600).
 
-Definition decider8 := (loop1_decider 4100 (1::2::4::8::16::32::64::128::256::512::1024::2048::4096::nil)).
+Definition decider8 := ((loop1_decider 4100 (1::2::4::8::16::32::64::128::256::512::1024::2048::4096::nil)),LOOP1_params_4100_4096).
 
-Definition decider9 := (NGramCPS_decider_impl1 4 2 2 600).
-Definition decider10 := (NGramCPS_decider_impl1 4 3 3 1600).
-Definition decider11 := (NGramCPS_decider_impl1 6 2 2 3200).
-Definition decider12 := (NGramCPS_decider_impl1 6 3 3 3200).
-Definition decider13 := (NGramCPS_decider_impl1 8 2 2 1600).
-Definition decider14 := (NGramCPS_decider_impl1 8 3 3 1600).
+Definition decider9 := ((NGramCPS_decider_impl1 4 2 2 600),NGRAM_CPS_IMPL1_params_4_2_2_600).
+Definition decider10 := ((NGramCPS_decider_impl1 4 3 3 1600),NGRAM_CPS_IMPL1_params_4_3_3_1600).
+Definition decider11 := ((NGramCPS_decider_impl1 6 2 2 3200),NGRAM_CPS_IMPL1_params_6_2_2_3200).
+Definition decider12 := ((NGramCPS_decider_impl1 6 3 3 3200),NGRAM_CPS_IMPL1_params_6_3_3_3200).
+Definition decider13 := ((NGramCPS_decider_impl1 8 2 2 1600),NGRAM_CPS_IMPL1_params_8_2_2_1600).
+Definition decider14 := ((NGramCPS_decider_impl1 8 3 3 1600),NGRAM_CPS_IMPL1_params_8_3_3_1600).
 
-Lemma decider2_WF: HaltDecider_WF (N.to_nat BB5_minus_one) decider2.
+Lemma decider2_WF: HaltDecider_WF (N.to_nat BB5_minus_one) (fst decider2).
 Proof.
   apply loop1_decider_WF.
   unfold BB5_minus_one.
@@ -118,7 +118,7 @@ Proof.
 Qed.
 
 Definition root_q_upd1:=
-  (SearchQueue_upd root_q decider2).
+  (SearchQueue_upd root_q (MakeHaltDeciderWithIdentifier decider2)).
 
 Lemma root_q_upd1_WF:
   SearchQueue_WF (N.to_nat BB5_minus_one) root_q_upd1 root.
