@@ -63,13 +63,8 @@ Definition tmToString : (option (Trans Σ) * option (Trans Σ) * option (Trans �
       transToString D0 ++ transToString D1 ++ "_" ++
       transToString E0 ++ transToString E1.
 
-Definition tmAndStatusToString n b :=
-tmToString (unmakeTM n.(TNF_tm)) ++ "," ++ (if (b : bool) then "halt" else "nonhalt").
-
-Redirect "BB52Extraction/printers" Recursive Extraction tmAndStatusToString.
-
-(** Converting decider identifiers to strings, I was not able to put it in printers because the main extraction also needs the type `DeciderIdentifier` and then there was conflict with `Printers.DeciderIdentifier`  *)
-
+(** Converting decider identifiers to strings
+**)
 Definition deciderIdentifierToString : DeciderIdentifier -> string :=
   fun decider_id =>
     match decider_id with
@@ -91,92 +86,29 @@ Definition deciderIdentifierToString : DeciderIdentifier -> string :=
     | NORMAL_FORM_TABLE_BASED => "NORMAL_FORM_TABLE_BASED"
     end.
 
-Extraction deciderIdentifierToString.
+Definition tmAndStatusAndDeciderToString tnf_node decider_id b  :=
+tmToString (unmakeTM tnf_node.(TNF_tm)) ++ "," ++ (if (b : bool) then "halt" else "nonhalt") ++ "," ++ (deciderIdentifierToString decider_id).
+
+Redirect "BB52Extraction/printers" Recursive Extraction tmAndStatusAndDeciderToString.
 
 (**
 This is the crucial part of the extraction where we insert the print statements to print 
 each enumerated machine and whether it halts or not given the conclusion reached by the Coq proof.
 
 Prints statements are inserted in place of "node_halt" and "node_nonhalt" definitions of the Coq proof, see TNF.v.
+
+In the OCaml code 'Obj.magic' is used to cast between identical types that are both defined in the 'printers' and 'bb5_verified_enumeration' files.
 **)
 
-Extraction node_halt.
-
 Extract Constant node_halt => "
-let deciderIdentifierToString = function
-| DECIDER_NIL -> 'D'::('E'::('C'::('I'::('D'::('E'::('R'::('_'::('N'::('I'::('L'::[]))))))))))
-| LOOP1_params_130_512 ->
-'L'::('O'::('O'::('P'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('1'::('3'::('0'::('_'::('5'::('1'::('2'::[])))))))))))))))))))
-| NGRAM_CPS_IMPL2_params_1_1_100 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('2'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('1'::('_'::('1'::('_'::('1'::('0'::('0'::[])))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL2_params_2_2_200 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('2'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('2'::('_'::('2'::('_'::('2'::('0'::('0'::[])))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL2_params_3_3_400 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('2'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('3'::('_'::('3'::('_'::('4'::('0'::('0'::[])))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_2_2_2_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('2'::('_'::('2'::('_'::('2'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_2_3_3_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('2'::('_'::('3'::('_'::('3'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| LOOP1_params_4100_4096 ->
-'L'::('O'::('O'::('P'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('4'::('1'::('0'::('0'::('_'::('4'::('0'::('9'::('6'::[])))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_4_2_2_600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('4'::('_'::('2'::('_'::('2'::('_'::('6'::('0'::('0'::[])))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_4_3_3_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('4'::('_'::('3'::('_'::('3'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_6_2_2_3200 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('6'::('_'::('2'::('_'::('2'::('_'::('3'::('2'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_6_3_3_3200 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('6'::('_'::('3'::('_'::('3'::('_'::('3'::('2'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_8_2_2_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('8'::('_'::('2'::('_'::('2'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_8_3_3_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('8'::('_'::('3'::('_'::('3'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| TABLE_BASED -> 'T'::('A'::('B'::('L'::('E'::('_'::('B'::('A'::('S'::('E'::('D'::[]))))))))))
-| NORMAL_FORM_TABLE_BASED ->
-'N'::('O'::('R'::('M'::('A'::('L'::('_'::('F'::('O'::('R'::('M'::('_'::('T'::('A'::('B'::('L'::('E'::('_'::('B'::('A'::('S'::('E'::('D'::[])))))))))))))))))))))) in
-
 fun h decider_id a ->
-  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusToString (Obj.magic h) true)) ^ {|,|} ^ (String.of_seq (List.to_seq (deciderIdentifierToString decider_id))) )  in
+  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusAndDeciderToString (Obj.magic h) (Obj.magic decider_id) true)))  in
   a
 ".
 
-Extraction node_nonhalt.
-
 Extract Constant node_nonhalt => "
-let deciderIdentifierToString = function
-| DECIDER_NIL -> 'D'::('E'::('C'::('I'::('D'::('E'::('R'::('_'::('N'::('I'::('L'::[]))))))))))
-| LOOP1_params_130_512 ->
-'L'::('O'::('O'::('P'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('1'::('3'::('0'::('_'::('5'::('1'::('2'::[])))))))))))))))))))
-| NGRAM_CPS_IMPL2_params_1_1_100 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('2'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('1'::('_'::('1'::('_'::('1'::('0'::('0'::[])))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL2_params_2_2_200 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('2'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('2'::('_'::('2'::('_'::('2'::('0'::('0'::[])))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL2_params_3_3_400 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('2'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('3'::('_'::('3'::('_'::('4'::('0'::('0'::[])))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_2_2_2_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('2'::('_'::('2'::('_'::('2'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_2_3_3_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('2'::('_'::('3'::('_'::('3'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| LOOP1_params_4100_4096 ->
-'L'::('O'::('O'::('P'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('4'::('1'::('0'::('0'::('_'::('4'::('0'::('9'::('6'::[])))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_4_2_2_600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('4'::('_'::('2'::('_'::('2'::('_'::('6'::('0'::('0'::[])))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_4_3_3_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('4'::('_'::('3'::('_'::('3'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_6_2_2_3200 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('6'::('_'::('2'::('_'::('2'::('_'::('3'::('2'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_6_3_3_3200 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('6'::('_'::('3'::('_'::('3'::('_'::('3'::('2'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_8_2_2_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('8'::('_'::('2'::('_'::('2'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| NGRAM_CPS_IMPL1_params_8_3_3_1600 ->
-'N'::('G'::('R'::('A'::('M'::('_'::('C'::('P'::('S'::('_'::('I'::('M'::('P'::('L'::('1'::('_'::('p'::('a'::('r'::('a'::('m'::('s'::('_'::('8'::('_'::('3'::('_'::('3'::('_'::('1'::('6'::('0'::('0'::[]))))))))))))))))))))))))))))))))
-| TABLE_BASED -> 'T'::('A'::('B'::('L'::('E'::('_'::('B'::('A'::('S'::('E'::('D'::[]))))))))))
-| NORMAL_FORM_TABLE_BASED ->
-'N'::('O'::('R'::('M'::('A'::('L'::('_'::('F'::('O'::('R'::('M'::('_'::('T'::('A'::('B'::('L'::('E'::('_'::('B'::('A'::('S'::('E'::('D'::[])))))))))))))))))))))) in
-
 fun h decider_id a ->
-  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusToString (Obj.magic h) false)) ^ {|,|} ^ (String.of_seq (List.to_seq (deciderIdentifierToString decider_id))) )  in
+  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusAndDeciderToString (Obj.magic h) (Obj.magic decider_id) false)))  in
   a
 ".
 
