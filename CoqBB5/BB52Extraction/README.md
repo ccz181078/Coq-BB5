@@ -1,6 +1,6 @@
 # OCaml extraction of the bb5 enumeration
 
-Coq-BB5 extracts an OCaml program (see ../BB52Extraction.v) named `bb5_verified_enumeration.out` which prints all the enumerated Turing machines with their proved halting status from blank tape (halt or nonhalt). To run the program, do:
+Coq-BB5 extracts an OCaml program (see ../BB52Extraction.v) named `bb5_verified_enumeration.out` which prints all the enumerated Turing machines with their proved halting status from blank tape (halt or nonhalt) and decider. To run the program, do:
 
 ```
 chmod +x BB52Extraction.sh
@@ -15,16 +15,16 @@ Once compiled, launch the Coq-verified enumeration with:
 `./bb5_verified_enumeration.native` and you should see each enumerated machine and its proved halting status:
 
 ```
-------_------_------_------_------,halt
-0RA---_------_------_------_------,nonhalt
-1RA---_------_------_------_------,nonhalt
-0RB---_------_------_------_------,halt
-0RB---_0LA---_------_------_------,nonhalt
-0RB---_1LA---_------_------_------,halt
-0RB---_1LA0LA_------_------_------,nonhalt
-0RB---_1LA1LA_------_------_------,nonhalt
-0RB---_1LA0RA_------_------_------,nonhalt
-0RB---_1LA1RA_------_------_------,nonhalt
+machine,status,decider
+------_------_------_------_------,halt,LOOP1_params_130_512
+0RA---_------_------_------_------,nonhalt,LOOP1_params_130_512
+1RA---_------_------_------_------,nonhalt,LOOP1_params_130_512
+0RB---_------_------_------_------,halt,LOOP1_params_130_512
+0RB---_0LA---_------_------_------,nonhalt,LOOP1_params_130_512
+0RB---_1LA---_------_------_------,halt,LOOP1_params_130_512
+0RB---_1LA0LA_------_------_------,nonhalt,LOOP1_params_130_512
+0RB---_1LA1LA_------_------_------,nonhalt,LOOP1_params_130_512
+0RB---_1LA0RA_------_------_------,nonhalt,LOOP1_params_130_512
 ...
 ```
 
