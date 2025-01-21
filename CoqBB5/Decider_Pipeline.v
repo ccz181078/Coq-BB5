@@ -63,7 +63,7 @@ Time Qed.
 
 Definition decider0 := HaltDecider_nil.
 Definition decider1 := halt_decider 130.
-Definition decider2 := (loop1_decider 130 (1::2::4::8::16::32::64::128::256::512::nil)).
+Definition decider2 := (loop1_decider 130).
 
 Definition decider3 := (NGramCPS_decider_impl2 1 1 100).
 Definition decider4 := (NGramCPS_decider_impl2 2 2 200).
@@ -71,7 +71,7 @@ Definition decider5 := (NGramCPS_decider_impl2 3 3 400).
 Definition decider6 := (NGramCPS_decider_impl1 2 2 2 1600).
 Definition decider7 := (NGramCPS_decider_impl1 2 3 3 1600).
 
-Definition decider8 := (loop1_decider 4100 (1::2::4::8::16::32::64::128::256::512::1024::2048::4096::nil)).
+Definition decider8 := (loop1_decider 4100).
 
 Definition decider9 := (NGramCPS_decider_impl1 4 2 2 600).
 Definition decider10 := (NGramCPS_decider_impl1 4 3 3 1600).
@@ -297,7 +297,7 @@ match x with
 | DNV n f => dfa_nfa_verifier n f
 | WA max_d n_l f_l n_r f_r => MITM_WDFA_verifier max_d n_l f_l n_r f_r 10000000
 | Ha => halt_decider_max
-| Lp1 => loop1_decider 1050000 (4096::8192::16384::32768::65536::131072::262144::524288::nil)
+| Lp1 => loop1_decider 1050000
 | Holdout => holdout_checker
 end.
 
