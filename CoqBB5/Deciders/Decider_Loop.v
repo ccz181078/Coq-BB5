@@ -12,6 +12,39 @@ From CoqBB5 Require Import Encodings.
 
 (* Begin: Loop decider implementation *)
 
+(** Loop-finder algorithm: loop detection.
+
+  .       .       h1
+  .       h1      x
+  h1  ->  x   ->  x
+  .       .       h0
+  .       h0      x
+  h0      x       x
+
+  This recursive algorithm rewinds the history of configurations and tape positions n0 times where 
+  `h0` and `h1` are always distant of n0 steps with n0 the initial value of parameter `n`.
+
+  The algorithm continues rewinding until `h0` and `h1` are record breaking (i.e. no cells to the left or right of them has ever been visited).
+
+  At each step, the algorithm checks that `h0` and `h1` have the same state and read symbol.
+  If not, false is returned as it is not a loop.
+
+  Otherwise a loop is detected and :
+
+  - if h0 and h1 are at same position, the loop is a standard loop (i.e. same configuration reached twice)
+  - if h0 and h1 are not at same position, the loop is a translated loop (i.e. repeating motif translated on tape)
+
+  Note that this loop-detection algorithm is different from historically-developed algorithms that look at the entire tape rather than considering the history of state-symbol pairs.
+
+  Args:
+    - h0: ListES*Z, configuration and tape head position, initially it is the last reached configuration (see `loop1_decider0`)
+    - h1: ListES*Z, configuration and tape head position n0 steps before `h0` where n0 is the initial value of parameter `n`
+    - ls0: list (ListES*Z), history of visited configurations and tape head positions before h0 (excluded)
+    - ls1: list (ListES*Z), history of visited configurations and tape head positions before h1 (excluded)
+    - n: nat, initial value of the number of steps separating h0 from h1 also corresponds to the minimum amount of history rewinds to perform
+    - dpos: Z, initial tape head position difference between h0 and h1, this parameter is useful to detect translated loops
+*)
+
 Fixpoint verify_loop1(h0 h1:ListES*Z)(ls0 ls1:list (ListES*Z))(n:nat)(dpos:Z):bool :=
   let (es0,d0):=h0 in
   let (es1,d1):=h1 in
@@ -42,6 +75,36 @@ Fixpoint verify_loop1(h0 h1:ListES*Z)(ls0 ls1:list (ListES*Z))(n:nat)(dpos:Z):bo
     end
   ).
 
+(** Loop-finder algorithm: main body.
+
+  The algorithm considers three configurations `h0`, `h1`, `h2` each separated by n+1 execution steps. E.g. for n=1:
+        h2
+        .
+        .
+        h1
+        .
+        .
+        h0
+
+  Where `h0` is constant, the last reached configuration in `loop1_decider0`.
+
+  If configurations `h0`, `h1`, `h2` have same state and read symbol then the algorithm verifies whether
+  a loop has been met (see `verify_loop1`).
+
+  Otherwise, the algorithm proceeds to the next `n` (until histories are empty).
+
+  Args:
+    - h0: ListES*Z, last reached configuration (see `loop1_decider0`) and tape head position
+    - h1: ListES*Z, configuration and tape head position (n+1) steps before `h0`
+    - h2: ListES*Z, configuration and tape head position (n+1) steps before `h1`
+    - ls0: list (ListES*Z), history of visited configurations and tape head positions before h0 (excluded)
+    - ls1: list (ListES*Z), history of visited configurations and tape head positions before h1 (excluded)
+    - ls2: list (ListES*Z), history of visited configurations and tape head positions before h2 (excluded)
+    - n: nat, n+1 represents the number of steps separating h0 from h1 and h1 from h2
+
+  Returns true iff a loop is detected for the triple  `h0`, `h1`, `h2`.
+*)
+
 Fixpoint find_loop1(h0 h1 h2:ListES*Z)(ls0 ls1 ls2:list (ListES*Z))(n:nat){struct ls1}:bool :=
   (
     (let (es0,d0):=h0 in
@@ -62,26 +125,38 @@ Fixpoint find_loop1(h0 h1 h2:ListES*Z)(ls0 ls1 ls2:list (ListES*Z))(n:nat){struc
   | _,_ => false
   end.
 
+
+(** Loop-finder algorithm entrypoint.
+
+  Args:
+    - h0: ListES*Z, last reached configuration (see `loop1_decider0`) and tape head position
+    - h1: ListES*Z, one-before-last reached configuration and tape head position
+    - ls: list (ListES*Z), history of visited configurations and tape head positions
+
+  Returns true iff a loop (including translated loopss) is detected in the history of configurations.
+*)
 Definition find_loop1_0(h0 h1:ListES*Z)(ls:list (ListES*Z)):bool :=
 match ls with
 | h2::ls' => find_loop1 h0 h1 h2 (h1::ls) ls ls' O
 | nil => false
 end.
 
-(** Loop decider aux function
+(** Loop decider function: runs `n` steps of the Turing machine and stores the history
+of seen configurations (`ListES`) and tape head positions. After `n` steps, the function calls
+`find_loop1_0` to try and detect a potential loop.
 
-Args:
-  - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
-  - n: nat, gas parameter
-  - es:ListES, current configuration (ExecState), using the `ListES` representation, see ListTape.v
-  - d: Z, current head position index on the tape
-  - ls: list (ListES*Z), list of visited configurations and head positions
+  Args:
+    - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+    - n: nat, gas parameter
+    - es:ListES, current configuration (ExecState), using the `ListES` representation, see ListTape.v
+    - d: Z, current head position index on the tape
+    - ls: list (ListES*Z), list of visited configurations and head positions
 
-Returns:
-  - HaltDecideResult:
-    - Result_Halt s i: the Turing machine halts at configuration (s,i)
-    - Result_NonHalt: the Turing machine does not halt
-    - Result_Unknown: the decider cannot conclude
+  Returns:
+    - HaltDecideResult:
+      - Result_Halt s i: the Turing machine halts at configuration (s,i)
+      - Result_NonHalt: the Turing machine does not halt
+      - Result_Unknown: the decider cannot conclude
 *)
 Fixpoint loop1_decider0(tm:TM Σ)(n:nat)(es:ListES)(d:Z)(ls:list (ListES*Z)):HaltDecideResult :=
 match n with
@@ -103,17 +178,17 @@ match n with
   end
 end.
 
-(** Loop decider
+(** Loop decider entrypoint function.
 
-Args:
-  - n: nat, gas parameter
-  - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+  Args:
+    - n: nat, gas parameter
+    - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
 
-Returns:
-  - HaltDecideResult:
-    - Result_Halt s i: the Turing machine halts at configuration (s,i)
-    - Result_NonHalt: the Turing machine does not halt
-    - Result_Unknown: the decider cannot conclude
+  Returns:
+    - HaltDecideResult:
+      - Result_Halt s i: the Turing machine halts at configuration (s,i)
+      - Result_NonHalt: the Turing machine does not halt
+      - Result_Unknown: the decider cannot conclude
 *)
 Definition loop1_decider(n:nat)(tm:TM Σ):HaltDecideResult :=
   loop1_decider0 tm n {| l:=nil; r:=nil; m:=Σ0; s:=St0 |} Z0 nil.
@@ -268,7 +343,7 @@ Lemma loop1_decider0_spec tm n es d ls:
   match loop1_decider0 tm n es d ls with
   | Result_Halt s0 i0 =>
     exists n1 es0,
-    n1<n+(length ls) /\
+    n1<n+(List.length ls) /\
     HaltsAt Σ tm n1 (InitES Σ Σ0) /\
     Steps Σ tm n1 (InitES Σ Σ0) (ListES_toES es0) /\
     es0.(s)=s0 /\ es0.(m)=i0
@@ -302,9 +377,9 @@ Proof.
       (loop1_decider0 tm (S n) es' d' ls') by reflexivity.
       specialize (IHn _ _ _ H0).
       rewrite Heqt in Heqd'. cbn in Heqd'. subst d'. subst ls'.
-      replace (S n + length ((es, d) :: ls)) with (S (S n) + length ls) in IHn by (cbn; lia).
+      replace (S n + List.length ((es, d) :: ls)) with (S (S n) + List.length ls) in IHn by (cbn; lia).
       apply IHn.
-  - exists (length ls). exists es.
+  - exists (List.length ls). exists es.
     repeat split.
     + lia.
     + eexists.
