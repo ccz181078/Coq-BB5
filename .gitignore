@@ -1,4 +1,4 @@
-
+*.gz
 *.native
 .vscode
 *.ml
