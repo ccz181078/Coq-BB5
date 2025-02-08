@@ -119,11 +119,11 @@ Definition decider_all :=
 decider9::decider10::
 decider11::decider12::
 decider13::decider14::
-table_based_decider::
-(NF_decider table_based_decider)::
+(table_based_decider,TABLE_BASED)::
+((NF_decider table_based_decider),NORMAL_FORM_TABLE_BASED)::
 nil)).
 
-Lemma decider_all_spec: HaltDecider_WF (N.to_nat BB5_minus_one) decider_all.
+Lemma decider_all_spec: HaltDeciderWithIdentifier_WF (N.to_nat BB5_minus_one) decider_all.
 Proof.
   unfold decider_all,HaltDecider_list.
   repeat apply HaltDecider_cons_spec.
@@ -134,8 +134,8 @@ Proof.
     unfold BB5_minus_one. lia.
   - apply table_based_decider_spec.
   - apply NF_decider_spec,table_based_decider_spec.
-  - unfold HaltDecider_nil,HaltDecider_WF.
-    intro. trivial.
+  - unfold HaltDecider_nil,HaltDeciderWithIdentifier_WF.
+    intro. simpl. trivial.
 Qed.
 
 Lemma SearchQueue_WF_implies_TNF_Node_HTUB BB (q : SearchQueue) root :

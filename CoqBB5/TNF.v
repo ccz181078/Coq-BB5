@@ -263,6 +263,10 @@ Inductive HaltDecideResult :=
 .
 
 Definition HaltDecider := TM Σ -> HaltDecideResult.
+Definition HaltDeciderWithIdentifier := TM Σ -> HaltDecideResult*DeciderIdentifier.
+
+Definition MakeHaltDeciderWithIdentifier (f_and_id:HaltDecider*DeciderIdentifier):HaltDeciderWithIdentifier :=
+  fun tm => ((fst f_and_id) tm, (snd f_and_id)).
 
 Definition HaltDecider_WF(f:HaltDecider) :=
   forall tm,
@@ -272,19 +276,29 @@ Definition HaltDecider_WF(f:HaltDecider) :=
     | Result_Unknown => True
     end.
 
-Definition HaltDecider_cons(f g:HaltDecider):HaltDecider :=
+Definition HaltDeciderWithIdentifier_WF(g:HaltDeciderWithIdentifier) :=
+  forall tm,
+    match fst (g tm) with
+    | Result_Halt s i => exists n t, HaltsAt _ tm n (InitES Σ Σ0) /\ Steps _ tm n (InitES Σ Σ0) (s,t) /\ t Z0 = i /\ n<=BB
+    | Result_NonHalt => ~HaltsFromInit Σ Σ0 tm
+    | Result_Unknown => True
+    end. 
+
+Definition HaltDecider_cons (f:HaltDecider) (decider_id: DeciderIdentifier) (g:HaltDeciderWithIdentifier):HaltDeciderWithIdentifier :=
   fun tm =>
     let res := f tm in
       match res with
       | Result_Unknown => g tm
-      | _ => res
+      | _ => (res,decider_id)
       end.
 
-Lemma HaltDecider_cons_spec(f g:HaltDecider):
-  HaltDecider_WF f ->
-  HaltDecider_WF g ->
-  HaltDecider_WF (HaltDecider_cons f g).
+Lemma HaltDecider_cons_spec (f:HaltDecider) (g:HaltDeciderWithIdentifier):
+  forall decider_id,
+    HaltDecider_WF f ->
+    HaltDeciderWithIdentifier_WF g ->
+    HaltDeciderWithIdentifier_WF (HaltDecider_cons f decider_id g).
 Proof.
+  intro decider_id.
   intros Hf Hg tm.
   specialize (Hf tm).
   specialize (Hg tm).
@@ -292,12 +306,12 @@ Proof.
   destruct (f tm); auto 1.
 Qed.
 
-Definition HaltDecider_nil:HaltDecider := fun _ => Result_Unknown.
+Definition HaltDecider_nil:HaltDeciderWithIdentifier := fun _ => (Result_Unknown, DECIDER_NIL).
 
-Fixpoint HaltDecider_list(f:list HaltDecider):HaltDecider :=
+Fixpoint HaltDecider_list(f:list (HaltDecider*DeciderIdentifier)):HaltDeciderWithIdentifier :=
   match f with
   | nil => HaltDecider_nil
-  | h::t => HaltDecider_cons h (HaltDecider_list t)
+  | h::t => HaltDecider_cons (fst h) (snd h) (HaltDecider_list t)
   end.
 
 Definition SearchQueue :=
@@ -312,15 +326,17 @@ Definition SearchQueue_WF (q:SearchQueue) x0:=
 The following two definitions are needed for printing purpose: the OCaml extraction will insert print statements
 in place of these definitions. See BB52Extraction.v.
 **)
-Definition node_halt (h : TNF_Node) {A} : A -> A := fun a => a.
-Definition node_nonhalt (h : TNF_Node) {A} : A -> A := fun a => a.
+Definition node_halt (h : TNF_Node) (decider_id: DeciderIdentifier) {A} : A -> A := fun a => a.
+Definition node_nonhalt (h : TNF_Node) (decider_id: DeciderIdentifier) {A} : A -> A := fun a => a.
 
-Definition SearchQueue_upd(q:SearchQueue)(f:HaltDecider) :=
+Definition SearchQueue_upd(q:SearchQueue)(f:HaltDeciderWithIdentifier) :=
   match q with
   | (h::t,q2) =>
-    match f (TNF_tm h) with
-    | Result_Halt s i => node_halt h (TNF_Node_expand h s i ++ t, q2)
-    | Result_NonHalt => node_nonhalt h (t, q2)
+    let res := f (TNF_tm h) in
+    let decider_id := snd res in
+    match fst res with
+    | Result_Halt s i => node_halt h decider_id (TNF_Node_expand h s i ++ t, q2)
+    | Result_NonHalt => node_nonhalt h decider_id (t, q2)
     | Result_Unknown => (t,h::q2)
     end
   | _ => q
@@ -328,7 +344,7 @@ Definition SearchQueue_upd(q:SearchQueue)(f:HaltDecider) :=
 
 Lemma SearchQueue_upd_spec {q x0 f}:
   SearchQueue_WF q x0 ->
-  HaltDecider_WF f ->
+  HaltDeciderWithIdentifier_WF f ->
   SearchQueue_WF (SearchQueue_upd q f) x0.
 Proof.
   destruct q as [q1 q2].
@@ -338,7 +354,7 @@ Proof.
   intros Hq Hf.
   destruct Hq as [Hq1 Hq2].
   specialize (Hf (TNF_tm h)).
-  destruct (f (TNF_tm h)).
+  destruct (fst (f (TNF_tm h))).
   - cbn.
     split.
     + intros.
@@ -383,10 +399,10 @@ Proof.
       tauto.
 Qed.
 
-Definition SearchQueue_upd_bfs(q:SearchQueue)(f:HaltDecider) :=
+Definition SearchQueue_upd_bfs(q:SearchQueue)(f:HaltDeciderWithIdentifier) :=
   match q with
   | (h::t,q2) =>
-    match f (TNF_tm h) with
+    match fst (f (TNF_tm h)) with
     | Result_Halt s i => (t,(TNF_Node_expand h s i)++q2)
     | Result_NonHalt => (t,q2)
     | Result_Unknown => (t,h::q2)
@@ -397,7 +413,7 @@ Definition SearchQueue_upd_bfs(q:SearchQueue)(f:HaltDecider) :=
 
 Lemma SearchQueue_upd_bfs_spec {q x0 f}:
   SearchQueue_WF q x0 ->
-  HaltDecider_WF f ->
+  HaltDeciderWithIdentifier_WF f ->
   SearchQueue_WF (SearchQueue_upd_bfs q f) x0.
 Proof.
   intros.
@@ -409,7 +425,7 @@ Proof.
   destruct q as [q1 q2].
   destruct q1 as [|h t].
   1: apply H1.
-  destruct (f (TNF_tm h)); auto 1.
+  destruct (fst (f (TNF_tm h))); auto 1.
   assert (
     forall x, In x ((TNF_Node_expand h s i ++ t) ++ q2) <-> In x (t ++ TNF_Node_expand h s i ++ q2)
   ). {
@@ -473,7 +489,7 @@ end.
 
 Lemma SearchQueue_upds_spec q x0 f n:
   SearchQueue_WF q x0 ->
-  HaltDecider_WF f ->
+  HaltDeciderWithIdentifier_WF f ->
   SearchQueue_WF (SearchQueue_upds q f n) x0.
 Proof.
   intros.
@@ -494,7 +510,7 @@ Fixpoint SearchQueue_upds_bfs q f (n:nat) :=
 
 Lemma SearchQueue_upds_bfs_spec q x0 f n:
   SearchQueue_WF q x0 ->
-  HaltDecider_WF f ->
+  HaltDeciderWithIdentifier_WF f ->
   SearchQueue_WF (SearchQueue_upds_bfs q f n) x0.
 Proof.
   intros.
@@ -509,7 +525,7 @@ Definition SearchQueue_bfs q f :=
 
 Lemma SearchQueue_bfs_spec q x0 f:
   SearchQueue_WF q x0 ->
-  HaltDecider_WF f ->
+  HaltDeciderWithIdentifier_WF f ->
   SearchQueue_WF (SearchQueue_bfs q f) x0.
 Proof.
   intros.

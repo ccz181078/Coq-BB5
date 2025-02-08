@@ -63,29 +63,52 @@ Definition tmToString : (option (Trans Σ) * option (Trans Σ) * option (Trans �
       transToString D0 ++ transToString D1 ++ "_" ++
       transToString E0 ++ transToString E1.
 
-Definition tmAndStatusToString n b :=
-  tmToString (unmakeTM n.(TNF_tm)) ++ "," ++ (if (b : bool) then "halt" else "nonhalt").
+(** Converting decider identifiers to strings
+**)
+Definition deciderIdentifierToString : DeciderIdentifier -> string :=
+  fun decider_id =>
+    match decider_id with
+    | DECIDER_NIL => "DECIDER_NIL" 
+    | LOOP1_params_130 => "LOOP1_params_130"
+    | NGRAM_CPS_IMPL2_params_1_1_100 => "NGRAM_CPS_IMPL2_params_1_1_100"
+    | NGRAM_CPS_IMPL2_params_2_2_200  => "NGRAM_CPS_IMPL2_params_2_2_200"
+    | NGRAM_CPS_IMPL2_params_3_3_400 => "NGRAM_CPS_IMPL2_params_3_3_400"
+    | NGRAM_CPS_IMPL1_params_2_2_2_1600 => "NGRAM_CPS_IMPL1_params_2_2_2_1600"
+    | NGRAM_CPS_IMPL1_params_2_3_3_1600 => "NGRAM_CPS_IMPL1_params_2_3_3_1600"
+    | LOOP1_params_4100 => "LOOP1_params_4100"
+    | NGRAM_CPS_IMPL1_params_4_2_2_600 => "NGRAM_CPS_IMPL1_params_4_2_2_600"
+    | NGRAM_CPS_IMPL1_params_4_3_3_1600 => "NGRAM_CPS_IMPL1_params_4_3_3_1600"
+    | NGRAM_CPS_IMPL1_params_6_2_2_3200 => "NGRAM_CPS_IMPL1_params_6_2_2_3200"
+    | NGRAM_CPS_IMPL1_params_6_3_3_3200 => "NGRAM_CPS_IMPL1_params_6_3_3_3200"
+    | NGRAM_CPS_IMPL1_params_8_2_2_1600 => "NGRAM_CPS_IMPL1_params_8_2_2_1600"
+    | NGRAM_CPS_IMPL1_params_8_3_3_1600 => "NGRAM_CPS_IMPL1_params_8_3_3_1600"
+    | TABLE_BASED => "TABLE_BASED"
+    | NORMAL_FORM_TABLE_BASED => "NORMAL_FORM_TABLE_BASED"
+    end.
 
-Redirect "BB52Extraction/printers" Recursive Extraction tmAndStatusToString.
+Definition tmAndStatusAndDeciderToString tnf_node decider_id b  :=
+tmToString (unmakeTM tnf_node.(TNF_tm)) ++ "," ++ (if (b : bool) then "halt" else "nonhalt") ++ "," ++ (deciderIdentifierToString decider_id).
+
+Redirect "BB52Extraction/printers" Recursive Extraction tmAndStatusAndDeciderToString.
 
 (**
 This is the crucial part of the extraction where we insert the print statements to print 
 each enumerated machine and whether it halts or not given the conclusion reached by the Coq proof.
 
 Prints statements are inserted in place of "node_halt" and "node_nonhalt" definitions of the Coq proof, see TNF.v.
+
+In the OCaml code 'Obj.magic' is used to cast between identical types that are both defined in the 'printers' and 'bb5_verified_enumeration' files.
 **)
 
-Extraction node_halt.
-
-Extract Constant node_halt => "fun h a ->
-  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusToString (Obj.magic h) true))) in
+Extract Constant node_halt => "
+fun h decider_id a ->
+  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusAndDeciderToString (Obj.magic h) (Obj.magic decider_id) true)))  in
   a
 ".
 
-Extraction node_nonhalt.
-
-Extract Constant node_nonhalt => "fun h a ->
-  let _ = print_endline (String.of_seq (List.to_seq (Printers.tnfNodeToString (Obj.magic h) false))) in
+Extract Constant node_nonhalt => "
+fun h decider_id a ->
+  let _ = print_endline (String.of_seq (List.to_seq (Printers.tmAndStatusAndDeciderToString (Obj.magic h) (Obj.magic decider_id) false)))  in
   a
 ".
 

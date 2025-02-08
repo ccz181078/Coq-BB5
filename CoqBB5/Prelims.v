@@ -185,3 +185,21 @@ Qed.
 
 Ltac Dir_eq_dec s1 s2 :=
   eq_dec Dir_eqb_spec Dir_eqb s1 s2.
+
+Inductive DeciderIdentifier : Type :=
+| DECIDER_NIL (* Definition HaltDecider_nil:HaltDecider := fun _ => Result_Unknown. *)
+| LOOP1_params_130 (* decider2 *)
+| NGRAM_CPS_IMPL2_params_1_1_100 (* decider3 *)
+| NGRAM_CPS_IMPL2_params_2_2_200 (* decider4 *)
+| NGRAM_CPS_IMPL2_params_3_3_400 (* decider5 *)
+| NGRAM_CPS_IMPL1_params_2_2_2_1600 (* decider6 *)
+| NGRAM_CPS_IMPL1_params_2_3_3_1600 (* decider7 *)
+| LOOP1_params_4100 (* decider8 *)
+| NGRAM_CPS_IMPL1_params_4_2_2_600 (* decider9 *)
+| NGRAM_CPS_IMPL1_params_4_3_3_1600 (* decider10 *)
+| NGRAM_CPS_IMPL1_params_6_2_2_3200 (* decider11 *)
+| NGRAM_CPS_IMPL1_params_6_3_3_3200 (* decider12 *)
+| NGRAM_CPS_IMPL1_params_8_2_2_1600 (* decider13 *)
+| NGRAM_CPS_IMPL1_params_8_3_3_1600 (* decider14 *)
+| TABLE_BASED (* table_based_decider *)
+| NORMAL_FORM_TABLE_BASED. (* NF_decider table_based_decider, meaning 1RB normalisation is applied before lookeup *)
