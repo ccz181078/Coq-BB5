@@ -146,7 +146,7 @@ of seen configurations (`ListES`) and tape head positions. After `n` steps, the 
 `find_loop1_0` to try and detect a potential loop.
 
   Args:
-    - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+    - tm: TM Σ, the Turing machine that the loop decider is checking.
     - n: nat, gas parameter
     - es:ListES, current configuration (ExecState), using the `ListES` representation, see ListTape.v
     - d: Z, current head position index on the tape
@@ -182,7 +182,7 @@ end.
 
   Args:
     - n: nat, gas parameter
-    - tm: TM Σ, the Turing machine that the NGramCPS decider is checking.
+    - tm: TM Σ, the Turing machine that the loop decider is checking.
 
   Returns:
     - HaltDecideResult:
