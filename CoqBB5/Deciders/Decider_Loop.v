@@ -24,7 +24,7 @@ From CoqBB5 Require Import Encodings.
   This recursive algorithm rewinds the history of configurations and tape positions n0 times where 
   `h0` and `h1` are always distant of n0 steps with n0 the initial value of parameter `n`.
 
-  The algorithm continues rewinding until `h0` and `h1` are record breaking (i.e. no cells to the left or right of them has ever been visited).
+  The algorithm continues rewinding until `h1` is record breaking (i.e. no cells to the left or right has ever been visited before).
 
   At each step, the algorithm checks that `h0` and `h1` have the same state and read symbol.
   If not, false is returned as it is not a loop.
