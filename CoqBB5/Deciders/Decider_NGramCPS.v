@@ -16,8 +16,7 @@ The original NGramCPS implementation (i.e. `NGramCPS_decider_impl2`) was introdu
 A core strength of this implementation is that it is using generic tape alphabet Σ and can thus be used easily with *augmented* alphabets (`NGramCPS_decider_impl1` and `NGramCPS_LRU_decider`), which allows to decide a lot more machines than the original NGramCPS implementation (i.e. `NGramCPS_decider_impl2`). 
 
 See the implementation part of the file (search for 'Begin: NGramCPS decider implementation') for comments on the implementation.
-
-**)
+*)
 
 Require Import ZArith.
 Require Import Lia.
@@ -116,7 +115,7 @@ Hypothesis Σ0:Σ.
   4. The state of the machine `s:St`
 
   Note that the left-ngrams are stored in reverse: left-ngram '100' is stored as '001'.
-**)
+*)
 Record MidWord:Set := {
   l:list Σ;
   r:list Σ;
@@ -130,7 +129,7 @@ meaning that objects are encoded as positive natural numbers keys of a map mappi
 This allows to efficiently test the presence of an object in a set.
 
 Hence, we define encoding functions mapping `MidWord` to positive for this purpose (also see Encodings.v).
-**)
+*)
 Definition MidWord_enc(mw:MidWord):positive :=
   let (l,r,m,s):=mw in
   enc_list ((St_enc s)::(Σ_enc m)::(listΣ_enc l)::(listΣ_enc r)::nil).
@@ -144,18 +143,18 @@ If we later see the right-ngram '000', the structure will be updated to: {'00': 
 
 This is useful as in the NGramCPS method, we need to keep track of characters on the 'falling edges'
 of the ngrams, see https://github.com/Nathan-Fenner/bb-simple-n-gram-cps.
-**)
+*)
 Definition xset_impl:Type := (PositiveMap.tree (SetOfEncodings Σ)).
 
 
 (** The `mset_impl` structure is used to keep track of the local contexts that we have visited. 
 A layer of encoding is used, see `SetOfEncodings` in Prelims.v.
-**)
+*)
 Definition mset_impl:Type := SetOfEncodings MidWord.
 
 (** AES means Abstract Exec State. 
 This structure keeps track of the {left,right}-ngrams and local contexts that have been visited.
-**)
+*)
 Record AES_impl := {
   lset': xset_impl;
   rset': xset_impl;
@@ -171,7 +170,7 @@ Record AES_impl := {
 
   Returns:
   - :list Σ, the list of symbols contained in the xset[ngram] or nil if the ngram was not in the xset.
-**)
+*)
 Definition xset_as_list(xs:xset_impl)(x1:list Σ):list Σ :=
   match PositiveMap.find (listΣ_enc x1) xs with
   | Some v => fst v
@@ -194,7 +193,7 @@ Definition xset_ins0(xs:xset_impl)(v:SetOfEncodings Σ)(x1:list Σ)(x2:Σ):xset_
   Returns:
   - :xset_impl, the potentially updated xset.
   - :bool, true if the ngram was already in the set, else false.
-**)
+*)
 Definition xset_ins(xs:xset_impl)(x:list Σ):xset_impl*bool :=
   match x with
   | h::t =>
@@ -240,8 +239,7 @@ Definition mset_ins0(ms:mset_impl)(mw:MidWord):mset_impl*bool :=
   - :mset_impl, the potentially updated mset.
   - :bool, true if no changes were made to the mset AND `flag` was true, else false. 
            In the NGramCps decider, `flag` is always true so this corresponds to true if no changes were made and false otherwise.
-
-**)
+*)
 Fixpoint mset_ins(q:list MidWord)(ms:mset_impl)(flag:bool)(f:Σ->MidWord)(ls:list Σ):((list MidWord)*mset_impl)*bool :=
 match ls with
 | nil => ((q,ms),flag)
@@ -281,8 +279,7 @@ end.
   - :AES_impl, the (potentially) updated AES.
   - :bool, false if the machine halted or empty left/right ngrams (should never happen)
            otherwise false if the AES was updated, else true.
-
-**)
+*)
 Definition update_AES_MidWord(tm:TM Σ)(q:list MidWord)(mw:MidWord)(SI:AES_impl):((list MidWord)*AES_impl)*bool :=
 let (l0,r0,m0,s0):=mw in
 let (ls,rs,ms):=SI in
@@ -341,9 +338,7 @@ let (ls,rs,ms):=SI in
   - :bool, true if and only if the AES is closed and no halting transitions are reached. 
            false means that we need to keep searching.
   - :nat, the remaining gas. 
-
-
-**)
+*)
 Fixpoint update_AES(tm:TM Σ)(ms:list MidWord)(SI:AES_impl)(flag:bool)(n:nat):AES_impl*bool*nat :=
   match n with
   | O => (SI,false,O)
@@ -374,7 +369,7 @@ Args:
 Returns:
 - bool, true if the machine doesn't halt thanks to the NGramCPS argument (i.e. the AES is closed and has no halting local context).
         false if the argument is non conclusive: the machine may halt.
-**)
+*)
 Fixpoint NGramCPS_decider_0(m n:nat)(tm:TM Σ)(S:AES_impl):bool :=
 match m with
 | O => false
@@ -406,7 +401,7 @@ Returns:
 - bool, true if the machine doesn't halt thanks to the NGramCPS argument (i.e. the AES is closed and has no halting local context).
         false if the argument is non conclusive: the machine may halt.
 
-**)
+*)
 Definition NGramCPS_decider(m:nat)(tm:TM Σ):bool :=
   match len_l,len_r with
   | S _,S _ =>
@@ -1431,14 +1426,17 @@ Proof.
   - apply listT_enc_inj,Σ_history_enc_inj.
 Qed.
 
+(* NGramCPS decider with fixed-length history augmentation *)
 Definition NGramCPS_decider_impl1 (len_h len_l len_r m:nat):HaltDecider :=
   fun tm =>
   if NGramCPS_decider_impl1_0 len_h len_l len_r m tm then Result_NonHalt else Result_Unknown.
 
+(* Standard NGramCPS decider wihout augmentation *)
 Definition NGramCPS_decider_impl2 (len_l len_r m:nat):HaltDecider :=
   fun tm =>
   if NGramCPS_decider_impl2_0 len_l len_r m tm then Result_NonHalt else Result_Unknown.
 
+(* NGramCPS decider with LRU augmentation *)
 Definition NGramCPS_LRU_decider (len_l len_r m:nat):HaltDecider :=
   fun tm =>
   if NGramCPS_LRU_decider_0 len_l len_r m tm then Result_NonHalt else Result_Unknown.
