@@ -39,23 +39,23 @@ Deciders_Hardcoded_Parameters/Verifier_WFAR_Hardcoded_Certificates.v
 
 BB5_Extraction.v
 
-TNF_Roots/TNF_Roots_Common.v
-TNF_Roots/TNF_Root_1.v
-TNF_Roots/TNF_Root_2.v
-TNF_Roots/TNF_Root_3.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_1.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_2.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_3_leaf.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_4_leaf.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_5.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_6.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_7_leaf.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_8_leaf.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_9.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_10.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_11.v
-TNF_Roots/TNF_Root_4/TNF_Root_4_12.v
-TNF_Roots/TNF_Root_4.v
+BB5_TNF_Enumeration_Roots/TNF_Roots_Common.v
+BB5_TNF_Enumeration_Roots/TNF_Root_1.v
+BB5_TNF_Enumeration_Roots/TNF_Root_2.v
+BB5_TNF_Enumeration_Roots/TNF_Root_3.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_1.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_2.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_3_leaf.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_4_leaf.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_5.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_6.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_7_leaf.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_8_leaf.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_9.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_10.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_11.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4/TNF_Root_4_12.v
+BB5_TNF_Enumeration_Roots/TNF_Root_4.v
 
-BB5_TNF_Roots.v
+BB5_TNF_Enumeration.v
 BB5_Theorem.v

@@ -6,4 +6,4 @@ Tactics.v
 TM.v 
 TNF.v
 Deciders
-!Deciders/Decider_Halt_BB2x4.v
+!Deciders/Decider_Halt_BB4.v

@@ -16,7 +16,7 @@ Definition q0 := root4_q.
 
 Definition q_0 := q0.
 
-From CoqBB5 Require Import TNF_Roots.TNF_Root_4.TNF_Root_4_1 TNF_Roots.TNF_Root_4.TNF_Root_4_2 TNF_Roots.TNF_Root_4.TNF_Root_4_3_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_4_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_5 TNF_Roots.TNF_Root_4.TNF_Root_4_6 TNF_Roots.TNF_Root_4.TNF_Root_4_7_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_8_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_9 TNF_Roots.TNF_Root_4.TNF_Root_4_10 TNF_Roots.TNF_Root_4.TNF_Root_4_11 TNF_Roots.TNF_Root_4.TNF_Root_4_12.
+From CoqBB5 Require Import BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_1 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_2 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_3_leaf BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_4_leaf BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_5 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_6 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_7_leaf BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_8_leaf BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_9 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_10 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_11 BB5_TNF_Enumeration_Roots.TNF_Root_4.TNF_Root_4_12.
 
 Lemma UnusedState_TM4 s1:
   UnusedState TM4 s1 <->

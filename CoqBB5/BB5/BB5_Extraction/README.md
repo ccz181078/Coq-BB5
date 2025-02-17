@@ -1,5 +1,13 @@
 # OCaml extraction of the bb5 enumeration
 
+OCaml packages you need: 
+
+```
+opam install ocamlbuild
+opam install ocamlfind
+opam install zarit
+```
+
 Coq-BB5 extracts an OCaml program (see ../BB52Extraction.v) named `bb5_verified_enumeration.out` which prints all the enumerated Turing machines with their proved halting status from blank tape (halt or nonhalt) and decider. To run the program, do:
 
 ```

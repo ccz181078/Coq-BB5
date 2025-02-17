@@ -3,8 +3,9 @@ Require Import ZArith.
 Require Import Lia.
 
 From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import BB5_Statement.
-From CoqBB5 Require Import BB5_TNF_Roots.
+From CoqBB5 Require Import BB5_TNF_Enumeration.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import BB5_Make_TM.
 From CoqBB5 Require Import Tactics.

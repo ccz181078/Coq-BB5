@@ -93,7 +93,7 @@ each enumerated machine and whether it halts or not given the conclusion reached
 
 Prints statements are inserted in place of "node_halt" and "node_nonhalt" definitions of the Coq proof, see TNF.v.
 
-In the OCaml code 'Obj.magic' is used to cast between identical types that are both defined in the 'printers' and 'bb5_verified_enumeration' files.
+In the OCaml code 'Obj.magic' is used to cast between identical types that are both defined in the 'printers' and 'BB2x4_verified_enumeration' files.
 **)
 
 Extract Constant node_halt => "

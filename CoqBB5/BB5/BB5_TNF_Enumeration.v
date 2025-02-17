@@ -1,9 +1,16 @@
+(**
+
+  In order to parallelize the compilation of the proof, the TNF Enumeration tree is split into several roots each being in its own independent file, see folder `BB5_TNF_Enumeration_Roots/`.
+
+*)
+
 Require Import Lia.
 Require Import List.
 Require Import ZArith.
 
 From CoqBB5 Require Import TNF.
 From CoqBB5 Require Import TM.
+From CoqBB5 Require Import Deciders_Common.
 From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import Prelims.
@@ -12,6 +19,18 @@ From CoqBB5 Require Import BB5_Deciders_Pipeline.
 From CoqBB5 Require Import TNF_Roots_Common.
 
 From CoqBB5 Require Import TNF_Root_1 TNF_Root_2 TNF_Root_3 TNF_Root_4.
+
+Definition root_q_upd1:=
+  (SearchQueue_upd root_q (MakeHaltDeciderWithIdentifier decider2)).
+
+Definition first_trans_is_R(x:TNF_Node):bool :=
+  match x.(TNF_tm) St0 Σ0 with
+  | Some {| nxt:=_; dir:=Dpos; out:=_ |} => true
+  | _ => false
+  end.
+
+Definition root_q_upd1_simplified:SearchQueue:=
+  (filter first_trans_is_R (fst root_q_upd1), nil).
 
 Lemma root_WF: TNF_Node_WF root.
 Proof.
@@ -30,8 +49,6 @@ Proof.
   apply SearchQueue_init_spec,root_WF.
 Qed.
 
-Definition root_q_upd1:=
-  (SearchQueue_upd root_q (MakeHaltDeciderWithIdentifier decider2)).
 
 Lemma root_q_upd1_WF:
   SearchQueue_WF (N.to_nat BB5_minus_one) root_q_upd1 root.
@@ -40,15 +57,6 @@ Proof.
   - apply root_q_WF.
   - apply decider2_WF.
 Qed.
-
-Definition first_trans_is_R(x:TNF_Node):bool :=
-  match x.(TNF_tm) St0 Σ0 with
-  | Some {| nxt:=_; dir:=Dpos; out:=_ |} => true
-  | _ => false
-  end.
-
-Definition root_q_upd1_simplified:SearchQueue:=
-  (filter first_trans_is_R (fst root_q_upd1), nil).
 
 Lemma TM_rev_upd'_TM0 s0 o0:
   (TM_upd' (TM0) St0 Σ0 (Some {| nxt := s0; dir := Dneg; out := o0 |})) =
