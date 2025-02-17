@@ -9,7 +9,7 @@ From CoqBB5 Require Import TNF.
 From CoqBB5 Require Import TNF_Roots_Common.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import Tactics.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Encodings.
 
 Definition q0 := root1_q. 
 

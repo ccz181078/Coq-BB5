@@ -25,11 +25,14 @@ Require Import FSets.FMapPositive.
 
 From CoqBB5 Require Import Prelims.
 From CoqBB5 Require Import BB5_Statement.
-From CoqBB5 Require Import Custom_Tactics.
-From CoqBB5 Require Import Custom_List_Routines.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Deciders_Generic.
+From CoqBB5 Require Import BB5_Make_TM.
+From CoqBB5 Require Import Tactics.
+From CoqBB5 Require Import List_Routines.
+From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import TNF.
+From CoqBB5 Require Import Deciders_Common.
 
 Section CPS.
 

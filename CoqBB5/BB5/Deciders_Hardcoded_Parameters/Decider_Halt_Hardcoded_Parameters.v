@@ -1,7 +1,8 @@
 Require Import List.
 
 From CoqBB5 Require Import TM.
-From CoqBB5 Require Import BB5_Decider_Pipeline.
+From CoqBB5 Require Import BB5_Make_TM.
+From CoqBB5 Require Import BB5_Deciders_Hardcoded.
 
 Definition tm_Ha:=
 (makeTM BR0 HR1 CR0 BR1 DR1 EL0 CL1 AR1 CL1 BL1,Ha)::

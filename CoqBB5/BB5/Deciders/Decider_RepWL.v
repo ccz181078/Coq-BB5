@@ -3,14 +3,15 @@ Require Import List.
 Require Import ZArith.
 Require Import FSets.FMapPositive.
 
-From CoqBB5 Require Import Custom_Tactics.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import Tactics.
+From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import BB5_Statement.
 From CoqBB5 Require Import Prelims.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import List_Tape.
 From CoqBB5 Require Import TNF.
 From CoqBB5 Require Import Decider_NGramCPS.
+From CoqBB5 Require Import Deciders_Common.
 
 Section MacroMachine_secion.
 
@@ -67,7 +68,7 @@ Lemma all0_spec x:
 Proof.
   induction x; cbn; intros.
   - reflexivity.
-  - destruct a eqn:E in H. 2: cg.
+  - destruct a eqn:E in H. all: cg.
     rewrite <-IHx; auto 1. cg.
 Qed.
 

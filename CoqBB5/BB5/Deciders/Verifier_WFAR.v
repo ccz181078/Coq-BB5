@@ -2,13 +2,14 @@ Require Import List.
 Require Import Lia.
 Require Import ZArith.
 
-From CoqBB5 Require Import Custom_Tactics.
+From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import Prelims.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import BB5_Statement.
 From CoqBB5 Require Import List_Tape.
 From CoqBB5 Require Import Decider_RepWL.
 From CoqBB5 Require Import Verifier_FAR.
+From CoqBB5 Require Import Deciders_Common.
 From CoqBB5 Require Import TNF.
 
 Section MITMWFAR.

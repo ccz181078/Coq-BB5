@@ -3,11 +3,24 @@ Require Import Lia.
 Require Import List.
 
 From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import List_Routines.
 From CoqBB5 Require Import BB5_Statement.
-From CoqBB5 Require Import Custom_Tactics.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import Tactics.
+From CoqBB5 Require Import BB5_Encodings.
 
 Section TM.
+
+Definition isHaltTrans(tr:option (Trans Σ)):nat :=
+  match tr with
+  | Some _ => 0
+  | None => 1
+  end.
+
+Lemma isHaltTrans_0 tr:
+  isHaltTrans tr = 0 <-> tr <> None.
+Proof.
+  destruct tr; cbn; split; intro; cg.
+Qed.
 
 Hypothesis Σ:Set.
 Hypothesis Σ0:Σ.
@@ -112,7 +125,6 @@ Proof.
         contradiction.
 Qed.
 
-
 Definition LE(tm tm':TM Σ): Prop :=
   forall (s:St)(i:Σ),
   tm s i = tm' s i \/
@@ -158,11 +170,9 @@ Proof.
   eapply LE_Steps; eassumption.
 Qed.
 
-
 Hypothesis BB:nat.
 Definition HaltTimeUpperBound(st:ExecState Σ)(P:TM Σ->Prop):Prop :=
   forall (tm:TM Σ)(n0:nat), P tm -> HaltsAt tm n0 st -> n0<=BB.
-
 
 Lemma HaltTimeUpperBound_LE_NonHalt {st tm}:
   ~Halts tm st ->
@@ -182,7 +192,6 @@ Definition TM_upd tm s i t: TM Σ :=
   fun s0 i0 =>
     if (andb (St_eqb s0 s) (Σ_eqb i0 i)) then t else tm s0 i0.
 
-
 Lemma LE_HaltsAtES_1 {tm tm0 n st s t}:
   LE tm tm0 ->
   HaltsAt tm n st ->
@@ -198,11 +207,8 @@ Proof.
   cbn. rewrite H2. reflexivity.
 Qed.
 
-
-
 Ltac Σ_eq_dec s1 s2 :=
   eq_dec Σ_eqb_spec Σ_eqb s1 s2.
-
 
 Lemma LE_HaltsAtES_2 {tm tm0 n st s t tr}:
   LE tm tm0 ->
@@ -220,7 +226,6 @@ Proof.
     + apply H.
   - apply H.
 Qed.
-
 
 Lemma HaltTimeUpperBound_LE_Halt st tm n s t:
   HaltsAt tm n st ->
@@ -241,8 +246,6 @@ Proof.
     rewrite (HaltsAt_unique H4 H5).
     assumption.
 Qed.
-
-
 
 Section swap.
 
@@ -328,9 +331,6 @@ Proof.
   apply St_swap_swap.
 Qed.
 
-
-
-
 Lemma step_swap {tm st st0}:
   step Σ (TM_swap tm) st = Some st0 <->
   step Σ tm (ExecState_swap st) = Some (ExecState_swap st0).
@@ -361,7 +361,6 @@ Proof.
   split; intro; cg.
 Qed.
 
-
 Lemma Steps_swap tm n st st0:
   Steps Σ (TM_swap tm) n st st0 <->
   Steps Σ tm n (ExecState_swap st) (ExecState_swap st0).
@@ -386,7 +385,6 @@ induction n; intros.
     rewrite ExecState_swap_swap.
     apply H3.
 Qed.
-
 
 Lemma LE_swap_0 tm tm':
   LE tm tm' -> LE (TM_swap tm) (TM_swap tm').
@@ -469,9 +467,8 @@ Qed.
 
 End swap.
 
-
-
 Section rev.
+
 Definition Trans_rev(tr:Trans Σ) :=
   let (s',d,o):=tr in
   {| nxt:=s'; dir:=Dir_rev d; out:=o |}.
@@ -547,8 +544,6 @@ Proof.
   apply Tape_rev_rev.
 Qed.
 
-
-
 Lemma step_rev tm st st0:
   step Σ (TM_rev tm) st = Some st0 <->
   step Σ tm (ExecState_rev st) = Some (ExecState_rev st0).
@@ -598,7 +593,6 @@ Proof.
       destruct ((-x + 1 =? 0)%Z) eqn:E1; try lia; cg.
       f_equal; lia.
 Qed.
-
 
 Lemma step_halt_rev tm st:
   step Σ (TM_rev tm) st = None <->
@@ -909,29 +903,6 @@ Proof.
   apply HaltTimeUpperBound_LE_swap_InitES; assumption.
 Qed.
 
-Definition TM0: TM Σ :=
-  fun x i => None.
-
-Lemma TM0_LE:
-  forall tm, LE Σ TM0 tm.
-Proof.
-  intros.
-  unfold LE.
-  intros.
-  right.
-  reflexivity.
-Qed.
-
-Lemma UnusedState_TM0 s1:
-  UnusedState TM0 s1 <->
-  s1 <> St0.
-Proof.
-split; intro.
-- intro H0. subst.
-  destruct H as [H [H0 H1]].
-  contradiction.
-- repeat split; auto 1.
-Qed.
 
 Lemma UnusedState_dec tm s:
   (UnusedState tm s)\/(~UnusedState tm s).
@@ -1140,57 +1111,6 @@ St_eq_dec s1 (nxt _ tr).
     intro H'. eapply H1a. apply H'.
 Qed.
 
-Definition AL0 := Some {| nxt:=St0; dir:=Dneg; out:=Σ0 |}.
-Definition AL1 := Some {| nxt:=St0; dir:=Dneg; out:=Σ1 |}.
-Definition AR0 := Some {| nxt:=St0; dir:=Dpos; out:=Σ0 |}.
-Definition AR1 := Some {| nxt:=St0; dir:=Dpos; out:=Σ1 |}.
-
-Definition BL0 := Some {| nxt:=St1; dir:=Dneg; out:=Σ0 |}.
-Definition BL1 := Some {| nxt:=St1; dir:=Dneg; out:=Σ1 |}.
-Definition BR0 := Some {| nxt:=St1; dir:=Dpos; out:=Σ0 |}.
-Definition BR1 := Some {| nxt:=St1; dir:=Dpos; out:=Σ1 |}.
-
-Definition CL0 := Some {| nxt:=St2; dir:=Dneg; out:=Σ0 |}.
-Definition CL1 := Some {| nxt:=St2; dir:=Dneg; out:=Σ1 |}.
-Definition CR0 := Some {| nxt:=St2; dir:=Dpos; out:=Σ0 |}.
-Definition CR1 := Some {| nxt:=St2; dir:=Dpos; out:=Σ1 |}.
-
-Definition DL0 := Some {| nxt:=St3; dir:=Dneg; out:=Σ0 |}.
-Definition DL1 := Some {| nxt:=St3; dir:=Dneg; out:=Σ1 |}.
-Definition DR0 := Some {| nxt:=St3; dir:=Dpos; out:=Σ0 |}.
-Definition DR1 := Some {| nxt:=St3; dir:=Dpos; out:=Σ1 |}.
-
-Definition EL0 := Some {| nxt:=St4; dir:=Dneg; out:=Σ0 |}.
-Definition EL1 := Some {| nxt:=St4; dir:=Dneg; out:=Σ1 |}.
-Definition ER0 := Some {| nxt:=St4; dir:=Dpos; out:=Σ0 |}.
-Definition ER1 := Some {| nxt:=St4; dir:=Dpos; out:=Σ1 |}.
-
-Definition HL0:option (Trans Σ) := None.
-Definition HL1:option (Trans Σ) := None.
-Definition HR0:option (Trans Σ) := None.
-Definition HR1:option (Trans Σ) := None.
-
-Definition makeTM:
-(option (Trans Σ))->(option (Trans Σ))->
-(option (Trans Σ))->(option (Trans Σ))->
-(option (Trans Σ))->(option (Trans Σ))->
-(option (Trans Σ))->(option (Trans Σ))->
-(option (Trans Σ))->(option (Trans Σ))->
-(TM Σ) :=
-fun A0 A1 B0 B1 C0 C1 D0 D1 E0 E1 s i =>
-match s,i with
-| St0,Σ0 => A0
-| St0,Σ1 => A1
-| St1,Σ0 => B0
-| St1,Σ1 => B1
-| St2,Σ0 => C0
-| St2,Σ1 => C1
-| St3,Σ0 => D0
-| St3,Σ1 => D1
-| St4,Σ0 => E0
-| St4,Σ1 => E1
-end.
-
 Section TMwithExtraInfo.
 
 Hypothesis Σ:Set.
@@ -1394,22 +1314,6 @@ Proof.
   apply TM_history_LRU_HF.
 Qed.
 
-Definition Σ_history_enc(x:Σ_history):positive:=
-  let (x0,x1):=x in
-  match x0 with
-  | Σ0 => (listStΣ_enc x1)~0
-  | Σ1 => (listStΣ_enc x1)~1
-  end.
-
-Lemma Σ_history_enc_inj: is_inj Σ_history_enc.
-Proof.
-  intros x1 x2 H.
-  destruct x1 as [a1 b1].
-  destruct x2 as [a2 b2].
-  cbn in H.
-  destruct a1,a2; invst H; f_equal; apply listStΣ_enc_inj,H1.
-Qed.
-
 Definition Trans_eqb(tr1 tr2:Trans Σ):bool :=
   let (s1,d1,o1):=tr1 in
   let (s2,d2,o2):=tr2 in
@@ -1488,4 +1392,3 @@ Proof.
     }
     cg.
 Qed.
-

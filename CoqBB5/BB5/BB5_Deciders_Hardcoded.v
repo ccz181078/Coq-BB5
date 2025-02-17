@@ -3,12 +3,15 @@ Require Import Lia.
 Require Import List.
 
 From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import BB5_Statement.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import TNF.
 
+From CoqBB5 Require Import Deciders_Common.
 From CoqBB5 Require Import Decider_Halt.
+From CoqBB5 Require Import Decider_Halt_BB5.
 From CoqBB5 Require Import Decider_Loop.
 From CoqBB5 Require Import Decider_NGramCPS.
 From CoqBB5 Require Import Decider_RepWL.

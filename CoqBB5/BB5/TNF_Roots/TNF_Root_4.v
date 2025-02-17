@@ -10,13 +10,13 @@ From CoqBB5 Require Import TNF.
 From CoqBB5 Require Import TNF_Roots_Common.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import Tactics.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Encodings.
 
 Definition q0 := root4_q. 
 
 Definition q_0 := q0.
 
-From CoqBB5 Require Import TNF_Roots.TNF_Root_4.TNF_Root_4_1 TNF_Roots.TNF_Root_4.TNF_Root_4_2 TNF_Roots.TNF_Root_4.TNF_Root_4_3_trivial TNF_Roots.TNF_Root_4.TNF_Root_4_4_trivial TNF_Roots.TNF_Root_4.TNF_Root_4_5 TNF_Roots.TNF_Root_4.TNF_Root_4_6 TNF_Roots.TNF_Root_4.TNF_Root_4_7_trivial TNF_Roots.TNF_Root_4.TNF_Root_4_8_trivial TNF_Roots.TNF_Root_4.TNF_Root_4_9 TNF_Roots.TNF_Root_4.TNF_Root_4_10 TNF_Roots.TNF_Root_4.TNF_Root_4_11 TNF_Roots.TNF_Root_4.TNF_Root_4_12.
+From CoqBB5 Require Import TNF_Roots.TNF_Root_4.TNF_Root_4_1 TNF_Roots.TNF_Root_4.TNF_Root_4_2 TNF_Roots.TNF_Root_4.TNF_Root_4_3_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_4_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_5 TNF_Roots.TNF_Root_4.TNF_Root_4_6 TNF_Roots.TNF_Root_4.TNF_Root_4_7_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_8_leaf TNF_Roots.TNF_Root_4.TNF_Root_4_9 TNF_Roots.TNF_Root_4.TNF_Root_4_10 TNF_Roots.TNF_Root_4.TNF_Root_4_11 TNF_Roots.TNF_Root_4.TNF_Root_4_12.
 
 Lemma UnusedState_TM4 s1:
   UnusedState TM4 s1 <->

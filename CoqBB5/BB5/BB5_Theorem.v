@@ -1,49 +1,26 @@
-From CoqBB5 Require Import BB5_Theorem_Prelim.
-From CoqBB5 Require Import TNF_Roots.BB52Theorem_root1 TNF_Roots.BB52Theorem_root2 TNF_Roots.BB52Theorem_root3 TNF_Roots.BB52Theorem_root4.
 
-Lemma SearchQueue_WF_implies_TNF_Node_HTUB BB (q : SearchQueue) root :
-  (  let (q1, q2) := q in
-     (forall x : TNF_Node, In x (q1 ++ q2) -> TNF_Node_HTUB BB x)) ->
-  SearchQueue_WF BB q root ->
-  TNF_Node_HTUB BB root.
-Proof.
-  intros. red in H0.
-  destruct q as [q1 q2].
-  eapply H0.
-  eauto.
-Qed.
+Require Import ZArith.
+Require Import Lia.
 
-Lemma root_HTUB:
-  TNF_Node_HTUB (N.to_nat BB5_minus_one) root.
-Proof.
-  eapply SearchQueue_WF_implies_TNF_Node_HTUB.
-  2: eapply root_q_upd1_simplified_WF.
-  cbn -[BB5_minus_one]. intros x H.
-  decompose [or] H; subst; try tauto.
-  - apply root1_HTUB.
-  - apply root2_HTUB.
-  - apply root3_HTUB.
-  - apply root4_HTUB.
-Qed.
+From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import BB5_Statement.
+From CoqBB5 Require Import BB5_TNF_Roots.
+From CoqBB5 Require Import TM.
+From CoqBB5 Require Import BB5_Make_TM.
+From CoqBB5 Require Import Tactics.
+From CoqBB5 Require Import Deciders.Verifier_Halt.
 
-Lemma TM0_HTUB:
-  HaltTimeUpperBound Σ (N.to_nat BB5_minus_one) (InitES Σ Σ0) (LE Σ (TM0)).
-Proof.
-  apply root_HTUB.
-Qed.
+Definition BB5_champion := (makeTM BR1 CL1 CR1 BR1 DR1 EL0 AL1 DL1 HR1 AL0).
 
-Lemma allTM_HTUB:
-  HaltTimeUpperBound Σ (N.to_nat BB5_minus_one) (InitES Σ Σ0) (fun _ => True).
+Lemma BB5_lower_bound:
+  exists tm,
+  HaltsAt _ tm (N.to_nat BB5_minus_one) (InitES Σ Σ0).
 Proof.
-  unfold HaltTimeUpperBound.
-  intros.
-  eapply TM0_HTUB.
-  2: apply H0.
-  unfold LE.
-  intros.
-  right.
+  exists BB5_champion.
+  apply halt_time_verifier_spec.
+  vm_compute.
   reflexivity.
-Qed.
+Time Qed.
 
 Lemma BB5_upperbound:
   forall tm n0, HaltsAt Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB5_minus_one.

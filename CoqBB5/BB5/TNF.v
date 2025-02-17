@@ -3,30 +3,17 @@ Require Import Lia.
 Require Import ZArith.
 
 From CoqBB5 Require Import BB5_Statement.
+From CoqBB5 Require Import BB5_Make_TM.
+From CoqBB5 Require Import List_Routines.
+From CoqBB5 Require Import BB5_Deciders_Generic.
 From CoqBB5 Require Import Prelims.
-From CoqBB5 Require Import Custom_Tactics.
+From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import TM.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Encodings.
+
+From CoqBB5 Require Import Deciders_Common.
 
 Section TNF.
-
-Fixpoint list_nat_sum(ls:list nat):nat :=
-match ls with
-| nil => O
-| h::t => h+(list_nat_sum t)
-end.
-
-Definition isHaltTrans(tr:option (Trans Σ)):nat :=
-  match tr with
-  | Some _ => 0
-  | None => 1
-  end.
-
-Lemma isHaltTrans_0 tr:
-  isHaltTrans tr = 0 <-> tr <> None.
-Proof.
-  destruct tr; cbn; split; intro; cg.
-Qed.
 
 Definition CountHaltTrans tm :=
   list_nat_sum (map (fun s=>list_nat_sum (map (fun i => isHaltTrans (tm s i)) Σ_list)) St_list).
@@ -42,11 +29,6 @@ Proof.
   intro H.
   destruct s,i; cbn; rewrite H; cbn; lia.
 Qed.
-
-Ltac destruct_and :=
-  match goal with
-  | H:?A/\?B |- _ => destruct H
-  end.
 
 Lemma CountHaltTrans_0_NonHalt {tm st}:
   CountHaltTrans tm = 0 ->
@@ -82,38 +64,6 @@ Definition TNF_Node_WF(x:TNF_Node):Prop :=
   cnt <> 0 /\
   UnusedState_ptr tm ptr.
 
-Definition Trans_list:=
-{| nxt:=St0; dir:=Dneg; out:=Σ0 |}::
-{| nxt:=St0; dir:=Dneg; out:=Σ1 |}::
-{| nxt:=St0; dir:=Dpos; out:=Σ0 |}::
-{| nxt:=St0; dir:=Dpos; out:=Σ1 |}::
-{| nxt:=St1; dir:=Dneg; out:=Σ0 |}::
-{| nxt:=St1; dir:=Dneg; out:=Σ1 |}::
-{| nxt:=St1; dir:=Dpos; out:=Σ0 |}::
-{| nxt:=St1; dir:=Dpos; out:=Σ1 |}::
-{| nxt:=St2; dir:=Dneg; out:=Σ0 |}::
-{| nxt:=St2; dir:=Dneg; out:=Σ1 |}::
-{| nxt:=St2; dir:=Dpos; out:=Σ0 |}::
-{| nxt:=St2; dir:=Dpos; out:=Σ1 |}::
-{| nxt:=St3; dir:=Dneg; out:=Σ0 |}::
-{| nxt:=St3; dir:=Dneg; out:=Σ1 |}::
-{| nxt:=St3; dir:=Dpos; out:=Σ0 |}::
-{| nxt:=St3; dir:=Dpos; out:=Σ1 |}::
-{| nxt:=St4; dir:=Dneg; out:=Σ0 |}::
-{| nxt:=St4; dir:=Dneg; out:=Σ1 |}::
-{| nxt:=St4; dir:=Dpos; out:=Σ0 |}::
-{| nxt:=St4; dir:=Dpos; out:=Σ1 |}::
-nil.
-
-Lemma Trans_list_spec:
-  forall tr, In tr Trans_list.
-Proof.
-  intro.
-  destruct tr as [s d o].
-  cbn.
-  destruct s,d,o; tauto.
-Qed.
-
 Definition St_leb s1 s2 :=
   Nat.leb (St_to_nat s2) (St_to_nat s1).
 
@@ -129,22 +79,6 @@ Proof.
     unfold St_leb in E.
     rewrite <-Nat.leb_le.
     cg.
-Qed.
-
-Definition TM_simplify tm :=
-  makeTM
-  (tm St0 Σ0) (tm St0 Σ1)
-  (tm St1 Σ0) (tm St1 Σ1)
-  (tm St2 Σ0) (tm St2 Σ1)
-  (tm St3 Σ0) (tm St3 Σ1)
-  (tm St4 Σ0) (tm St4 Σ1).
-
-Lemma TM_simplify_spec tm:
-  TM_simplify tm = tm.
-Proof.
-  unfold TM_simplify,makeTM.
-  fext. fext.
-  destruct x,x0; reflexivity.
 Qed.
 
 Definition TM_upd' tm s i tr :=
@@ -172,8 +106,6 @@ Definition TNF_Node_expand(x:TNF_Node) s i:=
     map (TNF_Node_upd x s i)
     (filter (fun tr => St_leb ptr (nxt _ tr)) Trans_list).
 
-
-
 Hypothesis BB:nat.
 
 
@@ -187,7 +119,6 @@ Ltac nat_eq_dec s1 s2 :=
 
 Ltac St_le_dec s1 s2 :=
   eq_dec St_leb_spec St_leb s1 s2.
-
 
 Definition TNF_Node_HTUB(x:TNF_Node):Prop :=
   let (tm,_,_):=x in
@@ -256,64 +187,6 @@ Proof.
   apply HaltTimeUpperBound_LE_NonHalt,H.
 Qed.
 
-Inductive HaltDecideResult :=
-| Result_Halt(s:St)(i:Σ)
-| Result_NonHalt
-| Result_Unknown
-.
-
-Definition HaltDecider := TM Σ -> HaltDecideResult.
-Definition HaltDeciderWithIdentifier := TM Σ -> HaltDecideResult*DeciderIdentifier.
-
-Definition MakeHaltDeciderWithIdentifier (f_and_id:HaltDecider*DeciderIdentifier):HaltDeciderWithIdentifier :=
-  fun tm => ((fst f_and_id) tm, (snd f_and_id)).
-
-Definition HaltDecider_WF(f:HaltDecider) :=
-  forall tm,
-    match f tm with
-    | Result_Halt s i => exists n t, HaltsAt _ tm n (InitES Σ Σ0) /\ Steps _ tm n (InitES Σ Σ0) (s,t) /\ t Z0 = i /\ n<=BB
-    | Result_NonHalt => ~HaltsFromInit Σ Σ0 tm
-    | Result_Unknown => True
-    end.
-
-Definition HaltDeciderWithIdentifier_WF(g:HaltDeciderWithIdentifier) :=
-  forall tm,
-    match fst (g tm) with
-    | Result_Halt s i => exists n t, HaltsAt _ tm n (InitES Σ Σ0) /\ Steps _ tm n (InitES Σ Σ0) (s,t) /\ t Z0 = i /\ n<=BB
-    | Result_NonHalt => ~HaltsFromInit Σ Σ0 tm
-    | Result_Unknown => True
-    end. 
-
-Definition HaltDecider_cons (f:HaltDecider) (decider_id: DeciderIdentifier) (g:HaltDeciderWithIdentifier):HaltDeciderWithIdentifier :=
-  fun tm =>
-    let res := f tm in
-      match res with
-      | Result_Unknown => g tm
-      | _ => (res,decider_id)
-      end.
-
-Lemma HaltDecider_cons_spec (f:HaltDecider) (g:HaltDeciderWithIdentifier):
-  forall decider_id,
-    HaltDecider_WF f ->
-    HaltDeciderWithIdentifier_WF g ->
-    HaltDeciderWithIdentifier_WF (HaltDecider_cons f decider_id g).
-Proof.
-  intro decider_id.
-  intros Hf Hg tm.
-  specialize (Hf tm).
-  specialize (Hg tm).
-  unfold HaltDecider_cons.
-  destruct (f tm); auto 1.
-Qed.
-
-Definition HaltDecider_nil:HaltDeciderWithIdentifier := fun _ => (Result_Unknown, DECIDER_NIL).
-
-Fixpoint HaltDecider_list(f:list (HaltDecider*DeciderIdentifier)):HaltDeciderWithIdentifier :=
-  match f with
-  | nil => HaltDecider_nil
-  | h::t => HaltDecider_cons (fst h) (snd h) (HaltDecider_list t)
-  end.
-
 Definition SearchQueue :=
   ((list TNF_Node)*(list TNF_Node))%type.
 
@@ -344,7 +217,7 @@ Definition SearchQueue_upd(q:SearchQueue)(f:HaltDeciderWithIdentifier) :=
 
 Lemma SearchQueue_upd_spec {q x0 f}:
   SearchQueue_WF q x0 ->
-  HaltDeciderWithIdentifier_WF f ->
+  HaltDeciderWithIdentifier_WF BB f ->
   SearchQueue_WF (SearchQueue_upd q f) x0.
 Proof.
   destruct q as [q1 q2].
@@ -410,10 +283,9 @@ Definition SearchQueue_upd_bfs(q:SearchQueue)(f:HaltDeciderWithIdentifier) :=
   | _ => q
   end.
 
-
 Lemma SearchQueue_upd_bfs_spec {q x0 f}:
   SearchQueue_WF q x0 ->
-  HaltDeciderWithIdentifier_WF f ->
+  HaltDeciderWithIdentifier_WF BB f ->
   SearchQueue_WF (SearchQueue_upd_bfs q f) x0.
 Proof.
   intros.
@@ -476,7 +348,6 @@ Proof.
   - intros. apply H0. tauto.
 Qed.
 
-
 Fixpoint SearchQueue_upds q f (n:nat) :=
 match (fst q) with
 | nil => q
@@ -489,7 +360,7 @@ end.
 
 Lemma SearchQueue_upds_spec q x0 f n:
   SearchQueue_WF q x0 ->
-  HaltDeciderWithIdentifier_WF f ->
+  HaltDeciderWithIdentifier_WF BB f ->
   SearchQueue_WF (SearchQueue_upds q f n) x0.
 Proof.
   intros.
@@ -501,7 +372,6 @@ Proof.
     apply IHn,IHn,H.
 Qed.
 
-
 Fixpoint SearchQueue_upds_bfs q f (n:nat) :=
   match n with
   | O => q
@@ -510,7 +380,7 @@ Fixpoint SearchQueue_upds_bfs q f (n:nat) :=
 
 Lemma SearchQueue_upds_bfs_spec q x0 f n:
   SearchQueue_WF q x0 ->
-  HaltDeciderWithIdentifier_WF f ->
+  HaltDeciderWithIdentifier_WF BB f ->
   SearchQueue_WF (SearchQueue_upds_bfs q f n) x0.
 Proof.
   intros.
@@ -525,7 +395,7 @@ Definition SearchQueue_bfs q f :=
 
 Lemma SearchQueue_bfs_spec q x0 f:
   SearchQueue_WF q x0 ->
-  HaltDeciderWithIdentifier_WF f ->
+  HaltDeciderWithIdentifier_WF BB f ->
   SearchQueue_WF (SearchQueue_bfs q f) x0.
 Proof.
   intros.
@@ -534,163 +404,4 @@ Proof.
   apply SearchQueue_upds_bfs_spec; auto 1.
 Qed.
 
-Definition root := {| TNF_tm:=TM0; TNF_cnt:=CountHaltTrans (TM0); TNF_ptr:=St1 |}.
-
-Definition TM1 : TM Σ := (makeTM AR0 None None None None None None None None None).
-Definition root1 := {| TNF_tm:=TM1; TNF_cnt:=CountHaltTrans (TM1); TNF_ptr:=St1 |}.
-
-Definition TM2 : TM Σ := (makeTM AR1 None None None None None None None None None).
-Definition root2 := {| TNF_tm:=TM2; TNF_cnt:=CountHaltTrans (TM2); TNF_ptr:=St1 |}.
-
-Definition TM3 : TM Σ := (makeTM BR0 None None None None None None None None None).
-Definition root3 := {| TNF_tm:=TM3; TNF_cnt:=CountHaltTrans (TM3); TNF_ptr:=St2 |}.
-
-Definition TM4 : TM Σ := (makeTM BR1 None None None None None None None None None).
-Definition root4 := {| TNF_tm:=TM4; TNF_cnt:=CountHaltTrans (TM4); TNF_ptr:=St2 |}.
-
-Lemma UnusedState_TM1 s1:
-  UnusedState TM1 s1 <->
-    s1 <> St0.
-Proof.
-  split; intro.
-  - intro H0. subst.
-    destruct H as [H [H0 H1]].
-    contradiction.
-  - repeat split; auto 1.
-    2:{ intros []; cbv.
-        all: destruct s1; cbv; try congruence.
-    }
-    cbv. intros [] []; try congruence; auto.
-Qed.
-
-Lemma UnusedState_TM2 s1:
-  UnusedState TM2 s1 <->
-    s1 <> St0.
-Proof.
-  split; intro.
-  - intro H0. subst.
-    destruct H as [H [H0 H1]].
-    contradiction.
-  - repeat split; auto 1.
-    2:{ intros []; cbv.
-        all: destruct s1; cbv; try congruence.
-    }
-    cbv. intros [] []; try congruence; auto.
-Qed.
-
-Lemma UnusedState_TM3 s1:
-  UnusedState TM3 s1 <->
-    s1 <> St0 /\ s1 <> St1.
-Proof.
-  split; intro.
-  - split; intro H0.
-    + subst.
-      destruct H as [H [H0 H1]].
-      contradiction.
-    + subst. red in H.
-      cbv in H.
-      destruct H as [H [H0 H1]].
-      specialize (H St0 Σ0).
-      cbv in *. congruence.
-  - repeat split; auto 1.
-    2:{ intros []; cbv.
-        all: destruct s1; cbv; try firstorder congruence.
-    }
-    cbv. intros [] []; try congruence; auto.
-    firstorder congruence.
-    firstorder congruence.
-Qed.
-
-Lemma UnusedState_TM4 s1:
-  UnusedState TM4 s1 <->
-    s1 <> St0 /\ s1 <> St1.
-Proof.
-  split; intro.
-  - split; intro H0.
-    + subst.
-      destruct H as [H [H0 H1]].
-      contradiction.
-    + subst. red in H.
-      cbv in H.
-      destruct H as [H [H0 H1]].
-      specialize (H St0 Σ0).
-      cbv in *. congruence.
-  - repeat split; auto 1.
-    2:{ intros []; cbv.
-        all: destruct s1; cbv; try firstorder congruence.
-    }
-    cbv. intros [] []; try congruence; auto.
-    firstorder congruence.
-    firstorder congruence.
-Qed.
-
-Lemma root1_WF: TNF_Node_WF root1.
-Proof.
-  repeat split.
-  1: cbn; cg.
-  unfold UnusedState_ptr.
-  left.
-  intros.
-  rewrite UnusedState_TM1.
-  destruct s0; unfold St_le; cbn; split; intro; cg; lia.
-Qed.
-
-Lemma root2_WF: TNF_Node_WF root2.
-Proof.
-  repeat split.
-  1: cbn; cg.
-  unfold UnusedState_ptr.
-  left.
-  intros.
-  rewrite UnusedState_TM2.
-  destruct s0; unfold St_le; cbn; split; intro; cg; lia.
-Qed.
-
-Lemma root3_WF: TNF_Node_WF root3.
-Proof.
-  repeat split.
-  1: cbn; cg.
-  unfold UnusedState_ptr.
-  left.
-  intros.
-  rewrite UnusedState_TM3.
-  destruct s0; unfold St_le; cbn; split; intro; cg.
-  all: try now firstorder congruence.
-  all: lia.
-Qed.
-
-Lemma root4_WF: TNF_Node_WF root4.
-Proof.
-  repeat split.
-  1: cbn; cg.
-  unfold UnusedState_ptr.
-  left.
-  intros.
-  rewrite UnusedState_TM4.
-  destruct s0; unfold St_le; cbn; split; intro; cg.
-  all: try now firstorder congruence.
-  all: lia.
-Qed.
-
-Lemma root_WF: TNF_Node_WF root.
-Proof.
-  repeat split.
-  1: cbn; cg.
-  unfold UnusedState_ptr.
-  left.
-  intros.
-  rewrite UnusedState_TM0.
-  destruct s0; unfold St_le; cbn; split; intro; cg; lia.
-Qed.
-
-Definition root_q := SearchQueue_init root.
-Definition root1_q := SearchQueue_init root1.
-Definition root2_q := SearchQueue_init root2.
-Definition root3_q := SearchQueue_init root3.
-Definition root4_q := SearchQueue_init root4.
-
 End TNF.
-
-Definition TNF_Node_list_to_N_list := map (fun (x:TNF_Node) => TM_to_N (TNF_tm x)).
-
-(* Compute (TM_to_N (makeTM BR1 HR1 CL0 ER0 DL0 CL1 AR1 BR0 DR0 DR1)). *)

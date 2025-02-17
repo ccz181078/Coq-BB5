@@ -97,7 +97,6 @@ Proof.
     pose proof (Ha x). tauto.
   - intro H0. apply Hb.
     intros x H1.
-Check H1.
     destruct H1 as [H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|[H1|H1]]]]]]]]]]]]]]]]; try (specialize (H0 x); tauto).
     all:
       clear Ha; clear Hb;

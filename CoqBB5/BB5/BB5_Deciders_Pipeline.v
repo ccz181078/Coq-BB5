@@ -10,8 +10,11 @@ From CoqBB5 Require Import List_Tape.
 From CoqBB5 Require Import TNF.
 From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import TM.
+From CoqBB5 Require Import BB5_Make_TM.
 From CoqBB5 Require Import Prelims.
+From CoqBB5 Require Import BB5_Encodings.
 
+From CoqBB5 Require Import Deciders_Common.
 From CoqBB5 Require Import Decider_Halt.
 From CoqBB5 Require Import Decider_Loop.
 From CoqBB5 Require Import Decider_NGramCPS.

@@ -1,4 +1,9 @@
-From CoqBB5 Require Import BB5_Theorem_Prelim.
+From CoqBB5 Require Import TNF.
+From CoqBB5 Require Import BB5_Statement.
+From CoqBB5 Require Import BB5_Deciders_Generic.
+From CoqBB5 Require Import BB5_Deciders_Pipeline.
+From CoqBB5 Require Import BB5_TNF_Roots.
+
 
 (** In the OCaml extraction, we do not decompose the TNF tree in several roots (see TNF_Roots/) as this is used only to parallelise the proof. 
 

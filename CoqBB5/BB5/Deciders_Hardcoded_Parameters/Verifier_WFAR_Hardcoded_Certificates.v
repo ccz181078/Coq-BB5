@@ -2,8 +2,9 @@ Require Import List.
 Require Import ZArith.
 
 From CoqBB5 Require Import TM.
+From CoqBB5 Require Import BB5_Make_TM.
 From CoqBB5 Require Import Verifier_WFAR.
-From CoqBB5 Require Import BB5_Decider_Pipeline.
+From CoqBB5 Require Import BB5_Deciders_Hardcoded.
 
 Notation "( a , b ; c , d )" := (a%nat,b%Z,c%nat,d%Z).
 

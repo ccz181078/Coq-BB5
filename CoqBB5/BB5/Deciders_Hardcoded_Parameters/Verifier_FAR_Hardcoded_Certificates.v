@@ -2,7 +2,8 @@ Require Import List.
 
 From CoqBB5 Require Import BB5_Statement.
 From CoqBB5 Require Import TM.
-From CoqBB5 Require Import BB5_Decider_Pipeline.
+From CoqBB5 Require Import BB5_Make_TM.
+From CoqBB5 Require Import BB5_Deciders_Hardcoded.
 
 Definition DFA_from_list(ls:list(nat*nat))(x:nat)(i:Σ) :=
   let (a,b) := nth x ls (0,0) in

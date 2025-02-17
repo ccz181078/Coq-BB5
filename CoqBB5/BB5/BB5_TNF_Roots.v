@@ -5,7 +5,7 @@ Require Import ZArith.
 From CoqBB5 Require Import TNF.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import Tactics.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Encodings.
 From CoqBB5 Require Import Prelims.
 From CoqBB5 Require Import BB5_Statement.
 From CoqBB5 Require Import BB5_Deciders_Pipeline.

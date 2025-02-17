@@ -1,7 +1,8 @@
 Require Import List.
 
-From CoqBB5 Require Import Custom_Tactics.
+From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import BB5_Statement.
+From CoqBB5 Require Import BB5_Make_TM.
 From CoqBB5 Require Import BusyCoq_Translation.
 From CoqBB5 Require Import TM.
 From CoqBB5 Require Import List_Tape.

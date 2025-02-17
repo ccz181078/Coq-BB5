@@ -4,9 +4,53 @@ Require Import Lia.
 Require Import FSets.FMapPositive.
 
 From CoqBB5 Require Import BB5_Statement.
-From CoqBB5 Require Import Custom_Tactics.
+From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import Prelims.
 
+Definition St_list:= St0::St1::St2::St3::St4::nil.
+Definition Σ_list:= Σ0::Σ1::nil.
+
+Definition BB5_minus_one:N := 47176869.
+
+Lemma St_list_spec:
+  forall s, In s St_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Lemma Σ_list_spec:
+  forall s, In s Σ_list.
+Proof.
+  intro s.
+  destruct s; cbn; tauto.
+Qed.
+
+Definition forallb_St f :=
+  forallb f St_list.
+
+Definition forallb_Σ f :=
+  forallb f Σ_list.
+
+Lemma forallb_St_spec f:
+  forallb_St f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_St.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,St_list_spec.
+  - apply H.
+Qed.
+
+Lemma forallb_Σ_spec f:
+  forallb_Σ f = true <-> forall s, f s = true.
+Proof.
+  unfold forallb_Σ.
+  rewrite forallb_forall.
+  split; intros.
+  - apply H,Σ_list_spec.
+  - apply H.
+Qed.
 
 Fixpoint positive_len(x:positive):nat :=
 match x with

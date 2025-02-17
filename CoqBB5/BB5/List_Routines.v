@@ -4,7 +4,7 @@ Require Import ZArith.
 
 From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import Prelims.
-From CoqBB5 Require Import Encodings.
+From CoqBB5 Require Import BB5_Encodings.
 
 (* Compute pop_back 0 [ 1 ; 2 ; 3 ; 4 ]. 
    = [0; 1; 2; 3]

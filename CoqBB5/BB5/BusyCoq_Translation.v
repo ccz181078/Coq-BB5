@@ -9,7 +9,7 @@ From BusyCoq Require Import Compute.
 From BusyCoq Require Import TM.
 
 (* mxdys' Coq-BB5 *)
-From CoqBB5 Require Import Custom_Tactics.
+From CoqBB5 Require Import Tactics.
 From CoqBB5 Require Import BB5_Statement.
 From CoqBB5 Require Import List_Tape.
 From CoqBB5 Require Import TM.
