@@ -14,7 +14,6 @@ Inductive DeciderIdentifier : Type :=
 | NGRAM_CPS_IMPL2_params_3_3_400 (* decider5 *)
 | NGRAM_CPS_IMPL1_params_2_2_2_1600 (* decider6 *)
 | NGRAM_CPS_IMPL1_params_2_3_3_1600 (* decider7 *)
-| LOOP1_params_4100 (* decider8 *)
 | NGRAM_CPS_IMPL1_params_4_2_2_600 (* decider9 *)
 | NGRAM_CPS_IMPL1_params_4_3_3_1600 (* decider10 *)
 | NGRAM_CPS_IMPL1_params_6_2_2_3200 (* decider11 *)

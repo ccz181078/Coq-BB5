@@ -31,7 +31,7 @@ Definition decider5 := ((NGramCPS_decider_impl2 3 3 400),NGRAM_CPS_IMPL2_params_
 Definition decider6 := ((NGramCPS_decider_impl1 2 2 2 1600),NGRAM_CPS_IMPL1_params_2_2_2_1600).
 Definition decider7 := ((NGramCPS_decider_impl1 2 3 3 1600),NGRAM_CPS_IMPL1_params_2_3_3_1600).
 
-Definition decider8 := ((loop1_decider 4100),LOOP1_params_4100).
+(* Definition decider8 := ((loop1_decider 4100),LOOP1_params_4100). *) (* unused *)
 
 Definition decider9 := ((NGramCPS_decider_impl1 4 2 2 600),NGRAM_CPS_IMPL1_params_4_2_2_600).
 Definition decider10 := ((NGramCPS_decider_impl1 4 3 3 1600),NGRAM_CPS_IMPL1_params_4_3_3_1600).
