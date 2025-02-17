@@ -18,6 +18,20 @@ Inductive Σ:Set :=
 | Σ0
 | Σ1.
 
+(** Equality on states *)
+Definition St_eqb(s1 s2:St) :=
+match s1,s2 with
+| St0,St0 | St1,St1 | St2,St2 | St3,St3 | St4,St4 => true
+| _,_ => false
+end.
+
+(** Equality on alphabet symbols *)
+Definition Σ_eqb(i1 i2:Σ) :=
+match i1,i2 with
+| Σ0,Σ0 | Σ1,Σ1 => true
+| _,_ => false
+end.
+
 (** Left/Right move direction *)
 Inductive Dir:Set :=
 | Dneg

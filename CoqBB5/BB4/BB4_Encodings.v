@@ -129,12 +129,6 @@ Lemma St_enc_inj: is_inj St_enc.
   destruct x1,x2; cbn; cg.
 Qed.
 
-Definition Σ_eqb(i1 i2:Σ) :=
-match i1,i2 with
-| Σ0,Σ0 | Σ1,Σ1 => true
-| _,_ => false
-end.
-
 Lemma Σ_eqb_spec i1 i2:
   if Σ_eqb i1 i2 then i1=i2 else i1<>i2.
 Proof.

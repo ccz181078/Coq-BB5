@@ -8,12 +8,6 @@ Ltac fext := apply functional_extensionality; intro.
 Ltac gd x := generalize dependent x.
 Ltac cg := try congruence.
 
-Definition St_eqb(s1 s2:St) :=
-match s1,s2 with
-| St0,St0 | St1,St1 | St2,St2 | St3,St3 | St4,St4 => true
-| _,_ => false
-end.
-
 Ltac eq_dec eqb_spec eqb s1 s2 :=
   pose proof (eqb_spec s1 s2);
   destruct (eqb s1 s2).

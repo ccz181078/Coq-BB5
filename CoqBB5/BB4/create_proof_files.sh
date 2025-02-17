@@ -39,28 +39,3 @@ for file in "${files[@]}"; do
         echo "Warning: File '$file' not found, skipping..."
     fi
 done
-
-# Tactics.v
-if [[ -f "Tactics.v" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' '/Definition St_eqb(s1 s2:St) :=/,/end\./c\
-Definition St_eqb(s1 s2:St) :=\
-match s1,s2 with\
-| St0,St0 | St1,St1 | St2,St2 | St3,St3 => true\
-| _,_ => false\
-end.\
-
-' "Tactics.v"
-    else
-        sed -i '/Definition St_eqb(s1 s2:St) :=/,/end\./c\
-Definition St_eqb(s1 s2:St) :=\
-match s1,s2 with\
-| St0,St0 | St1,St1 | St2,St2 | St3,St3 => true\
-| _,_ => false\
-end.\
-
-' "Tactics.v"
-    fi
-else
-    echo "Warning: Fichier 'Tactics.v' introuvable, passage au suivant..."
-fi

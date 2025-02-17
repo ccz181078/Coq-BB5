@@ -21,15 +21,15 @@ From CoqBB5 Require Import Decider_NGramCPS.
 From CoqBB5 Require Import Decider_RepWL.
 From CoqBB5 Require Import Verifier_FAR.
 From CoqBB5 Require Import Verifier_WFAR.
-From CoqBB5 Require Import Sporadic_Machines.
+From CoqBB5 Require Import BB5_Sporadic_Machines.
 
 
-From CoqBB5 Require Export Deciders_Hardcoded_Parameters.Decider_Loop_Hardcoded_Parameters.
-From CoqBB5 Require Export Deciders_Hardcoded_Parameters.Decider_NGramCPS_Hardcoded_Parameters.
-From CoqBB5 Require Export Deciders_Hardcoded_Parameters.Verifier_FAR_Hardcoded_Certificates.
-From CoqBB5 Require Export Deciders_Hardcoded_Parameters.Verifier_WFAR_Hardcoded_Certificates.
-From CoqBB5 Require Export Deciders_Hardcoded_Parameters.Decider_RepWL_Hardcoded_Parameters.
-From CoqBB5 Require Export Deciders_Hardcoded_Parameters.Decider_Halt_Hardcoded_Parameters.
+From CoqBB5 Require Export BB5_Deciders_Hardcoded_Parameters.Decider_Loop_Hardcoded_Parameters.
+From CoqBB5 Require Export BB5_Deciders_Hardcoded_Parameters.Decider_NGramCPS_Hardcoded_Parameters.
+From CoqBB5 Require Export BB5_Deciders_Hardcoded_Parameters.Verifier_FAR_Hardcoded_Certificates.
+From CoqBB5 Require Export BB5_Deciders_Hardcoded_Parameters.Verifier_WFAR_Hardcoded_Certificates.
+From CoqBB5 Require Export BB5_Deciders_Hardcoded_Parameters.Decider_RepWL_Hardcoded_Parameters.
+From CoqBB5 Require Export BB5_Deciders_Hardcoded_Parameters.Decider_Halt_Hardcoded_Parameters.
 
 Set Warnings "-abstract-large-number".
 

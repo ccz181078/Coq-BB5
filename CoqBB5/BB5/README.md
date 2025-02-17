@@ -14,7 +14,7 @@ This is a Coq project for proving BB(5)=47,176,870. This result is proved in `BB
 
 Most other files are from BusyCoq ([busycoq/verify at master · meithecatte/busycoq (github.com)](https://github.com/meithecatte/busycoq/tree/master/verify)). They provided the nonhalt proof of 12 non-trivial TMs. This part is not described in this document.
 
-`Skelet17.v` is the non-halt proof of the last non-trivial TM in the computation of BB(5). A document of this Coq proof is `Skelet17.md`. A natural language version of the proof is [Skelet #17 does not halt - Individual machines - The Busy Beaver Challenge (bbchallenge.org)](https://discuss.bbchallenge.org/t/skelet-17-does-not-halt/184) (may be different in some details).
+`BB5_Skelet17.v` is the non-halt proof of the last non-trivial TM in the computation of BB(5). A document of this Coq proof is `Skelet17.md`. A natural language version of the proof is [Skelet #17 does not halt - Individual machines - The Busy Beaver Challenge (bbchallenge.org)](https://discuss.bbchallenge.org/t/skelet-17-does-not-halt/184) (may be different in some details).
 
 For other TMs, we use deciders or verifiers to decide whether they halt or nonhalt and confirm the value of BB(5).
 

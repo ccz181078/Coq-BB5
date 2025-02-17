@@ -17,7 +17,7 @@ From CoqBB5 Require Import Decider_NGramCPS.
 From CoqBB5 Require Import Decider_RepWL.
 From CoqBB5 Require Import Verifier_FAR.
 From CoqBB5 Require Import Verifier_WFAR.
-From CoqBB5 Require Import Sporadic_Machines.
+From CoqBB5 Require Import BB5_Sporadic_Machines.
 
 (* Deciders called with hardcoded parameters*)
 Inductive DeciderType :=
@@ -79,31 +79,31 @@ Proof.
   intros.
   cbn in H.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Finned1_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Finned1_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Finned2_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Finned2_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Finned3_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Finned3_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Finned4_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Finned4_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Finned5_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Finned5_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet1_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet1_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet10_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet10_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet15_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet15_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet17_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet17_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet26_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet26_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet33_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet33_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet34_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet34_nonhalt.
   destruct H as [H|H].
-  1: subst; apply Sporadic_Machines.Skelet35_nonhalt.
+  1: subst; apply BB5_Sporadic_Machines.Skelet35_nonhalt.
   contradiction.
 Qed.
 

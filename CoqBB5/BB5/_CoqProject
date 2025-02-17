@@ -13,8 +13,8 @@ TM.v
 BB5_Make_TM.v
 TNF.v
 List_Tape.v
-Skelet17.v
-Sporadic_Machines.v
+BB5_Skelet17.v
+BB5_Sporadic_Machines.v
 BB5_Deciders_Pipeline.v
 
 Deciders/Deciders_Common.v
@@ -30,12 +30,12 @@ Deciders/Verifier_WFAR.v
 BB5_Deciders_Generic.v
 BB5_Deciders_Hardcoded.v
 
-Deciders_Hardcoded_Parameters/Decider_Halt_Hardcoded_Parameters.v
-Deciders_Hardcoded_Parameters/Decider_Loop_Hardcoded_Parameters.v
-Deciders_Hardcoded_Parameters/Decider_NGramCPS_Hardcoded_Parameters.v
-Deciders_Hardcoded_Parameters/Decider_RepWL_Hardcoded_Parameters.v
-Deciders_Hardcoded_Parameters/Verifier_FAR_Hardcoded_Certificates.v
-Deciders_Hardcoded_Parameters/Verifier_WFAR_Hardcoded_Certificates.v
+BB5_Deciders_Hardcoded_Parameters/Decider_Halt_Hardcoded_Parameters.v
+BB5_Deciders_Hardcoded_Parameters/Decider_Loop_Hardcoded_Parameters.v
+BB5_Deciders_Hardcoded_Parameters/Decider_NGramCPS_Hardcoded_Parameters.v
+BB5_Deciders_Hardcoded_Parameters/Decider_RepWL_Hardcoded_Parameters.v
+BB5_Deciders_Hardcoded_Parameters/Verifier_FAR_Hardcoded_Certificates.v
+BB5_Deciders_Hardcoded_Parameters/Verifier_WFAR_Hardcoded_Certificates.v
 
 BB5_Extraction.v
 
