@@ -31,8 +31,8 @@ The TNF enumeration algorithm is located in `BB2x4_TNF_Enumeration.v`.
 Deciders are algorithms trying to prove whether a given Turing machine halts or not. The pipeline of deciders used to solve `BB(2,4)` (pipeline defined in `BB2x4_Deciders_Pipeline.v`) is:
 
 - Loops, see `../BB5/Deciders/Decider_Loop.v`
-- n-gram Closed Position Set, see `../BB5/Deciders/Decider_NGramCPS.v`
-- Repeated Word List, see `../BB5/Deciders/Decider_RepWL.v`
+- n-gram Closed Position Set (n-gram CPS), see `../BB5/Deciders/Decider_NGramCPS.v`
+- Repeated Word List (RepWL), see `../BB5/Deciders/Decider_RepWL.v`
 - Halt Max (run machines up to 3,932,964 steps), see `Deciders/Decider_Halt_BB2x4.v`
 
 Each of these techniques is described in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
@@ -41,7 +41,7 @@ The deciders' algorithms are programmed in Coq and then proved correct in Coq to
 
 ### Extracting results
 
-The list of all enumerated machines with for each, halting status and decider ID can be extracted from the Coq proof by doing (once you've compiled the proof):
+The list of all enumerated machines (using [bbchallenge format](https://discuss.bbchallenge.org/t/standard-tm-text-format/60/28?u=cosmo)) with for each, halting status and decider ID can be extracted from the Coq proof by doing (once you've compiled the proof):
 
 ```
 cd BB2x4_Extraction
@@ -65,4 +65,16 @@ machine,status,decider
 
 This step relies on OCaml extraction of the Coq code (specified in `BB2x4_Extraction.v`).
 
-See `BB2x4_Extraction/README.md` for more information and troubleshootings.
+See `BB2x4_Extraction/README.md` for more information and troubleshooting.
+
+### Results
+
+The proof enumerates **2,154,217** machines.
+
+| Summary per decider            | Nonhalt   | Halt    | Total     |
+| ------------------------------ | --------- | ------- | --------- |
+| Loops                          | 1,263,302 | 721,313 | 1,984,615 |
+| n-gram Closed Position Set     | 163,500   |         | 163,500   |
+| Repeated Word List             | 6,078     |         | 6,078     |
+| Halt Max (3,932,964 steps)     |           | 24      | 24        |
+|                                | 1,432,880 | 721,337 | 2,154,217 |
