@@ -56,7 +56,7 @@ The deciders' algorithms are programmed in Coq and then proved correct in Coq to
 
 The two techniques marked **verifier** (FAR and WFAR) have the specificity of *only* checking given nonhalting certificates rather than generating them (which is essentially what deciders do). There are 30 such certificates, given in `BB5_Deciders_Hardcoded_Parameters/Verifier_FAR_Hardcoded_Certificates.v` and `Verifier_WFAR_Hardcoded_Certificates.v`.
 
-#### Generic vs Hardcoded
+#### Generic VS Hardcoded parameters
 
 More broadly than just for FAR and WFAR, the decider parameters (or verifier certificates) of 8,032 machines are **hardcoded**, meaning that the machines are all listed and for each of them, custom n-gram CPS / RepWL / Halt decider parameters are explicitely given (or FAR/WFAR certificates) rather than using generic parameters, applied to machines in bulk, as in `BB5_Deciders_Pipeline.v`. Specifically, in folder `BB5_Deciders_Hardcoded_Parameters/`, see:
 
