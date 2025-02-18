@@ -109,5 +109,5 @@ Here are more precise counts following exactly the pipeline used by the proof (`
 | REPWL_params_4_2_320_2000         | 54        |         |           |
 | REPWL_params_6_2_320_2000         | 12        |         |           |
 | NGRAM_CPS_IMPL2_params_4_4_20000  | 18        |         |           |
-| HALT_MAX_params_3932964           | 0         | 24      |           |
+| HALT_MAX_params_3932964           | 0         | 24      | 24        |
 | Total                             | 1,432,880 | 721,337 | 2,154,217 |
