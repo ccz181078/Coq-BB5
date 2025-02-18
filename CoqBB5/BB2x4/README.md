@@ -4,6 +4,8 @@ This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964` (see `..
 
 Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
 
+## Run the proof
+
 In order to run the proof (assuming you have Coq installed), do:
 
 ```
