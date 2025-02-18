@@ -6,7 +6,7 @@ This result means that the maximum number of steps that a halting 5-state Turing
 
 Proving this results involves enumerating 5-state Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 47,176,870 steps.
 
-The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB5_Deciders_Generic.v`). More details [below](#extracting-results).
+The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB5_Deciders_Generic.v`). More details [below](#extracting-results).
 
 ## Compile the proof
 
@@ -118,7 +118,7 @@ cd BB5_Extraction
 ./BB5_Extraction.sh
 ```
 
-Which should produce the file `BB5_verified_enumeration.csv` with shasum ending in `...510583a39` and file starting with:
+Which should produce the file `BB5_verified_enumeration.csv` (**10Gb**) with shasum ending in `...510583a39` and file starting with:
 
 ```
 machine,status,decider
@@ -138,11 +138,11 @@ This step relies on OCaml extraction of the Coq code (specified in `BB5_Extracti
 
 See `BB5_Extraction/README.md` for more information and troubleshooting.
 
-This extracted `BB5_verified_enumeration.csv` is also available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/).
+This extracted `BB5_verified_enumeration.csv` in various compressed formats is also available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/).
 
 ### Results
 
-The proof enumerates **181,385,789** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv)) of decided machines per decider:
+The proof enumerates **181,385,789** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/)) of decided machines per decider:
 
 | Decider                            | Nonhalt     | Halt       | Total       |
 | -----------------------------------| ----------- | ---------- | ----------- |
