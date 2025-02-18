@@ -44,6 +44,8 @@ The proof enumerates 5-state machines in [Tree Normal Form](https://wiki.bbchall
 - If the machine halts, i.e. meets an undefined transition, a new subtree of machines is visited for all the possible ways to fill the undefined transition
 - If the machine does not halt, it is a leaf of the TNF tree
 
+The TNF enumeration terminates when all leafs have been reached, i.e. all the enumerated Turing machines have been decided and there are no more halting machines to expand into subtrees.
+
 The TNF enumeration algorithm is located in `BB5_TNF_Enumeration.v`.
 
 #### Parallelisation
@@ -65,7 +67,7 @@ Deciders are algorithms trying to prove whether a given Turing machine halts or 
 - Finite Automata Reduction (FAR), **verifier**, see `Deciders/Verifier_FAR.v`
 - Weighted Finite Automata Reduction verification (WFAR), **verifier**, see `Deciders/Verifier_WFAR.v`
 
-Each of these techniques is described in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
+Each of these techniques is described at length in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper), also see `Deciders/README.md` and the comments in each file listed above for some information.
 
 The deciders' algorithms are programmed in Coq and then proved correct in Coq too (i.e. proving that if they output `HALT`/`NONHALT` on a machine then the machine halts/does not halt).
 
@@ -250,9 +252,8 @@ And on `NORMAL_FORM_TABLE_BASED`:
 - `Deciders/Verifier_FAR.v`: verifier for Finite Automata Reduction certificates
 - `Deciders/Verifier_WFAR.v`: verifier for Weighted Finite Automata Reduction certificates
 
+These deciders are described at length in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper), also see `Deciders/README.md` and the comments in each file listed above for some information.
+
 - `BB5_Deciders_Hardcoded_Parameters/`: contains the 8,032 [hardcoded paramaters](#generic-vs-hardcoded-parameters) organised per decider/verifier
-
-
-These deciders are described in details in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
 
 [^1]: Removing this axiom would introduce [Setoid](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Setoids.Setoid.html) everywhere.
