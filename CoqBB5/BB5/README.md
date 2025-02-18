@@ -13,10 +13,13 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 In order to compile the proof (assuming you have Coq v8.20.1 installed), do:
 
 ```
-make -j 13
+cd ../../BusyCoq && make -j 13
+cd ../CoqBB5/BB5 && make -j 13
 ```
 
-This takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (`opam install coq-native`).
+Compiling BusyCoq is needed first for 12 out of the 13 [Sporadic Machines](#sporadic-machines), it takes about 10 minutes on 13 cores (Apple silicon).
+
+Then, compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (`opam install coq-native`).
 
 ## Proof structure
 
@@ -75,9 +78,20 @@ Often, these parameters have been found by grid search implemented in other prog
 
 ### Sporadic Machines
 
-This pipeline leaves 13 machines undecided that we call 5-state Sporadic Machines (see `BB5_Sporadic_Machines.v`). We give individual nonhalting proofs for these machines. The proofs for 12 of the 13 machines (i.e. all except `BB5_Skelet17.v`) are imported from `BusyCoq`, (see `../../BusyCoq`).
+This pipeline leaves 13 machines undecided that we call 5-state Sporadic Machines (see `BB5_Sporadic_Machines.v`). We give individual nonhalting proofs for these machines. The proofs for 12 of the 13 machines (i.e. all except `BB5_Skelet17.v`) are imported from `BusyCoq`, (see `../../BusyCoq` and the [busycoq repository](https://github.com/meithecatte/busycoq/)).
 
 **Note:** there were no sporadic machines for `BB(4)` and `BB(2,4)` (see `../BB4` and `../BB2x4`), i.e. no individual proofs of nonhalting.
+
+Sporadic Machines were already present is [Skelet's 2003 bbfind holdouts](https://wiki.bbchallenge.org/wiki/Skelet) and are named in his honor:
+
+- Skelet's #1: Eventually repeats a translated pattern after at least $5.41 \times 10^{51}$ steps with period of 8,468,569,863 steps
+- Skelet's #10: [Double Fibonnaci Counter](https://www.sligocki.com/2023/03/14/skelet-10.html)
+- Skelet's #17: connected to [Gray code](https://en.wikipedia.org/wiki/Gray_code), see `BB5_Skelet17.md` and [https://arxiv.org/abs/2407.02426](https://arxiv.org/abs/2407.02426) and [https://wiki.bbchallenge.org/wiki/Skelet_17](https://wiki.bbchallenge.org/wiki/Skelet_17)
+- Skelet's #15 #26 #33 #34 #35 : [Shift Overflow Counters]https://www.sligocki.com/2023/02/05/shift-overflow.html
+
+- 5 "[Finned machines](https://discuss.bbchallenge.org/t/bb5s-finned-machines-summary/234)" which had been claimed to be proven by hand by Skelet (Georgi Georgiev)
+
+Proofs for all these machines except Skelet #17 were individually given in BusyCoq (see `../../BusyCoq` and the [busycoq repository](https://github.com/meithecatte/busycoq/)).
 
 ### Extracting results
 
