@@ -4,7 +4,7 @@ This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964` (see `..
 
 Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
 
-The [extracted results]() from these proof are available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) in the form of a CSV file, `BB2x4_verified_enumeration.csv` listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`).
+The [extracted results](#extracting-results) from these proof are available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) in the form of a CSV file, `BB2x4_verified_enumeration.csv` listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`).
 
 ## Compile the proof
 
