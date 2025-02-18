@@ -67,14 +67,42 @@ This step relies on OCaml extraction of the Coq code (specified in `BB2x4_Extrac
 
 See `BB2x4_Extraction/README.md` for more information and troubleshooting.
 
+This extracted `BB2x4_verified_enumeration.csv` is also available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/).
+
 ### Results
 
-The proof enumerates **2,154,217** machines.
+The proof enumerates **2,154,217** machines, here are summarized counts of decided machines per decider:
 
-| Summary per decider            | Nonhalt   | Halt    | Total     |
+| Decider                        | Nonhalt   | Halt    | Total     |
 | ------------------------------ | --------- | ------- | --------- |
 | Loops                          | 1,263,302 | 721,313 | 1,984,615 |
 | n-gram Closed Position Set     | 163,500   |         | 163,500   |
 | Repeated Word List             | 6,078     |         | 6,078     |
 | Halt Max (3,932,964 steps)     |           | 24      | 24        |
 |                                | 1,432,880 | 721,337 | 2,154,217 |
+
+Here are more precise counts following exactly the pipeline (and deciders ID, see `BB2x4_Deciders_Generic.v`) used by the proof (`BB2x4_Deciders_Pipeline.v`), with parameters for each method:
+
+|                                   | Nonhalt   | Halt    | Total     |
+| --------------------------------- | --------- | ------- | --------- |
+| LOOP1_params_107                  | 1,262,432 | 720,959 | 1,983,391 |
+| NGRAM_CPS_IMPL2_params_1_1_400    | 102,018   |         |           |
+| NGRAM_CPS_IMPL2_params_2_2_800    | 49,224    |         |           |
+| NGRAM_CPS_IMPL2_params_3_3_400    | 7,518     |         |           |
+| NGRAM_CPS_IMPL2_params_4_4_800    | 2,286     |         |           |
+| LOOP1_params_4100                 | 870       | 354     | 1,224     |
+| REPWL_2_3_320_400                 | 6,012     |         |           |
+| NGRAM_CPS_LRU_params_2_2_1000     | 1,206     |         |           |
+| NGRAM_CPS_IMPL1_params_2_2_2_3000 | 894       |         |           |
+| NGRAM_CPS_IMPL1_params_2_3_3_1600 | 120       |         |           |
+| NGRAM_CPS_IMPL1_params_4_2_2_600  | 12        |         |           |
+| NGRAM_CPS_IMPL1_params_4_3_3_1600 | 90        |         |           |
+| NGRAM_CPS_IMPL1_params_6_2_2_3200 | 48        |         |           |
+| NGRAM_CPS_IMPL1_params_6_3_3_3200 | 36        |         |           |
+| NGRAM_CPS_IMPL1_params_8_3_3_1600 | 6         |         |           |
+| NGRAM_CPS_LRU_params_3_3_20000    | 24        |         |           |
+| REPWL_params_4_2_320_2000         | 54        |         |           |
+| REPWL_params_6_2_320_2000         | 12        |         |           |
+| NGRAM_CPS_IMPL2_params_4_4_20000  | 18        |         |           |
+| HALT_MAX_params_3932964           | 0         | 24      |           |
+| Total                             | 1,432,880 | 721,337 | 2,154,217 |
