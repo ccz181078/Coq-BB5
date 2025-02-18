@@ -6,7 +6,7 @@ This result means that the maximum number of steps that a halting 2-state 4-symb
 
 Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
 
-The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) in the form of a CSV file, `BB2x4_verified_enumeration.csv` listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
+The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB2x4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
 
 The original, monolithic, proof (without extraction) is saved into `_BB2x4_Legacy_Monolith.v`.
 
@@ -91,7 +91,7 @@ The proof enumerates **2,154,217** machines, here are the summarized counts (com
 
 Here are more precise counts exactly following the pipeline used by the proof (`BB2x4_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB2x4_Deciders_Generic.v` which contains parameters information:
 
-|                                   | Nonhalt   | Halt    | Total     |
+| Decider ID                        | Nonhalt   | Halt    | Total     |
 | --------------------------------- | --------- | ------- | --------- |
 | LOOP1_params_107                  | 1,262,432 | 720,959 | 1,983,391 |
 | NGRAM_CPS_IMPL2_params_1_1_400    | 102,018   |         |           |

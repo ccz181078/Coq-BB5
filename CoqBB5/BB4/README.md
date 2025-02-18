@@ -6,7 +6,7 @@ This result means that the maximum number of steps that a halting 4-state Turing
 
 Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 107 steps.
 
-The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) in the form of a CSV file, `BB4_verified_enumeration.csv` listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB4_Deciders_Generic.v`). More details [below](#extracting-results).
+The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB4_Deciders_Generic.v`). More details [below](#extracting-results).
 
 The original, monolithic, proof (without extraction) is saved into `_BB4_Legacy_Monolith.v`.
 
