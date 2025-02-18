@@ -112,7 +112,7 @@ Definition BB2x4 := 3932964%N.
 
 (** Main theorem statement: BB(2,4) = 3,932,964. The statement is split into two parts:
   
-  - Upper bound (hard): For all Turing machine `tm` and natural number `n0`, if `tm` halts at `n0` steps, then `n0` is less than or equal to 3,932,964.
+  - Upper bound (hard): For all 2-state 4-symbol Turing machine `tm` and natural number `n0`, if `tm` halts at `n0` steps, then `n0` is less than or equal to 3,932,964.
   - Lower bound (easy): There exists a Turing machine `tm` that halts at 3,932,964 steps.
 *)
 Definition BB2x4_value_statement :=

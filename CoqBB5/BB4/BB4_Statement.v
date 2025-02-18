@@ -110,10 +110,10 @@ End TM.
 
 Definition BB4 := 107%N.
 
-(** Main theorem statement: BB(2,4) = 3,932,964. The statement is split into two parts:
+(** Main theorem statement: BB(4) = 107. The statement is split into two parts:
   
-  - Upper bound (hard): For all Turing machine `tm` and natural number `n0`, if `tm` halts at `n0` steps, then `n0` is less than or equal to 3,932,964.
-  - Lower bound (easy): There exists a Turing machine `tm` that halts at 3,932,964 steps.
+  - Upper bound (hard): For all 4-state 2-symbol Turing machine `tm` and natural number `n0`, if `tm` halts at `n0` steps, then `n0` is less than or equal to 107.
+  - Lower bound (easy): There exists a Turing machine `tm` that halts at 107 steps.
 *)
 Definition BB4_value_statement :=
   (forall tm n0, HaltsAtPlusOne Σ tm n0 (InitES Σ Σ0) -> n0 <= N.to_nat BB4) /\

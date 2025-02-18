@@ -113,7 +113,7 @@ Definition BB5 := 47176870%N.
 
 (** Main theorem statement: BB(5) = 47,176,870. The statement is split into two parts:
   
-  - Upper bound (hard): For all Turing machine `tm` and natural number `n0`, if `tm` halts at `n0` steps, then `n0` is less than or equal to 47,176,870.
+  - Upper bound (hard): For all 5-state 2-symbol Turing machine `tm` and natural number `n0`, if `tm` halts at `n0` steps, then `n0` is less than or equal to 47,176,870.
   - Lower bound (easy): There exists a Turing machine `tm` that halts at 47,176,870 steps.
 *)
 Definition BB5_value_statement :=
