@@ -1,6 +1,6 @@
 # BB(5) = 47,176,870
 
-This folder contains the Coq (v8.20.1) proof that `BB(5) = 47,176,870`. This result was not previously known.
+This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)) proof that `BB(5) = 47,176,870`. This result was not previously known.
 
 This result means that the maximum number of steps that a halting 5-state Turing machine can do from all-0 tape is 47,176,870. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 
@@ -10,14 +10,14 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 ## Compile the proof
 
-In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/master/INSTALL.md)), do:
+In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
 
 ```
 cd ../../BusyCoq && make -j 13
 cd ../CoqBB5/BB5 && make -j 13
 ```
 
-Compiling BusyCoq is needed first for 12 out of the 13 [Sporadic Machines](#sporadic-machines), it takes about 10 minutes on 13 cores (Apple silicon).
+Compiling BusyCoq is needed first for 12 out of the 13 [Sporadic Machines](#sporadic-machines), it takes about 8 minutes on 13 cores (Apple silicon).
 
 Then, compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (`opam install coq-native`).
 

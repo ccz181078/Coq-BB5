@@ -1,6 +1,6 @@
 # BB(4) = 107
 
-This folder contains the Coq (v8.20.1) proof that `BB(4) = 107`. This result was first proved, to a certain extent[^1], in [[Brady, 1983]](https://www.ams.org/journals/mcom/1983-40-162/S0025-5718-1983-0689479-6/).
+This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)) proof that `BB(4) = 107`. This result was first proved, to a certain extent[^1], in [[Brady, 1983]](https://www.ams.org/journals/mcom/1983-40-162/S0025-5718-1983-0689479-6/).
 
 This result means that the maximum number of steps that a halting 4-state Turing machine can do from all-0 tape is 107. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 
@@ -8,11 +8,11 @@ Proving this results involves enumerating 4-state Turing machines and decide for
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB4_Deciders_Generic.v`). More details [below](#extracting-results).
 
-The original monolithic proof (without extraction) is saved into `_BB4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB4 _BB4_Legacy_Monolith.v` -- assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/master/INSTALL.md).
+The original monolithic proof (without extraction) is saved into `_BB4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB4 _BB4_Legacy_Monolith.v` -- assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md).
 
 ## Compile the proof
 
-In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/master/INSTALL.md)), do:
+In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
 
 ```
 ./create_proof_files.sh
