@@ -8,6 +8,8 @@ Proving this results involves enumerating 2-state 4-symbol Turing machines and d
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) in the form of a CSV file, `BB2x4_verified_enumeration.csv` listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
 
+The original, monolithic, proof (without extraction) is saved into `_BB2x4_Legacy_Monolith.v`.
+
 ## Compile the proof
 
 In order to compile the proof (assuming you have Coq v8.20.1 installed), do:
@@ -32,7 +34,7 @@ The TNF enumeration algorithm is located in `BB2x4_TNF_Enumeration.v`.
 
 ### Deciders
 
-Deciders are algorithms trying to prove whether a given Turing machine halts or not. The pipeline of deciders used to solve `BB(2,4)` (pipeline defined in `BB2x4_Deciders_Pipeline.v`) is:
+Deciders are algorithms trying to prove whether a given Turing machine halts or not. The pipeline of deciders used to solve `BB(2,4)` (pipeline defined in `BB2x4_Deciders_Pipeline.v`) is a subset of the `BB(5)` pipeline (see ../BB5):
 
 - Loops, see `../BB5/Deciders/Decider_Loop.v`
 - n-gram Closed Position Set (n-gram CPS), see `../BB5/Deciders/Decider_NGramCPS.v`
@@ -111,3 +113,38 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 | NGRAM_CPS_IMPL2_params_4_4_20000  | 18        |         |           |
 | HALT_MAX_params_3932964           | 0         | 24      | 24        |
 | Total                             | 1,432,880 | 721,337 | 2,154,217 |
+
+## Files index
+
+- `_BB2x4_Legacy_Monolith.v`: original monolithic proof of `BB(2,4) = 3,932,964`, without extraction
+
+- `create_proof_files.sh`: copies and does some renaming on files imported from `../BB5`, also creates `Makefile` and `_CoqProject`
+- `BB2x4_Deciders_Generic.v`: deciders IDs definition
+- `BB2x4_Deciders_Pipeline.v`: decider pipeline definition and lemmas
+- `BB2x4_Encodings.v`: routines that encode objects into numbers for fast lookup using Coq's `FSets.FMapPositive`
+- `BB2x4_Extraction.v`: OCaml extraction, see [above](#extracting-results)
+- `BB2x4_Make_TM.v`: mainly routines to build 2-state 4-symbol Turing machines
+- `BB2x4_Statement.v`: main definition and `BB(2,4) = 3,932,964` theorem statement
+- `BB2x4_Theorem.v`: entry point of the proof of `BB(2,4) = 3,932,964`
+- `BB2x4_TNF_Enumeration.v`: Tree Normal Form enumeration of 2-state 4-symbol Turing machines
+- `Deciders/Decider_Halt_BB2x4.v`: Halt Max decider, runs machines up to 3,932,964 steps and detects halting
+- `BB2x4_Extraction/BB2x4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) (also checks hashes)
+
+Files imported from `../BB5` after running `create_proof_files.sh`:
+
+- `Makefile`: allows to build the proof with `make`
+- `List_Routines.v`: routines to manipulate lists
+- `Prelims.v`: various definitions of general interest
+- `Tactics.v`: custom Coq tactics
+- `TM.v`: tools to work with Turing Machines
+- `TNF.v`: tools for the Tree Normal Form enumeration (e.g. `SearchQueue` implementation etc...)
+
+- `Deciders/Deciders_Common.v`: common abstraction needed by deciders
+- `Deciders/Decider_Halt.v`: decider that detects halting by running a machine for some steps
+- `Deciders/Decider_Loop.v`: decider for loops
+- `Deciders/Decider_NGramCPS.v`: n-gram Closed Position Set decider
+- `Deciders/Decider_RepWL.v`: Repeated Word List decider
+- `Deciders/Verifier_Halt.v`: verifier that a machine does halt after a given number of steps
+
+
+These deciders are described in details in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).

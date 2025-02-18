@@ -32,6 +32,8 @@ Definition root_q_upd1_simplified:SearchQueue:=
 Definition q_0 := root_q_upd1_simplified.
 Definition q_suc:SearchQueue->SearchQueue := (fun x => SearchQueue_upds x decider_all 14).
 Definition q_200_def := Nat.iter 200 q_suc q_0.
+
+(** Run the Tree Normal Form Enumeration *)
 Definition q_200 : SearchQueue := Eval native_compute in q_200_def.
 
 
