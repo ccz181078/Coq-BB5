@@ -2,9 +2,9 @@
 
 This folder contains the Coq (v8.20.1) proof that `BB(4) = 107`. This result was first proved, to a certain extent[^1], in [[Brady, 1983]](https://www.ams.org/journals/mcom/1983-40-162/S0025-5718-1983-0689479-6/).
 
-This result means that the maximum number of steps that a halting 4-state Turing machine can do from all-0 tape is 107. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailled information.
+This result means that the maximum number of steps that a halting 4-state Turing machine can do from all-0 tape is 107. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 
-Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 107 steps.
+Proving this results involves enumerating 4-state Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 107 steps.
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB4_Deciders_Generic.v`). More details [below](#extracting-results).
 
@@ -19,13 +19,15 @@ In order to compile the proof (assuming you have Coq v8.20.1 installed), do:
 make
 ```
 
+This takes about 30 seconds (Apple silicon), using Coq's `native_compute` (`opam install coq-native`).
+
 ## Proof structure
 
 The main definitions and `BB(4) = 107` theorem statement are in `BB4_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB4_Theorem.v`.
 
 ### Tree Normal Form (TNF) enumeration
 
-The proof enumerates 2-state 4-symbol machines in [Tree Normal Form](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form) (**TNF**). Each enumerated machine is passed through a pipeline of deciders which are algorithm trying to prove whether the machine halts or not:
+The proof enumerates 4-state machines in [Tree Normal Form](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form) (**TNF**). Each enumerated machine is passed through a pipeline of deciders which are algorithm trying to prove whether the machine halts or not:
 
 - If the machine halts, i.e. meets an undefined transition, a new subtree of machines is visited for all the possible ways to fill the undefined transition
 - If the machine does not halt, it is a leaf of the TNF tree
@@ -116,10 +118,10 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 - `BB4_Deciders_Pipeline.v`: decider pipeline definition and lemmas
 - `BB4_Encodings.v`: routines that encode objects into numbers for fast lookup using Coq's `FSets.FMapPositive`
 - `BB4_Extraction.v`: OCaml extraction, see [above](#extracting-results)
-- `BB4_Make_TM.v`: mainly routines to build 2-state 4-symbol Turing machines
+- `BB4_Make_TM.v`: mainly routines to build 4-state Turing machines
 - `BB4_Statement.v`: main definition and `BB(4) = 107` theorem statement
 - `BB4_Theorem.v`: entry point of the proof of `BB(4) = 107`
-- `BB4_TNF_Enumeration.v`: Tree Normal Form enumeration of 2-state 4-symbol Turing machines
+- `BB4_TNF_Enumeration.v`: Tree Normal Form enumeration of 4-state Turing machines
 - `Deciders/Decider_Halt_BB4.v`: Halt Max decider, runs machines up to 107 steps and detects halting
 - `BB4_Extraction/BB4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
 
