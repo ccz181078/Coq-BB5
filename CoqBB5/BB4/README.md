@@ -21,6 +21,18 @@ make
 
 This takes about 30 seconds (Apple silicon), using Coq's `native_compute` (`opam install coq-native`).
 
+### Used Axiom
+
+As outputted at the end of the compilation, the proof only depends on Coq's standard library axiom [functional_extensionality_dep](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Logic.FunctionalExtensionality.html):
+
+```
+functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+```
+
+This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB5_Statement.v`) since they are represented by functions[^2]. 
+
 ## Proof structure
 
 The main definitions and `BB(4) = 107` theorem statement are in `BB4_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB4_Theorem.v`.
@@ -145,3 +157,4 @@ Files imported from `../BB5` after running `create_proof_files.sh`:
 These deciders are described in details in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
 
 [^1]: Quoting the paper: "All of the remaining holdouts were examined by means of voluminous printouts of their histories along with some program extracted features. It was determined to the author's satisfaction that none of these machines will ever stop." 
+[^2]: Removing this axiom would introduce [Setoid](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Setoids.Setoid.html) everywhere.

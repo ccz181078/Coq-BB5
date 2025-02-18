@@ -21,6 +21,18 @@ Compiling BusyCoq is needed first for 12 out of the 13 [Sporadic Machines](#spor
 
 Then, compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (`opam install coq-native`).
 
+### Used Axiom
+
+As outputted at the end of the compilation, the proof only depends on Coq's standard library axiom [functional_extensionality_dep](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Logic.FunctionalExtensionality.html):
+
+```
+functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+```
+
+This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB5_Statement.v`) since they are represented by functions[^1]. 
+
 ## Proof structure
 
 The main definitions and `BB(5) = 47,176,870` theorem statement are in `BB5_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB5_Theorem.v`.
@@ -56,6 +68,8 @@ Deciders are algorithms trying to prove whether a given Turing machine halts or 
 Each of these techniques is described in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
 
 The deciders' algorithms are programmed in Coq and then proved correct in Coq too (i.e. proving that if they output `HALT`/`NONHALT` on a machine then the machine halts/does not halt).
+
+The exact order of the deciders (see [results](#results)) is chosen to decide most Turing machines efficiently.
 
 The two techniques marked **verifier** (FAR and WFAR) have the specificity of *only* checking given nonhalting certificates rather than generating them (which is essentially what deciders do). There are 30 such certificates, given in `BB5_Deciders_Hardcoded_Parameters/Verifier_FAR_Hardcoded_Certificates.v` and `Verifier_WFAR_Hardcoded_Certificates.v`.
 
@@ -240,3 +254,5 @@ And on `NORMAL_FORM_TABLE_BASED`:
 
 
 These deciders are described in details in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
+
+[^1]: Removing this axiom would introduce [Setoid](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Setoids.Setoid.html) everywhere.
