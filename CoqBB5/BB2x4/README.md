@@ -2,7 +2,7 @@
 
 This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964` (see `../README.md` for definitions). This result means that the maximum number of steps that a halting 2-state 4-symbol Turing machine can do is 3,932,964. 
 
-Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts at most after 3,932,964 steps.
+Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
 
 In order to run the proof (assuming you have Coq installed), do:
 
