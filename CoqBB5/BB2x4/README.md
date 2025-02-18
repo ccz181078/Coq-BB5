@@ -6,7 +6,7 @@ This result means that the maximum number of steps that a halting 2-state 4-symb
 
 Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
 
-The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB2x4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
+The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
 
 The original monolithic proof (without extraction) is saved into `_BB2x4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB2x4 _BB2x4_Legacy_Monolith.v` -- assuming you have Coq v8.20.1 installed.
 
@@ -74,11 +74,11 @@ This step relies on OCaml extraction of the Coq code (specified in `BB2x4_Extrac
 
 See `BB2x4_Extraction/README.md` for more information and troubleshooting.
 
-This extracted `BB2x4_verified_enumeration.csv` is also available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/).
+This extracted `BB2x4_verified_enumeration.csv` is also available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/).
 
 ### Results
 
-The proof enumerates **2,154,217** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB2x4_verified_enumeration.csv)) of decided machines per decider:
+The proof enumerates **2,154,217** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv)) of decided machines per decider:
 
 | Decider                        | Nonhalt   | Halt    | Total     |
 | ------------------------------ | --------- | ------- | --------- |
@@ -128,7 +128,7 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 - `BB2x4_Theorem.v`: entry point of the proof of `BB(2,4) = 3,932,964`
 - `BB2x4_TNF_Enumeration.v`: Tree Normal Form enumeration of 2-state 4-symbol Turing machines
 - `Deciders/Decider_Halt_BB2x4.v`: Halt Max decider, runs machines up to 3,932,964 steps and detects halting
-- `BB2x4_Extraction/BB2x4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/) (also checks hashes)
+- `BB2x4_Extraction/BB2x4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
 
 Files imported from `../BB5` after running `create_proof_files.sh`:
 

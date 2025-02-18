@@ -46,7 +46,7 @@ else
     exit 1
 fi
 
-EXPECTED_HASH=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+EXPECTED_HASH=8104a34229d4419c9f71be5e03d220f0a61bbdb326441ca66ca6eba510583a39
 # Compare the hashes
 if [[ "$ACTUAL_HASH" == "$EXPECTED_HASH" ]]; then
     echo "Success: Hash matches the expected one from BB5 extraction."
