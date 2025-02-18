@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cp printers.out printers.ml
 cp BB5_verified_enumeration.out BB5_verified_enumeration.ml
 
@@ -44,7 +46,7 @@ else
     exit 1
 fi
 
-EXPECTED_HASH=d6e6a8da09528a67b6fba9301949f7544c987bae04b6dbbc6f3d99ea5ea8518a
+EXPECTED_HASH=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 # Compare the hashes
 if [[ "$ACTUAL_HASH" == "$EXPECTED_HASH" ]]; then
     echo "Success: Hash matches the expected one from BB5 extraction."

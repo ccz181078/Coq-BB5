@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cp printers.out printers.ml
 cp BB2x4_verified_enumeration.out BB2x4_verified_enumeration.ml
 
