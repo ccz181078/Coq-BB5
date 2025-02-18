@@ -15,8 +15,6 @@ BB4_Deciders_Pipeline.v
 BB4_TNF_Enumeration.v
 
 Deciders/Deciders_Common.v
-Deciders/Decider_Halt.v
-Deciders/Decider_Halt_BB4.v
 Deciders/Decider_Loop.v
 Deciders/Decider_NGramCPS.v
 Deciders/Decider_RepWL.v

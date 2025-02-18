@@ -1,7 +1,8 @@
 #!/bin/bash
 
 cp ../BB5/Prelims.v ../BB5/List_Routines.v ../BB5/List_Tape.v ../BB5/Tactics.v ../BB5/TM.v ../BB5/TNF.v ../BB5/Makefile .
-cp ../BB5/Deciders/Decider_Halt.v ../BB5/Deciders/Decider_Loop.v ../BB5/Deciders/Decider_NGramCPS.v ../BB5/Deciders/Decider_RepWL.v ../BB5/Deciders/Deciders_Common.v ../BB5/Deciders/Verifier_Halt.v Deciders
+mkdir -p Deciders
+cp ../BB5/Deciders/Decider_Loop.v ../BB5/Deciders/Decider_NGramCPS.v ../BB5/Deciders/Decider_RepWL.v ../BB5/Deciders/Deciders_Common.v ../BB5/Deciders/Verifier_Halt.v Deciders
 cp ._CoqProject _CoqProject
 
 # Define replacements using parallel arrays
@@ -16,7 +17,6 @@ files=(
     Tactics.v
     TM.v
     TNF.v
-    Deciders/Decider_Halt.v
     Deciders/Decider_Loop.v
     Deciders/Decider_NGramCPS.v
     Deciders/Decider_RepWL.v

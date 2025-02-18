@@ -13,8 +13,6 @@ From CoqBB4 Require Import Prelims.
 From CoqBB4 Require Import BB4_Encodings.
 
 From CoqBB4 Require Import Deciders_Common.
-From CoqBB4 Require Import Decider_Halt.
-From CoqBB4 Require Import Decider_Halt_BB4.
 From CoqBB4 Require Import Decider_Loop.
 From CoqBB4 Require Import Decider_NGramCPS.
 From CoqBB4 Require Import Decider_RepWL.
