@@ -76,7 +76,7 @@ This extracted `BB2x4_verified_enumeration.csv` is also available at [https://do
 
 ### Results
 
-The proof enumerates **2,154,217** machines, here are summarized counts of decided machines per decider:
+The proof enumerates **2,154,217** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/)) of decided machines per decider:
 
 | Decider                        | Nonhalt   | Halt    | Total     |
 | ------------------------------ | --------- | ------- | --------- |
