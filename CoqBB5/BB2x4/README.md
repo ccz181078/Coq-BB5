@@ -86,7 +86,6 @@ The proof enumerates **2,154,217** machines, here are the summarized counts (com
 | n-gram Closed Position Set     | 163,500   | 0       | 163,500   |
 | Repeated Word List             | 6,078     | 0       | 6,078     |
 | Halt Max (3,932,964 steps)     | 0         | 24      | 24        |
-| ------------------------------ | --------- | ------- | --------- |
 | Total                          | 1,432,880 | 721,337 | 2,154,217 |
 
 Here are more precise counts exactly following the pipeline used by the proof (`BB2x4_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB2x4_Deciders_Generic.v` which contains parameters information:

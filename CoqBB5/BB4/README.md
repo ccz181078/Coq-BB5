@@ -84,7 +84,6 @@ The proof enumerates **858,909** machines, here are the summarized counts (compu
 | Loops                      | 588,373 | 249,693 | 838,066 |
 | n-gram Closed Position Set | 20,841  | 0       | 20,841  |
 | Repeated Word List         | 2       | 0       | 2       |
-| ---------------------------| ------- | ------- | ------- |
 | Total                      | 609,216 | 249,693 | 858,909 |
 
 Here are more precise counts exactly following the pipeline used by the proof (`BB4_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB4_Deciders_Generic.v` which contains parameters information:
@@ -106,7 +105,6 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 | NGRAM_CPS_LRU_params_2_2_10000      | 8       |         |         |
 | NGRAM_CPS_IMPL1_params_10_4_4_10000 | 4       |         |         |
 | REPWL_params_4_3_320_10000          | 2       |         |         |
-| ----------------------------------- | ------- | ------- | ------- |
 | Total                               | 609,216 | 249,693 | 858,909 |
 
 ## Files index
