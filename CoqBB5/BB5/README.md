@@ -120,9 +120,10 @@ The proof enumerates **181,385,789** machines, here are the summarized counts (c
 | n-gram Closed Position Set         | 6,005,142   |            | 6,005,142   |
 | Repeated Word List                 | 6,577       |            | 6,577       |
 | Halt Max (47,176,870 steps)        | 0           | 183        | 183         |
-| Finite Automata Reduction          | 32          |            | 32          |
-| Weighted Finite Automata Reduction | 31          |            | 31          |
-| Sporadic Machines                  | 14          |            | 14          |
+| Finite Automata Reduction          | 23          |            | 32          |
+| Weighted Finite Automata Reduction | 17          |            | 31          |
+| Sporadic Machines                  | 13          |            | 13          |
+| 1RB reduction ([see below](#table_based-and-normal_form_table_based))                 | 14          |            | 14          |
 | Total                              | 133,005,895 | 48,379,894 | 181,385,789 |
 
 Here are more precise counts exactly following the pipeline used by the proof (`BB5_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB5_Deciders_Generic.v` which contains parameters information:
@@ -178,12 +179,12 @@ Here are decider statistics on `TABLE_BASED` machines:
 
 And on `NORMAL_FORM_TABLE_BASED`:
 
-| NORMAL_FORM_TABLE_BASED |    |
-| ----------------------- | -- |
-| WFAR                    | 14 |
-| FAR                     | 9  |
-| Sporadic Machine        | 1  |
-|                         | 24 |
+| NORMAL_FORM_TABLE_BASED    |    |
+| -------------------------- | -- |
+| FAR                        | 9  |
+| WFAR                       | 14 |
+| Sporadic Machine (Finned3) | 1  |
+|                            | 24 |
 
 
 ## Files index
