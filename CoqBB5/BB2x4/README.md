@@ -1,6 +1,6 @@
 # BB(2,4) = 3,932,964
 
-This folder contains the Coq (version 8.20.1) proof that `BB(2,4) = 3,932,964` (see `../README.md` for definitions).
+This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964` (see `../README.md` for definitions). This means that the maximum number of steps that a halting 2-state 4-symbol Turing machine can do is 3,932,964. Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts at most after 3,932,964 steps.
 
 In order to run the proof (assuming you have Coq installed), do:
 
@@ -11,9 +11,9 @@ make
 
 ## Proof structure
 
-### Tree Normal Form (TNF) enumeration
-
 The main definitions and `BB(2,4) = 3,932,964` theorem statement are in `BB2x4_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB2x4_Theorem.v`.
+
+### Tree Normal Form (TNF) enumeration
 
 The proof enumerates 2-state 4-symbol machines in [Tree Normal Form](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form) (**TNF**). Each enumerated machine is passed through a pipeline of deciders which are algorithm trying to prove whether the machine halts or not:
 
