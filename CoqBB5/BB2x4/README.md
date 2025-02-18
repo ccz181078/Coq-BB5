@@ -63,6 +63,7 @@ machine,status,decider
 0RB---------_0LA---------,nonhalt,LOOP1_params_107
 0RB---------_1LA---------,halt,LOOP1_params_107
 0RB---------_1LA0LA------,nonhalt,LOOP1_params_107
+...
 ```
 
 This step relies on OCaml extraction of the Coq code (specified in `BB2x4_Extraction.v`).
