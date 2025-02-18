@@ -129,13 +129,13 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 - `BB2x4_Statement.v`: main definition and `BB(2,4) = 3,932,964` theorem statement
 - `BB2x4_Theorem.v`: entry point of the proof of `BB(2,4) = 3,932,964`
 - `BB2x4_TNF_Enumeration.v`: Tree Normal Form enumeration of 2-state 4-symbol Turing machines
-- `Deciders/Decider_Halt_BB2x4.v`: Halt Max decider, runs machines up to 3,932,964 steps and detects halting
 - `BB2x4_Extraction/BB2x4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
 
 Files imported from `../BB5` after running `create_proof_files.sh`:
 
 - `Makefile`: allows to build the proof with `make`
 - `List_Routines.v`: routines to manipulate lists
+- `List_Tape.v`: routines to manipulate Turing machines tapes as lists
 - `Prelims.v`: various definitions of general interest
 - `Tactics.v`: custom Coq tactics
 - `TM.v`: tools to work with Turing Machines
@@ -143,6 +143,7 @@ Files imported from `../BB5` after running `create_proof_files.sh`:
 
 - `Deciders/Deciders_Common.v`: common abstraction needed by deciders
 - `Deciders/Decider_Halt.v`: decider that detects halting by running a machine for some steps
+- `Deciders/Decider_Halt_BB2x4.v`: Halt Max decider, runs machines up to 3,932,964 steps and detects halting
 - `Deciders/Decider_Loop.v`: decider for loops
 - `Deciders/Decider_NGramCPS.v`: n-gram Closed Position Set decider
 - `Deciders/Decider_RepWL.v`: Repeated Word List decider

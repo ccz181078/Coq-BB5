@@ -122,13 +122,13 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 - `BB4_Statement.v`: main definition and `BB(4) = 107` theorem statement
 - `BB4_Theorem.v`: entry point of the proof of `BB(4) = 107`
 - `BB4_TNF_Enumeration.v`: Tree Normal Form enumeration of 4-state Turing machines
-- `Deciders/Decider_Halt_BB4.v`: Halt Max decider, runs machines up to 107 steps and detects halting
 - `BB4_Extraction/BB4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
 
 Files imported from `../BB5` after running `create_proof_files.sh`:
 
 - `Makefile`: allows to build the proof with `make`
 - `List_Routines.v`: routines to manipulate lists
+- `List_Tape.v`: routines to manipulate Turing machines tapes as lists
 - `Prelims.v`: various definitions of general interest
 - `Tactics.v`: custom Coq tactics
 - `TM.v`: tools to work with Turing Machines

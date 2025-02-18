@@ -84,9 +84,9 @@ This pipeline leaves 13 machines undecided that we call 5-state Sporadic Machine
 
 Sporadic Machines were already present is [Skelet's 2003 bbfind holdouts](https://wiki.bbchallenge.org/wiki/Skelet) and are named in his honor:
 
-- Skelet's #1: Eventually repeats a translated pattern after at least $5.41 \times 10^{51}$ steps with period of 8,468,569,863 steps
-- Skelet's #10: [Double Fibonnaci Counter](https://www.sligocki.com/2023/03/14/skelet-10.html)
-- Skelet's #17: connected to [Gray code](https://en.wikipedia.org/wiki/Gray_code), see `BB5_Skelet17.md` and [https://arxiv.org/abs/2407.02426](https://arxiv.org/abs/2407.02426) and [https://wiki.bbchallenge.org/wiki/Skelet_17](https://wiki.bbchallenge.org/wiki/Skelet_17)
+- [Skelet's #1](https://bbchallenge.org/1RB1RD_1LC0RC_1RA1LD_0RE0LB_---1RC): Eventually repeats a translated pattern after at least $5.41 \times 10^{51}$ steps with period of 8,468,569,863 steps
+- [Skelet's #10](https://bbchallenge.org/1RB0RA_0LC1RA_1RE1LD_1LC0LD_---0RB): [Double Fibonnaci Counter](https://www.sligocki.com/2023/03/14/skelet-10.html)
+- [Skelet's #17](https://bbchallenge.org/1RB---_0LC1RE_0LD1LC_1RA1LB_0RB0RA): connected to [Gray code](https://en.wikipedia.org/wiki/Gray_code), see `BB5_Skelet17.md` and [https://arxiv.org/abs/2407.02426](https://arxiv.org/abs/2407.02426) and [https://wiki.bbchallenge.org/wiki/Skelet_17](https://wiki.bbchallenge.org/wiki/Skelet_17)
 - Skelet's #15 #26 #33 #34 #35 : [Shift Overflow Counters]https://www.sligocki.com/2023/02/05/shift-overflow.html
 
 - 5 "[Finned machines](https://discuss.bbchallenge.org/t/bb5s-finned-machines-summary/234)" which had been claimed to be proven by hand by Skelet (Georgi Georgiev)
@@ -203,35 +203,40 @@ And on `NORMAL_FORM_TABLE_BASED`:
 
 ## Files index
 
-- `create_proof_files.sh`: copies and does some renaming on files imported from `../BB5`, also creates `Makefile` and `_CoqProject`
 - `BB5_Deciders_Generic.v`: deciders IDs definition
 - `BB5_Deciders_Pipeline.v`: decider pipeline definition and lemmas
 - `BB5_Encodings.v`: routines that encode objects into numbers for fast lookup using Coq's `FSets.FMapPositive`
 - `BB5_Extraction.v`: OCaml extraction, see [above](#extracting-results)
 - `BB5_Make_TM.v`: mainly routines to build 5-state Turing machines
+- `BB5_Skelet17.v`: nonhalting proof of machine Skelet's #17 (see [Sporadic Machines](#sporadic-machines) and `BB5_Skelet17.md`)
+- `BB5_Sporadic_Machines.v`: collects [Sporadic Machines](#sporadic-machines) proofs
 - `BB5_Statement.v`: main definition and `BB(5) = 47,176,870` theorem statement
 - `BB5_Theorem.v`: entry point of the proof of `BB(5) = 47,176,870`
-- `BB5_TNF_Enumeration.v`: Tree Normal Form enumeration of 5-state Turing machines
-- `Deciders/Decider_Halt_BB5.v`: Halt Max decider, runs machines up to 47,176,870 steps and detects halting
-- `BB5_Extraction/BB5_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB5_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
+- `BB5_TNF_Enumeration.v`: Gathers results from the parallelised Tree Normal Form enumeration (see `BB5_TNF_Enumeration_Roots/`) of 5-state Turing machines
+- `BB5_TNF_Enumeration_Roots/`: folder containing the decomposition of the [Tree Normal Form enumeration](#tree-normal-form-tnf-enumeration-parallelised) into several subtrees for parallelisation (one per file starting with prefix `TNF_Root_`). The recursive structure of the folder follows the structure of the tree. 
+- `BusyCoq_Translation.v`: translation to tool in order to import [Sporadic Machines](#sporadic-machines) proofs from `../../BusyCoq` (also see the [busycoq repository](https://github.com/meithecatte/busycoq/))
 
-Files imported from `../BB5` after running `create_proof_files.sh`:
-
-- `Makefile`: allows to build the proof with `make`
 - `List_Routines.v`: routines to manipulate lists
+- `List_Tape.v`: routines to manipulate Turing machines tapes as lists
+- `Makefile`: allows to build the proof with `make`
 - `Prelims.v`: various definitions of general interest
 - `Tactics.v`: custom Coq tactics
 - `TM.v`: tools to work with Turing Machines
 - `TNF.v`: tools for the Tree Normal Form enumeration (e.g. `SearchQueue` implementation etc...)
 
+- `BB5_Extraction/BB5_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB5_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
+
 - `Deciders/Deciders_Common.v`: common abstraction needed by deciders
 - `Deciders/Decider_Halt.v`: decider that detects halting by running a machine for some steps
+- `Deciders/Decider_Halt_BB5.v`: Halt Max decider, runs machines up to 47,176,870 steps and detects halting
 - `Deciders/Decider_Loop.v`: decider for loops
 - `Deciders/Decider_NGramCPS.v`: n-gram Closed Position Set decider
 - `Deciders/Decider_RepWL.v`: Repeated Word List decider
 - `Deciders/Verifier_Halt.v`: verifier that a machine does halt after a given number of steps
+- `Deciders/Verifier_FAR.v`: verifier for Finite Automata Reduction certificates
+- `Deciders/Verifier_WFAR.v`: verifier for Weighted Finite Automata Reduction certificates
+
+- `BB5_Deciders_Hardcoded_Parameters/`: contains the 8,032 [hardcoded paramaters](#generic-vs-hardcoded-parameters) organised per decider/verifier
 
 
 These deciders are described in details in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
-
-[^1]: Quoting the paper: "All of the remaining holdouts were examined by means of voluminous printouts of their histories along with some program extracted features. It was determined to the author's satisfaction that none of these machines will ever stop." 
