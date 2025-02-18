@@ -31,7 +31,7 @@ functional_extensionality_dep
     (forall x : A, f x = g x) -> f = g
 ```
 
-This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB5_Statement.v`) since they are represented by functions[^2]. 
+This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB4_Statement.v`) since they are represented by functions[^2]. 
 
 ## Proof structure
 
