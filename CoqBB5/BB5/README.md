@@ -6,7 +6,7 @@ This result means that the maximum number of steps that a halting 5-state Turing
 
 Proving this results involves enumerating 5-state Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 47,176,870 steps.
 
-The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB5_Deciders_Generic.v`). More details [below](#extracting-results).
+The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz) in the form of a CSV file (**10 Gb**) listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB5_Deciders_Generic.v`). More details [below](#extracting-results).
 
 ## Compile the proof
 
