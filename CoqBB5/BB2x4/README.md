@@ -1,6 +1,6 @@
 # BB(2,4) = 3,932,964
 
-This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964`.
+This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964`. This result was not previously known.
 
 This result means that the maximum number of steps that a halting 2-state 4-symbol Turing machine can do from all-0 tape is 3,932,964. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailled information.
 
