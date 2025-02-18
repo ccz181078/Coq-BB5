@@ -76,9 +76,9 @@ The proof enumerates **2,154,217** machines, here are summarized counts of decid
 | Decider                        | Nonhalt   | Halt    | Total     |
 | ------------------------------ | --------- | ------- | --------- |
 | Loops                          | 1,263,302 | 721,313 | 1,984,615 |
-| n-gram Closed Position Set     | 163,500   |         | 163,500   |
-| Repeated Word List             | 6,078     |         | 6,078     |
-| Halt Max (3,932,964 steps)     |           | 24      | 24        |
+| n-gram Closed Position Set     | 163,500   | 0       | 163,500   |
+| Repeated Word List             | 6,078     | 0       | 6,078     |
+| Halt Max (3,932,964 steps)     | 0         | 24      | 24        |
 |                                | 1,432,880 | 721,337 | 2,154,217 |
 
 Here are more precise counts following exactly the pipeline (and deciders ID, see `BB2x4_Deciders_Generic.v`) used by the proof (`BB2x4_Deciders_Pipeline.v`), with parameters for each method:
