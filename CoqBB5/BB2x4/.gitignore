@@ -1,4 +1,5 @@
 _CoqProject
+Makefile
 Encodings.v
 List_Routines.v
 List_Tape.v
