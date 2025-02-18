@@ -10,7 +10,7 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 ## Compile the proof
 
-In order to compile the proof (assuming you have Coq v8.20.1 installed), do:
+In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/master/INSTALL.md)), do:
 
 ```
 cd ../../BusyCoq && make -j 13

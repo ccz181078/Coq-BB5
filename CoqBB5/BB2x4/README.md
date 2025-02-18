@@ -8,11 +8,11 @@ Proving this results involves enumerating 2-state 4-symbol Turing machines and d
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
 
-The original monolithic proof (without extraction) is saved into `_BB2x4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB2x4 _BB2x4_Legacy_Monolith.v` -- assuming you have Coq v8.20.1 installed.
+The original monolithic proof (without extraction) is saved into `_BB2x4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB2x4 _BB2x4_Legacy_Monolith.v` -- assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/master/INSTALL.md).
 
 ## Compile the proof
 
-In order to compile the proof (assuming you have Coq v8.20.1 installed), do:
+In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/master/INSTALL.md)), do:
 
 ```
 ./create_proof_files.sh
