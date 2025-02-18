@@ -6,7 +6,7 @@ Proving this results involves enumerating 2-state 4-symbol Turing machines and d
 
 ## Run the proof
 
-In order to run the proof (assuming you have Coq installed), do:
+In order to run the proof (assuming you have Coq v8.20.1 installed), do:
 
 ```
 ./create_proof_files.sh
@@ -30,13 +30,13 @@ The TNF enumeration algorithm is located in `BB2x4_TNF_Enumeration.v`.
 
 Deciders are algorithms trying to prove whether a given Turing machine halts or not. The pipeline of deciders used to solve `BB(2,4)` (pipeline defined in `BB2x4_Deciders_Pipeline.v`) is:
 
-- Loops
-- n-gram Closed Position Set
-- Repeated Word List
-- Halt Max (run machines up to 3,932,964 steps)
+- Loops, see `../BB5/Deciders/Decider_Loop.v`
+- n-gram Closed Position Set, see `../BB5/Deciders/Decider_NGramCPS.v`
+- Repeated Word List, see `../BB5/Deciders/Decider_RepWL.v`
+- Halt Max (run machines up to 3,932,964 steps), see `Deciders/Decider_Halt_BB2x4.v`
 
 Each of these techniques is described in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper).
 
-The deciders' algorithms (present in `Deciders/` once you have run `./create_proof_files.sh` which copies them from `../BB5/Deciders/`) are programmed in Coq and then proved correct in Coq too.
+The deciders' algorithms are programmed in Coq and then proved correct in Coq too (i.e. proving that if they output `HALT`/`NONHALT` on a machine then the machine halts/does not halt).
 
 ### Extracting results
