@@ -8,7 +8,7 @@ Proving this results involves enumerating 2-state 4-symbol Turing machines and d
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v0.9.0/BB4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB4_Deciders_Generic.v`). More details [below](#extracting-results).
 
-The original monolithic proof (without extraction) is saved into `_BB4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB4 _BB4_Legacy_Monolith.v` (assuming you have Coq v8.20.1 installed).
+The original monolithic proof (without extraction) is saved into `_BB4_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB4 _BB4_Legacy_Monolith.v` -- assuming you have Coq v8.20.1 installed.
 
 ## Compile the proof
 
