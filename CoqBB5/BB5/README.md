@@ -37,7 +37,7 @@ This axiom is used to simplify the equality between `TM` and `ExecState` (both d
 
 The main definitions and `BB(5) = 47,176,870` theorem statement are in `BB5_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB5_Theorem.v`.
 
-### Tree Normal Form (TNF) enumeration (**parallelised**)
+### Tree Normal Form (TNF) enumeration (parallelised)
 
 The proof enumerates 5-state machines in [Tree Normal Form](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form) (**TNF**). Each enumerated machine is passed through a pipeline of deciders which are algorithm trying to prove whether the machine halts or not:
 
@@ -48,13 +48,13 @@ The TNF enumeration terminates when all leafs have been reached, i.e. all the en
 
 The TNF enumeration algorithm is located in `BB5_TNF_Enumeration.v`.
 
-#### Parallelisation
+#### Parallel compilation
 
-In order to reach acceptable compile time efforts were put into parellelising the proof. Conveniently the *Tree* Normal Form enumeration builds a *tree* of Turing machines, hence parallel compilation was achievied by delegating subtrees to individual independent files which are located in `BB5_TNF_Enumeration_Roots`, see `BB5_TNF_Enumeration_Roots/README.md` for more details.
+In order to reach acceptable compile time, efforts were put into parellelising the compilation of the proof. Conveniently the *Tree* Normal Form enumeration builds a *tree* of Turing machines, hence parallel compilation was achieved by delegating subtrees to individual independent files which are located in `BB5_TNF_Enumeration_Roots`, see `BB5_TNF_Enumeration_Roots/README.md` for more details.
 
 This technique could be iterated (i.e. break the tree in even more subtrees) to even further decrease compile time (provided enough cores).
 
-**Note:** parallelisation was not needed for the proofs of `BB(4)` and `BB(2,4)` (see `../BB4` and `../BB2x4`) whose search spaces are respectively about 200 and 100 times smaller than for `BB(5)` and whose proofs compile already quickly (about 30s for `BB(4)` and 2m30s for `BB(2,4)` on Apple silicon). As comparison, the unparallelised proof of `BB(5)` compiles in about 3 hours (on Apple silicon) with Coq's `native_compute` enabled (`opam install coq-native`), instead of about 45 minutes in the parallel version.
+**Note:** parallel compilation was not needed for the proofs of `BB(4)` and `BB(2,4)` (see `../BB4` and `../BB2x4`) whose search spaces are respectively about 200 and 100 times smaller than for `BB(5)` and whose proofs compile already quickly (about 30s for `BB(4)` and 2m30s for `BB(2,4)` on Apple silicon). As comparison, the unparallelised proof of `BB(5)` compiles in about 3 hours (on Apple silicon) with Coq's `native_compute` enabled (`opam install coq-native`), instead of about 45 minutes in the parallel version.
 
 ### Deciders
 
