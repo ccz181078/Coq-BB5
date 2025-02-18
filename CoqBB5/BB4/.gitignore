@@ -6,5 +6,6 @@ List_Tape.v
 Tactics.v 
 TM.v 
 TNF.v
+Prelims.v
 Deciders
 !Deciders/Decider_Halt_BB4.v
