@@ -52,7 +52,7 @@ cd BB2x4_Extraction
 ./BB2x4_Extraction.sh
 ```
 
-Which should produce the file `BB2x4_verified_enumeration.csv` with shasum ending in `...dbbe59a814` and file starting with:
+Which should produce the file `BB2x4_verified_enumeration.csv` with shasum ending in `...955769e7e` and file starting with:
 
 ```
 machine,status,decider
@@ -86,7 +86,7 @@ The proof enumerates **2,154,217** machines, here are the summarized counts (com
 | Halt Max (3,932,964 steps)     | 0         | 24      | 24        |
 |                                | 1,432,880 | 721,337 | 2,154,217 |
 
-Here are more precise counts following exactly the pipeline used by the proof (`BB2x4_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB2x4_Deciders_Generic.v` which contains parameters information:
+Here are more precise counts exactly following the pipeline used by the proof (`BB2x4_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB2x4_Deciders_Generic.v` which contains parameters information:
 
 |                                   | Nonhalt   | Halt    | Total     |
 | --------------------------------- | --------- | ------- | --------- |
@@ -96,7 +96,7 @@ Here are more precise counts following exactly the pipeline used by the proof (`
 | NGRAM_CPS_IMPL2_params_3_3_400    | 7,518     |         |           |
 | NGRAM_CPS_IMPL2_params_4_4_800    | 2,286     |         |           |
 | LOOP1_params_4100                 | 870       | 354     | 1,224     |
-| REPWL_2_3_320_400                 | 6,012     |         |           |
+| REPWL_params_2_3_320_400          | 6,012     |         |           |
 | NGRAM_CPS_LRU_params_2_2_1000     | 1,206     |         |           |
 | NGRAM_CPS_IMPL1_params_2_2_2_3000 | 894       |         |           |
 | NGRAM_CPS_IMPL1_params_2_3_3_1600 | 120       |         |           |
