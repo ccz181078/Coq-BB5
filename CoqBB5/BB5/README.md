@@ -67,7 +67,7 @@ More broadly than just for FAR and WFAR, the decider parameters (or verifier cer
 - `Verifier_FAR_Hardcoded_Certificates.v`
 - `Verifier_WFAR_Hardcoded_Certificates.v`
 
-For instance, all 6,577 machines decided by RepWL (see [results](#)) used hardcoded parameters, as listed in `BB5_Deciders_Hardcoded_Parameters/Decider_RepWL_Hardcoded_Parameters.v`.
+For instance, all 6,577 machines decided by RepWL (see [results](#results)) used hardcoded parameters, as listed in `BB5_Deciders_Hardcoded_Parameters/Decider_RepWL_Hardcoded_Parameters.v`.
 
 Often, these parameters have been found by grid search implemented in other programming languages. The 30 FAR and WFAR certificates were provided by bbchallenge contributors.
 
@@ -150,7 +150,7 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 
 #### `TABLE_BASED` and `NORMAL_FORM_TABLE_BASED`
 
-The `TABLE_BASED` ID stands for the machines that were decided using [hardcoded parameters](#) and [Sporadic Machines](#).
+The `TABLE_BASED` ID stands for the machines that were decided using [hardcoded parameters](#generic-vs-hardcoded-parameters) and [Sporadic Machines](#sporadic-machines).
 
 The `NORMAL_FORM_TABLE_BASED` concerns 24 machines whose first transition is `0RB` which are first converted to have `1RB` instead in their first transition (this amounts to simulate the machine until it writes a 1 and then renaming states accordingly), and then decided because the `1RB` version of the machine is listed among the `TABLE_BASED` machines.
 
