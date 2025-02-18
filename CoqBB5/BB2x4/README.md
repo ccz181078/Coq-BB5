@@ -4,9 +4,9 @@ This folder contains the Coq (v8.20.1) proof that `BB(2,4) = 3,932,964` (see `..
 
 Proving this results involves enumerating 2-state 4-symbol Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
 
-## Run the proof
+## Compile the proof
 
-In order to run the proof (assuming you have Coq v8.20.1 installed), do:
+In order to compile the proof (assuming you have Coq v8.20.1 installed), do:
 
 ```
 ./create_proof_files.sh
@@ -40,3 +40,29 @@ Each of these techniques is described in [bbchallenge's BB5 paper](https://githu
 The deciders' algorithms are programmed in Coq and then proved correct in Coq too (i.e. proving that if they output `HALT`/`NONHALT` on a machine then the machine halts/does not halt).
 
 ### Extracting results
+
+The list of all enumerated machines with for each, halting status and decider ID can be extracted from the Coq proof by doing (once you've compiled the proof):
+
+```
+cd BB2x4_Extraction
+./BB2x4_Extraction.sh
+```
+
+Which should produce the file `BB2x4_verified_enumeration.csv` with shasum ending in `...dbbe59a814` and file starting with:
+
+```
+machine,status,decider
+------------_------------,halt,LOOP1_params_107
+0RA---------_------------,nonhalt,LOOP1_params_107
+1RA---------_------------,nonhalt,LOOP1_params_107
+2RA---------_------------,nonhalt,LOOP1_params_107
+3RA---------_------------,nonhalt,LOOP1_params_107
+0RB---------_------------,halt,LOOP1_params_107
+0RB---------_0LA---------,nonhalt,LOOP1_params_107
+0RB---------_1LA---------,halt,LOOP1_params_107
+0RB---------_1LA0LA------,nonhalt,LOOP1_params_107
+```
+
+This step relies on OCaml extraction of the Coq code (specified in `BB2x4_Extraction.v`).
+
+See `BB2x4_Extraction/README.md` for more information and troubleshootings.
