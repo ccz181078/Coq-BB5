@@ -4,11 +4,11 @@ This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/
 
 This result means that the maximum number of steps that a halting 5-state Turing machine can do from all-0 tape is 47,176,870. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 
-Proving this results involves enumerating 5-state Turing machines and decide for each whether it halts or not and, if it halts, that it halts after at most 47,176,870 steps.
+Proving this results involves enumerating 5-state Turing machines and deciding for each whether it halts or not and, if it halts, that it halts after at most 47,176,870 steps.
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB5_verified_enumeration.csv.gz) in the form of a CSV file (**10 Gb**) listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB5_Deciders_Generic.v`). More details [below](#extracting-results).
 
-## Compile the proof
+## Compiling the proof
 
 In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
 
