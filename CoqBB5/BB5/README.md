@@ -50,7 +50,7 @@ The TNF enumeration terminates when all leafs have been reached, i.e. all the en
 
 The TNF enumeration algorithm is located in `BB5_TNF_Enumeration.v`.
 
-**Technicalities:** the implemented TNF enumeration safely ignores machines whose first head move direction is `Left` since they can be symmetrised to use `Right` instead. However, contrarily to other implementations (such as [bbchallenge's](https://bbchallenge.org/method) which implements [TNF-1RB](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form#TNF-1RB)), this enumeration contains both machines that start by writing a `0` and those that start by writing a `1`.  
+**Technicalities:** the implemented TNF enumeration safely ignores machines whose first head move direction is `Left` since they can be symmetrised to use `Right` instead. However, contrarily to other implementations (such as [bbchallenge's](https://bbchallenge.org/method) which implements [TNF-1RB](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form#TNF-1RB)), this enumeration contains both machines that start by writing a `0` and those that start by writing a `1`, yielding a bigger search space but a simpler proof.  
 
 #### Parallel compilation
 
