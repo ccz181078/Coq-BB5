@@ -118,7 +118,7 @@ cd BB5_Extraction
 ./BB5_Extraction.sh
 ```
 
-Which should produce the file `BB5_verified_enumeration.csv` (**10Gb**) with shasum ending in `...510583a39` and file starting with:
+Which should run in about 2 hours (tested on Apple silicon) and produce the file `BB5_verified_enumeration.csv` (**10Gb**) with shasum ending in `...510583a39` and file starting with:
 
 ```
 machine,status,decider
