@@ -102,7 +102,7 @@ This pipeline leaves 13 machines undecided that we call 5-state Sporadic Machine
 
 **Note:** there were no sporadic machines for `BB(4)` and `BB(2,4)` (see `../BB4` and `../BB2x4`), i.e. no individual proofs of nonhalting.
 
-Sporadic Machines were already present is [Skelet's 2003 bbfind holdouts](https://wiki.bbchallenge.org/wiki/Skelet) and are named after him:
+Sporadic Machines were already present in [Skelet's 2003 bbfind holdouts](https://wiki.bbchallenge.org/wiki/Skelet) and are named after him:
 
 - [Skelet's #1](https://bbchallenge.org/1RB1RD_1LC0RC_1RA1LD_0RE0LB_---1RC): Eventually repeats a translated pattern after at least $5.41 \times 10^{51}$ steps with period of 8,468,569,863 steps
 - [Skelet's #10](https://bbchallenge.org/1RB0RA_0LC1RA_1RE1LD_1LC0LD_---0RB): [Double Fibonnaci Counter](https://www.sligocki.com/2023/03/14/skelet-10.html)
