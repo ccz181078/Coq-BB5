@@ -10,7 +10,7 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 ## Compiling the proof
 
-In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
+In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do (replace `-j 13` by the number of cores you want to use):
 
 ```
 cd ../../BusyCoq && make -j 13
