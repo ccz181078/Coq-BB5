@@ -232,6 +232,7 @@ And on `NORMAL_FORM_TABLE_BASED`:
 - `BB5_Theorem.v`: entry point of the proof of `BB(5) = 47,176,870`
 - `BB5_TNF_Enumeration.v`: Gathers results from the parallelised Tree Normal Form enumeration (see `BB5_TNF_Enumeration_Roots/`) of 5-state Turing machines
 - `BB5_TNF_Enumeration_Roots/`: folder containing the decomposition of the [Tree Normal Form enumeration](#tree-normal-form-tnf-enumeration-parallelised) into several subtrees for parallelisation (one per file starting with prefix `TNF_Root_`). The recursive structure of the folder follows the structure of the tree. 
+- `BB5_TNF_Enumeration_Roots/TNF_Roots_Common.v`: defines the root of the TNF tree and its four children, then used by all the files starting with `TNF_Root_`
 - `BusyCoq_Translation.v`: translation to tool in order to import [Sporadic Machines](#sporadic-machines) proofs from `../../BusyCoq` (also see the [busycoq repository](https://github.com/meithecatte/busycoq/))
 
 - `List_Routines.v`: routines to manipulate lists
