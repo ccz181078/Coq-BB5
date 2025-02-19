@@ -4,7 +4,7 @@ This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/
 
 This result means that the maximum number of steps that a halting 2-state 4-symbol Turing machine can do from all-0 tape is 3,932,964. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 
-Proving this results involves enumerating 2-state 4-symbol Turing machines and deciding for each whether it halts or not and, if it halts, that it halts after at most 3,932,964 steps.
+Proving this results involves enumerating 2-state 4-symbol Turing machines and deciding for each whether it halts or not and, if it halts, that it halts in at most 3,932,964 steps.
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2x4_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB2x4_Deciders_Generic.v`). More details [below](#extracting-results).
 
