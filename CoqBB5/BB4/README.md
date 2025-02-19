@@ -54,9 +54,9 @@ The TNF enumeration algorithm is located in `BB4_TNF_Enumeration.v`.
 
 Deciders are algorithms trying to prove whether a given Turing machine halts or not. The pipeline of deciders used to solve `BB(4)` (pipeline defined in `BB4_Deciders_Pipeline.v`) is a subset of the `BB(5)` pipeline (see ../BB5):
 
-- Loops, see `../BB5/Deciders/Decider_Loop.v`
-- n-gram Closed Position Set (n-gram CPS), see `../BB5/Deciders/Decider_NGramCPS.v`
-- Repeated Word List (RepWL), see `../BB5/Deciders/Decider_RepWL.v`
+1. Loops, see `../BB5/Deciders/Decider_Loop.v`
+2. n-gram Closed Position Set (n-gram CPS), see `../BB5/Deciders/Decider_NGramCPS.v`
+3. Repeated Word List (RepWL), see `../BB5/Deciders/Decider_RepWL.v`
 
 Each of these techniques is described at length in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper), also see `../BB5/Deciders/README.md` and the comments in each file listed above for some information.
 

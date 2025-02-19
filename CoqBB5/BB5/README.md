@@ -64,12 +64,12 @@ This technique could be iterated (i.e. break the tree in even more subtrees) to 
 
 Deciders are algorithms trying to prove whether a given Turing machine halts or not. The pipeline of deciders used to solve `BB(5)` (pipeline defined in `BB5_Deciders_Pipeline.v`):
 
-- Loops, see `Deciders/Decider_Loop.v`
-- n-gram Closed Position Set (n-gram CPS), see `Deciders/Decider_NGramCPS.v`
-- Repeated Word List (RepWL), see `Deciders/Decider_RepWL.v`
-- Halt Max (run machines up to 47,176,870 steps), see `Deciders/Decider_Halt_BB5.v`
-- Finite Automata Reduction (FAR), **verifier**, see `Deciders/Verifier_FAR.v`
-- Weighted Finite Automata Reduction verification (WFAR), **verifier**, see `Deciders/Verifier_WFAR.v`
+1. Loops, see `Deciders/Decider_Loop.v`
+2. n-gram Closed Position Set (n-gram CPS), see `Deciders/Decider_NGramCPS.v`
+3. Repeated Word List (RepWL), see `Deciders/Decider_RepWL.v`
+4. Halt Max (run machines up to 47,176,870 steps), see `Deciders/Decider_Halt_BB5.v`
+5. Finite Automata Reduction (FAR), **verifier**, see `Deciders/Verifier_FAR.v`
+6. Weighted Finite Automata Reduction verification (WFAR), **verifier**, see `Deciders/Verifier_WFAR.v`
 
 Each of these techniques is described at length in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper), also see `Deciders/README.md` and the comments in each file listed above for some information.
 
