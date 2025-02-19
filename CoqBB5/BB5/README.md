@@ -105,7 +105,7 @@ Sporadic Machines were already present is [Skelet's 2003 bbfind holdouts](https:
 - [Skelet's #1](https://bbchallenge.org/1RB1RD_1LC0RC_1RA1LD_0RE0LB_---1RC): Eventually repeats a translated pattern after at least $5.41 \times 10^{51}$ steps with period of 8,468,569,863 steps
 - [Skelet's #10](https://bbchallenge.org/1RB0RA_0LC1RA_1RE1LD_1LC0LD_---0RB): [Double Fibonnaci Counter](https://www.sligocki.com/2023/03/14/skelet-10.html)
 - [Skelet's #17](https://bbchallenge.org/1RB---_0LC1RE_0LD1LC_1RA1LB_0RB0RA): connected to [Gray code](https://en.wikipedia.org/wiki/Gray_code), see `BB5_Skelet17.md` and [https://arxiv.org/abs/2407.02426](https://arxiv.org/abs/2407.02426) and [https://wiki.bbchallenge.org/wiki/Skelet_17](https://wiki.bbchallenge.org/wiki/Skelet_17)
-- Skelet's #15 #26 #33 #34 #35 : [Shift Overflow Counters]https://www.sligocki.com/2023/02/05/shift-overflow.html
+- Skelet's #15 #26 #33 #34 #35 : [Shift Overflow Counters](https://www.sligocki.com/2023/02/05/shift-overflow.html)
 
 - 5 "[Finned machines](https://discuss.bbchallenge.org/t/bb5s-finned-machines-summary/234)" which had been claimed to be proven by hand by Skelet (Georgi Georgiev)
 
