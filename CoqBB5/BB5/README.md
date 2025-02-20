@@ -21,7 +21,7 @@ cd ../CoqBB5/BB5 && make -j 13
 
 Compiling BusyCoq is needed first in order to get proofs for 12 out the 13 [Sporadic Machines](#sporadic-machines). BusyCoq takes about 8 minutes on 13 cores (Apple silicon).
 
-Then, compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (`opam install coq-native`).
+Then, compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (`opam install coq-native`, currently requires OCaml 4 instead of more recent Ocaml 5).
 
 ### Used Axiom
 
