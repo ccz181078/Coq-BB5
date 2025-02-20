@@ -10,11 +10,16 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 ## Compiling the proof
 
-We recommend installing `coq-native` before compiling the proof as it will make the proof compile a lot faster (`coq-native` currently requires using OCaml 4 instead of newer versions, e.g. `opam switch 4.14.1`):
+Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you can install Coq v8.20.1 using:
 
-`opam install coq-native`
+```
+opam switch 4.14.1
+eval $(opam env --switch=4.14.1)
+opam install coq-native
+opam pin add coq 8.20.1
+```
 
-In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
+Then, in order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
 
 ```
 cd ../../BusyCoq && make -j 13
