@@ -12,7 +12,7 @@ opam install zarit
 
 Then, run `./BB2x4_Extraction.sh`.
 
-This has been tested on OCaml 4.12 and 5.1.
+This has been tested on OCaml 4.14.2 and 5.1.1.
 
 This script will:
 
