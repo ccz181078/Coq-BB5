@@ -19,7 +19,7 @@ opam install coq-native
 opam pin add coq 8.20.1
 ```
 
-Then, in order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
+Then, in order to compile the proof, do:
 
 ```
 cd ../../BusyCoq && make -j 13
