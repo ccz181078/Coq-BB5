@@ -179,7 +179,7 @@ Proof.
   follow rule_P_Dx. follow rule_P_xn.
   rewrite (lpow_S 3075). autorewrite with tape_post.
   follow rule_P_Dx. follow rule_P_xn.
-  rewrite (lpow_S 1537). autorewrite with tape_post.
+  rewrite (lpow_S 1537 x). autorewrite with tape_post.
   follow rule_P_Dx. follow rule_P_xn.
   unfold Hl. autorewrite with tape_post.
   finish.
