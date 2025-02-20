@@ -2,6 +2,10 @@
 
 First compile the BB5 proof, see `../README.md`. This will generate `BB5_verified_enumeration.out` and `printers.out` which are OCaml files.
 
+### Use OCaml 5 to compile the extraction
+
+Compiling the extraction has proven less prone to compiler stack overflows using OCaml 5 (e.g. `opam switch 5.1.1`) rather than OCaml 4 (which is needed to efficiently compile the BB5 proof, thanks to `native_compute`, see `../README.md`).
+
 Then, make sure you have the following OCaml packages:
 
 ```
@@ -9,6 +13,8 @@ opam install ocamlbuild
 opam install ocamlfind
 opam install zarit
 ```
+
+### Compile and run the extraction
 
 Then, run `./BB5_Extraction.sh`.
 
@@ -21,7 +27,3 @@ This script will:
 5. Check that the generated file has the expected hash
 
 Results of this extraction are discussed in `../README.md`.
-
-### Use OCaml 5 to compile the extraction
-
-Compiling the extraction has proven less prone to compiler stack overflows using OCaml 5 (e.g. `opam switch 5.1.1`) rather than OCaml 4 (which is needed to efficiently compile the BB5 proof, thanks to `native_compute`, see `../README.md`).
