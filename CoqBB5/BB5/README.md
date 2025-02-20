@@ -16,12 +16,12 @@ We recommend installing `coq-native` before compiling the proof as it will make 
 
 In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
 
-**Note:** replace `-j 13` by the number of cores you want to use.
-
 ```
 cd ../../BusyCoq && make -j 13
 cd ../CoqBB5/BB5 && make -j 13
 ```
+
+Replace `-j 13` by the number of cores you want to use.
 
 We compile `../../BusyCoq` first in order to get the proofs for 12 out the 13 [Sporadic Machines](#sporadic-machines) and takes about 8 minutes on 13 cores (Apple silicon).
 
