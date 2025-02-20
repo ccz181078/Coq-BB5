@@ -4,7 +4,7 @@ First compile the BB5 proof, see `../README.md`. This will generate `BB5_verifie
 
 ### OCaml setup
 
-Compiling the BB5 extraction with OCaml 5 has proven less prone to compiler stack overflows than with OCaml 4 (which is used to compile the proof, see `../README.md`). Using [opam](https://opam.ocaml.org/doc/Install.html), you can run the following: 
+Compiling the BB5 extraction with OCaml 5 has proven less prone to compiler stack overflows than with OCaml 4 (which is used to compile the proof, see `../README.md`). Using [opam](https://opam.ocaml.org/doc/Install.html), run the following: 
 
 ```
 opam switch 5.1.1
