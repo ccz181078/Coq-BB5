@@ -7,7 +7,7 @@ Then, make sure you have the following OCaml packages:
 ```
 opam install ocamlbuild
 opam install ocamlfind
-opam install zarit
+opam install zarith
 ```
 
 Then, run `./BB4_Extraction.sh`.

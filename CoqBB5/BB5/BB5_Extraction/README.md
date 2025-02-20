@@ -2,16 +2,14 @@
 
 First compile the BB5 proof, see `../README.md`. This will generate `BB5_verified_enumeration.out` and `printers.out` which are OCaml files.
 
-### Use OCaml 5 to compile the extraction
+### OCaml setup
 
-Compiling the extraction has proven less prone to compiler stack overflows using OCaml 5 (e.g. `opam switch 5.1.1`) rather than OCaml 4 (which is needed to efficiently compile the BB5 proof, thanks to `native_compute`, see `../README.md`).
-
-Then, make sure you have the following OCaml packages:
+Compiling the BB5 extraction with OCaml 5 has proven less prone to compiler stack overflows than with OCaml 4 (which is used to compile the proof, see `../README.md`). Using [opam](https://opam.ocaml.org/doc/Install.html), you can run the following: 
 
 ```
-opam install ocamlbuild
-opam install ocamlfind
-opam install zarit
+opam switch 5.1.1
+eval $(opam env)
+opam install ocamlbuild ocamlfind zarith
 ```
 
 ### Compile and run the extraction

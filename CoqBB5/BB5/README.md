@@ -14,7 +14,7 @@ Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you
 
 ```
 opam switch 4.14.1
-eval $(opam env --switch=4.14.1)
+eval $(opam env)
 opam install coq-native
 opam pin add coq 8.20.1
 ```
