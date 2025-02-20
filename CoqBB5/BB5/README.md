@@ -10,7 +10,7 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 ## Compiling the proof
 
-We recommend installing `coq-native` before compiling the proof as it compiles about three times faster (this currently requires using OCaml 4, e.g. `opam switch 4.14.2`):
+We recommend installing `coq-native` before compiling the proof as it compiles about three times faster (this currently requires using OCaml 4 instead of OCaml 5, e.g. `opam switch 4.14.2`):
 
 `opam install coq-native`
 
