@@ -23,7 +23,7 @@ cd ../../BusyCoq && make -j 13
 cd ../CoqBB5/BB5 && make -j 13
 ```
 
-In the above, compiling BusyCoq first (see `../../BusyCoq`) is needed in order to get the proofs for 12 out the 13 [Sporadic Machines](#sporadic-machines) and takes about 8 minutes on 13 cores (Apple silicon).
+We compile BusyCoq first (see `../../BusyCoq`) in order to get the proofs for 12 out the 13 [Sporadic Machines](#sporadic-machines) and takes about 8 minutes on 13 cores (Apple silicon).
 
 #### Compile time 
 
