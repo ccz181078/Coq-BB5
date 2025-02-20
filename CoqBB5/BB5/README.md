@@ -27,7 +27,7 @@ In the above, compiling BusyCoq first (see `../../BusyCoq`) is needed in order t
 
 #### Compile time 
 
-Compiling the BB5 proof takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute` (see above). Without `native_compute`, still on 13 cores, takes about 3 hours.
+Compiling the BB5 proof takes about 45 minutes on 13 cores (Apple silicon) and using `coq-native` (see above). Without `coq-native`, still on 13 cores, takes about 3 hours.
 
 ### Used Axiom
 
