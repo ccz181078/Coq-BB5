@@ -10,7 +10,7 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 ## Compiling the proof
 
-We recommend installing `coq-native` before compiling the proof as it compiles about three times faster (`coq-native` currently requires using OCaml 4 instead of newer versions, e.g. `opam switch 4.14.2`):
+We recommend installing `coq-native` before compiling the proof as it will make the proof compile about three times faster (`coq-native` currently requires using OCaml 4 instead of newer versions, e.g. `opam switch 4.14.2`):
 
 `opam install coq-native`
 
@@ -23,9 +23,9 @@ cd ../../BusyCoq && make -j 13
 cd ../CoqBB5/BB5 && make -j 13
 ```
 
-Compiling BusyCoq is needed first in order to get proofs for 12 out the 13 [Sporadic Machines](#sporadic-machines). BusyCoq takes about 8 minutes on 13 cores (Apple silicon).
+Compiling BusyCoq (see `../../BusyCoq`) is needed first in order to get proofs for 12 out the 13 [Sporadic Machines](#sporadic-machines). BusyCoq takes about 8 minutes on 13 cores (Apple silicon).
 
-Then, compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute`.
+Compiling `CoqBB5/BB5` takes about 45 minutes on 13 cores (Apple silicon) and using Coq's `native_compute`.
 
 ### Used Axiom
 
