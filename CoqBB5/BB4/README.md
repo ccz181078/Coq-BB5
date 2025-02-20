@@ -21,7 +21,7 @@ make
 
 #### Compile time 
 
-Compiling the proof takes about 30 seconds (Apple silicon), using Coq's `native_compute` which can be installed using `opam install coq-native` but requires OCaml 4 (e.g. `opam switch 4.14.2`).
+Compiling the proof takes about 30 seconds (Apple silicon), using Coq's `native_compute` which can be installed using `opam install coq-native` but requires OCaml 4 (e.g. `opam switch 4.14.1`).
 
 ### Used Axiom
 
