@@ -12,6 +12,8 @@ opam install zarit
 
 Then, run `./BB2x4_Extraction.sh`.
 
+This has been tested on OCaml 4.12 and 5.1.
+
 This script will:
 
 1. Compile the OCaml files. **Warning:** you may need to increase the size of your stack (e.g. `ulimit -s unlimited`) for this step.

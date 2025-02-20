@@ -20,7 +20,6 @@ if [ $? -ne 0 ]; then  # Check if the command failed
     echo "Compilation failed most likely because of stack overflow"
     echo "To extend your stack size do:"
     echo "    ulimit -s unlimited"
-    echo "Unfortunately, this might not be sufficient on macos (because of hard limits that cant be modified at user level)"
     echo "After that, retry"
     exit -1
 fi
