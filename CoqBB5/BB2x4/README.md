@@ -12,7 +12,16 @@ The original monolithic proof (without extraction) is saved into `_BB2x4_Legacy_
 
 ## Compiling the proof
 
-In order to compile the proof (assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)), do:
+Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you can install Coq v8.20.1 using:
+
+```
+opam switch 4.14.1
+eval $(opam env --switch=4.14.1)
+opam install coq-native
+opam pin add coq 8.20.1
+```
+
+Then, in order to compile the proof, do:
 
 ```
 ./create_proof_files.sh
@@ -21,7 +30,7 @@ make
 
 #### Compile time 
 
-Compiling the proof takes about 2.5 minutes (Apple silicon), using Coq's `native_compute` which can be installed using `opam install coq-native` but requires OCaml 4 (e.g. `opam switch 4.14.1`).
+Compiling the proof takes about 2.5 minutes (Apple silicon), using `coq-native`.
 
 ### Used Axiom
 
