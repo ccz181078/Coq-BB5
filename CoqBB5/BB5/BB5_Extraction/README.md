@@ -22,4 +22,8 @@ This script will:
 
 Results of this extraction are discussed in `../README.md`.
 
-**Note on OCaml version:** while the BB5 proof requires OCaml 4 to compile using `native_compute` (which brings enormous speedup), compiling the extraction has proven less prone to compiler stack overflows using OCaml 5. Hence, we recommend you switch from OCaml 4 to OCaml 5 for building the extraction (step 1. above).
+### Use OCaml 5 for the extraction
+
+While the BB5 proof requires OCaml 4 (e.g. `opam switch 4.14.2`) to compile using `native_compute` (which brings enormous speedup), compiling the extraction has proven less prone to compiler stack overflows using OCaml 5 (e.g. `opam switch 5.1.1`). 
+
+Hence, we recommend you switch from OCaml 4 to OCaml 5 for building the extraction, i.e. before running `./BB5_Extraction.sh`.
