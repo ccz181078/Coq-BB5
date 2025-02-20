@@ -22,7 +22,7 @@ This script will:
 
 Results of this extraction are discussed in `../README.md`.
 
-### Use OCaml 5 for the extraction
+### Use OCaml 5 to compile the extraction
 
 While the BB5 proof requires OCaml 4 (e.g. `opam switch 4.14.2`) to compile using `native_compute` (which brings enormous speedup), compiling the extraction has proven less prone to compiler stack overflows using OCaml 5 (e.g. `opam switch 5.1.1`). 
 
