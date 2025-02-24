@@ -1,0 +1,10 @@
+_CoqProject
+Makefile
+Encodings.v
+List_Routines.v
+List_Tape.v
+Tactics.v 
+TM.v 
+TNF.v
+Prelims.v
+Deciders
