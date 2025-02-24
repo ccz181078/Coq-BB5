@@ -1319,6 +1319,3 @@ Qed.
 (* End: RepWL decider *)
 
 End MacroMachine_secion.
-
-(* RepWL_ES_decider len mnc 320 150001 *)
-Check RepWL_ES_decider.
