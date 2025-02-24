@@ -15,6 +15,8 @@ From CoqBB5 Require Import Deciders_Common.
 
 Section MacroMachine_secion.
 
+(* Begin: implementation I *)
+
 Definition Word := list Σ.
 
 Record RepeatWord := {
@@ -44,17 +46,12 @@ Inductive RepWL_match:(list RepeatWord)->(nat->Σ)->Prop :=
   RepWL_match (h::t) (app_halftape fh ft)
 .
 
-
-
-
 Record RepeatWordList_ES := {
   l: list RepeatWord;
   r: list RepeatWord;
   s: St;
   sgn: Dir;
 }.
-
-
 
 Fixpoint all0(x:Word):bool :=
 match x with
@@ -63,16 +60,6 @@ match x with
 | _::t => false
 end.
 
-Lemma all0_spec x:
-  all0 x = true -> x = repeat Σ0 (length x).
-Proof.
-  induction x; cbn; intros.
-  - reflexivity.
-  - destruct a eqn:E in H. all: cg.
-    rewrite <-IHx; auto 1. cg.
-Qed.
-
-
 Fixpoint Word_eqb(x1 x2:Word):bool :=
 match x1,x2 with
 | nil,nil => true
@@ -80,23 +67,6 @@ match x1,x2 with
   if Σ_eqb h1 h2 then Word_eqb t1 t2 else false
 | _,_ => false
 end.
-
-Lemma Word_eqb_spec x1 x2:
-  if Word_eqb x1 x2 then x1=x2 else x1<>x2.
-Proof.
-  gd x2.
-  induction x1 as [|h1 t1]; cbn; intros; destruct x2 as [|h2 t2]; cg.
-  destruct (Σ_eqb h1 h2) eqn:E.
-  - specialize (IHt1 t2).
-    destruct (Word_eqb t1 t2); cg.
-    pose proof (Σ_eqb_spec h1 h2).
-    rewrite E in H.
-    cg.
-  - pose proof (Σ_eqb_spec h1 h2).
-    rewrite E in H.
-    cg.
-Qed.
-
 
 Hypothesis len:nat.
 
@@ -113,6 +83,178 @@ Definition pop(wl:list RepeatWord): option (Word*(list (list RepeatWord))) :=
       end)::(if (is_const v) then nil else ((wl)::nil)))
     end
   end.
+
+Hypothesis min_nonconst_len:nat.
+
+Definition push(wl:list RepeatWord)(w0:Word) :=
+match wl with
+| v0::wl0 =>
+  if Word_eqb (w v0) w0 then
+    let cnt := S (min_cnt v0) in
+    (if Nat.ltb cnt min_nonconst_len then
+    {| w:=w0; min_cnt:=cnt; is_const:=(is_const v0) |}
+    else
+    {| w:=w0; min_cnt:=min_nonconst_len; is_const:=false |})::wl0
+  else
+    {| w:=w0; min_cnt:=1; is_const:=true |}::wl
+| nil =>
+  if all0 w0 then nil else {| w:=w0; min_cnt:=1; is_const:=true |}::wl
+end.
+
+Definition WordUpdate_step0(tm:TM Σ)(x:ListES):option (ListES*(option Dir)) :=
+let (l0,r0,m0,s0):=x in
+match tm s0 m0 with
+| None => None
+| Some tr =>
+  let (s1,d,o) := tr in
+    Some
+    match d with
+    | Dpos =>
+      match r0 with
+      | m1::r1 => (Build_ListES (o::l0) r1 m1 s1,None)
+      | nil => (Build_ListES l0 nil o s1,Some Dpos)
+      end
+    | Dneg =>
+      match l0 with
+      | m1::l1 => (Build_ListES l1 (o::r0) m1 s1,None)
+      | nil => (Build_ListES nil r0 o s1,Some Dneg)
+      end
+    end
+end.
+
+Fixpoint WordUpdate_steps(tm:TM Σ)(x:ListES)(n:nat):option (ListES*Dir) :=
+match n with
+| O => None
+| S n0 =>
+  match WordUpdate_step0 tm x with
+  | Some (x0,None) => WordUpdate_steps tm x0 n0
+  | Some (x0,Some d) => Some (x0,d)
+  | None => None
+  end
+end.
+
+Hypothesis WordUpdate_MAXT:nat.
+
+Definition WordUpdate(tm:TM Σ)(s0:St)(w0:Word)(sgn0:Dir):option (St*Word*bool) :=
+match w0 with
+| nil => None
+| m0::w1 =>
+  match
+    match sgn0 with
+    | Dpos => WordUpdate_steps tm (Build_ListES nil w1 m0 s0) WordUpdate_MAXT
+    | Dneg => WordUpdate_steps tm (Build_ListES w1 nil m0 s0) WordUpdate_MAXT
+    end
+  with
+  | None => None
+  | Some (Build_ListES l1 r1 m1 s1,d) =>
+    match d with
+    | Dpos => Some (s1,m1::l1,negb (Dir_eqb sgn0 d))
+    | Dneg => Some (s1,m1::r1,negb (Dir_eqb sgn0 d))
+    end
+  end
+end.
+
+Definition make_tape'' l1 w1 r1 (sgn1:Dir):=
+match w1 with
+| m1::w2 =>
+  match sgn1 with
+  | Dpos => make_tape' l1 nil m1 w2 r1
+  | Dneg => make_tape' r1 w2 m1 nil l1
+  end
+| nil =>
+  match sgn1 with
+  | Dpos => make_tape' l1 nil (r1 0) nil (half_tape_cdr r1)
+  | Dneg => make_tape' (half_tape_cdr r1) nil (r1 0) nil l1
+  end
+end.
+
+Definition RepWL_step00(tm:TM Σ)(x:RepeatWordList_ES)(w0:Word)(r1:list RepeatWord):=
+  let (l0,_,s0,sgn0):=x in
+    match WordUpdate tm s0 w0 sgn0 with
+    | None => None
+    | Some (s1,w1,is_back) =>
+        if is_back
+        then Some {| l:=push r1 w1; r:=l0; s:=s1; sgn:=Dir_rev sgn0 |}
+        else Some {| l:=push l0 w1; r:=r1; s:=s1; sgn:=sgn0 |}
+    end.
+
+Fixpoint RepWL_step0(tm:TM Σ)(x:RepeatWordList_ES)(w0:Word)(ls:list (list RepeatWord)):option (list RepeatWordList_ES) :=
+  match ls with
+  | nil => Some nil
+  | r1::ls0 =>
+    match RepWL_step00 tm x w0 r1 with
+    | None => None
+    | Some x1 =>
+      match RepWL_step0 tm x w0 ls0 with
+      | None => None
+      | Some ret => Some (x1::ret)
+      end
+    end
+  end.
+
+Definition RepWL_step(tm:TM Σ)(x:RepeatWordList_ES) :=
+  let (l0,r0,s0,sgn0):=x in
+  match pop r0 with
+  | None => None
+  | Some (w0,ls) =>
+    RepWL_step0 tm x w0 ls
+  end.
+
+Inductive In_RepWL_ES:(ExecState Σ)->RepeatWordList_ES->Prop :=
+| In_RepWL_ES_intro l1 r1 l0 r0 s0 sgn0:
+  RepWL_match l0 l1 ->
+  RepWL_match r0 r1 ->
+  In_RepWL_ES (s0,make_tape'' l1 nil r1 sgn0) (Build_RepeatWordList_ES l0 r0 s0 sgn0)
+.
+
+Definition push'(wl:list RepeatWord)(w0:Word):=
+  {| w := w0; min_cnt := 1; is_const := true |} :: wl.
+
+Definition halftape_skipn(n:nat)(f:nat->Σ):nat->Σ :=
+  fun m => f (n+m).
+
+Definition RepeatWord_enc(x:RepeatWord):positive :=
+  let (w0,mc,isc):=x in
+  enc_list ((listΣ_enc w0)::(Pos.of_succ_nat mc)::(bool_enc isc)::nil).
+
+Definition list_enc{T}(T_enc:T->positive)(ls:list T) :=
+  enc_list (map T_enc ls).
+
+Definition RepWL_ES_enc(x:RepeatWordList_ES):positive :=
+  let (l0,r0,s0,sgn0):=x in
+  enc_list ((Dir_enc sgn0)::(St_enc s0)::(list_enc RepeatWord_enc l0)::(list_enc RepeatWord_enc r0)::nil).
+
+Definition RepWL_InitES :=
+  {| l:=nil; r:=nil; s:=St0; sgn:=Dpos |}.
+
+(* End: implementation I *)
+
+(* Begin: Proofs I *)
+
+Lemma all0_spec x:
+  all0 x = true -> x = repeat Σ0 (length x).
+Proof.
+  induction x; cbn; intros.
+  - reflexivity.
+  - destruct a eqn:E in H. all: cg.
+    rewrite <-IHx; auto 1. cg.
+Qed.
+
+Lemma Word_eqb_spec x1 x2:
+  if Word_eqb x1 x2 then x1=x2 else x1<>x2.
+Proof.
+  gd x2.
+  induction x1 as [|h1 t1]; cbn; intros; destruct x2 as [|h2 t2]; cg.
+  destruct (Σ_eqb h1 h2) eqn:E.
+  - specialize (IHt1 t2).
+    destruct (Word_eqb t1 t2); cg.
+    pose proof (Σ_eqb_spec h1 h2).
+    rewrite E in H.
+    cg.
+  - pose proof (Σ_eqb_spec h1 h2).
+    rewrite E in H.
+    cg.
+Qed.
 
 Lemma app_half_tape_all0 n:
   half_tape_all0 = app_halftape (repeat Σ0 n) half_tape_all0.
@@ -191,24 +333,6 @@ Qed.
 
 Ltac nat_lt_dec s1 s2 := eq_dec nat_lt_spec Nat.ltb s1 s2.
 
-Hypothesis min_nonconst_len:nat.
-
-Definition push(wl:list RepeatWord)(w0:Word) :=
-match wl with
-| v0::wl0 =>
-  if Word_eqb (w v0) w0 then
-    let cnt := S (min_cnt v0) in
-    (if Nat.ltb cnt min_nonconst_len then
-    {| w:=w0; min_cnt:=cnt; is_const:=(is_const v0) |}
-    else
-    {| w:=w0; min_cnt:=min_nonconst_len; is_const:=false |})::wl0
-  else
-    {| w:=w0; min_cnt:=1; is_const:=true |}::wl
-| nil =>
-  if all0 w0 then nil else {| w:=w0; min_cnt:=1; is_const:=true |}::wl
-end.
-
-
 Lemma push_spec wl w0:
   forall f,
   RepWL_match wl f ->
@@ -245,28 +369,6 @@ Proof.
         -- invst H3. ector. 2: ector; eauto 1. lia.
     + ctor; auto 1. rewrite <-app_nil_r. ctor; ctor.
 Qed.
-
-
-Definition WordUpdate_step0(tm:TM Σ)(x:ListES):option (ListES*(option Dir)) :=
-let (l0,r0,m0,s0):=x in
-match tm s0 m0 with
-| None => None
-| Some tr =>
-  let (s1,d,o) := tr in
-    Some
-    match d with
-    | Dpos =>
-      match r0 with
-      | m1::r1 => (Build_ListES (o::l0) r1 m1 s1,None)
-      | nil => (Build_ListES l0 nil o s1,Some Dpos)
-      end
-    | Dneg =>
-      match l0 with
-      | m1::l1 => (Build_ListES l1 (o::r0) m1 s1,None)
-      | nil => (Build_ListES nil r0 o s1,Some Dneg)
-      end
-    end
-end.
 
 Lemma app_halftape_cdr'' L:
   app_halftape ((L 0)::nil) (half_tape_cdr L)=L.
@@ -364,19 +466,6 @@ Proof.
   - trivial.
 Qed.
 
-
-Fixpoint WordUpdate_steps(tm:TM Σ)(x:ListES)(n:nat):option (ListES*Dir) :=
-match n with
-| O => None
-| S n0 =>
-  match WordUpdate_step0 tm x with
-  | Some (x0,None) => WordUpdate_steps tm x0 n0
-  | Some (x0,Some d) => Some (x0,d)
-  | None => None
-  end
-end.
-
-
 Lemma WordUpdate_steps_spec tm (x:ListES) n0:
   let (l0,r0,m0,s0):=x in
   match WordUpdate_steps tm x n0 with
@@ -422,44 +511,6 @@ Proof.
           replace (S (S n)) with ((S n)+1) by lia;
           intros; eapply Steps_trans; eauto 1].
 Qed.
-
-Hypothesis WordUpdate_MAXT:nat.
-
-
-
-Definition WordUpdate(tm:TM Σ)(s0:St)(w0:Word)(sgn0:Dir):option (St*Word*bool) :=
-match w0 with
-| nil => None
-| m0::w1 =>
-  match
-    match sgn0 with
-    | Dpos => WordUpdate_steps tm (Build_ListES nil w1 m0 s0) WordUpdate_MAXT
-    | Dneg => WordUpdate_steps tm (Build_ListES w1 nil m0 s0) WordUpdate_MAXT
-    end
-  with
-  | None => None
-  | Some (Build_ListES l1 r1 m1 s1,d) =>
-    match d with
-    | Dpos => Some (s1,m1::l1,negb (Dir_eqb sgn0 d))
-    | Dneg => Some (s1,m1::r1,negb (Dir_eqb sgn0 d))
-    end
-  end
-end.
-
-
-Definition make_tape'' l1 w1 r1 (sgn1:Dir):=
-match w1 with
-| m1::w2 =>
-  match sgn1 with
-  | Dpos => make_tape' l1 nil m1 w2 r1
-  | Dneg => make_tape' r1 w2 m1 nil l1
-  end
-| nil =>
-  match sgn1 with
-  | Dpos => make_tape' l1 nil (r1 0) nil (half_tape_cdr r1)
-  | Dneg => make_tape' (half_tape_cdr r1) nil (r1 0) nil l1
-  end
-end.
 
 Lemma WordUpdate_spec tm s0 w0 sgn0:
   match WordUpdate tm s0 w0 sgn0 with
@@ -509,55 +560,6 @@ Proof.
   }
 Qed.
 
-Definition RepWL_step00(tm:TM Σ)(x:RepeatWordList_ES)(w0:Word)(r1:list RepeatWord):=
-  let (l0,_,s0,sgn0):=x in
-    match WordUpdate tm s0 w0 sgn0 with
-    | None => None
-    | Some (s1,w1,is_back) =>
-        if is_back
-        then Some {| l:=push r1 w1; r:=l0; s:=s1; sgn:=Dir_rev sgn0 |}
-        else Some {| l:=push l0 w1; r:=r1; s:=s1; sgn:=sgn0 |}
-    end.
-
-Fixpoint RepWL_step0(tm:TM Σ)(x:RepeatWordList_ES)(w0:Word)(ls:list (list RepeatWord)):option (list RepeatWordList_ES) :=
-  match ls with
-  | nil => Some nil
-  | r1::ls0 =>
-    match RepWL_step00 tm x w0 r1 with
-    | None => None
-    | Some x1 =>
-      match RepWL_step0 tm x w0 ls0 with
-      | None => None
-      | Some ret => Some (x1::ret)
-      end
-    end
-  end.
-
-
-Definition RepWL_step(tm:TM Σ)(x:RepeatWordList_ES) :=
-  let (l0,r0,s0,sgn0):=x in
-  match pop r0 with
-  | None => None
-  | Some (w0,ls) =>
-    RepWL_step0 tm x w0 ls
-  end.
-
-
-
-Inductive In_RepWL_ES:(ExecState Σ)->RepeatWordList_ES->Prop :=
-| In_RepWL_ES_intro l1 r1 l0 r0 s0 sgn0:
-  RepWL_match l0 l1 ->
-  RepWL_match r0 r1 ->
-  In_RepWL_ES (s0,make_tape'' l1 nil r1 sgn0) (Build_RepeatWordList_ES l0 r0 s0 sgn0)
-.
-
-
-Definition push'(wl:list RepeatWord)(w0:Word):=
-  {| w := w0; min_cnt := 1; is_const := true |} :: wl.
-
-Definition halftape_skipn(n:nat)(f:nat->Σ):nat->Σ :=
-  fun m => f (n+m).
-
 Lemma app_halftape_skipn_cdr c w0 f:
 app_halftape w0
   (halftape_skipn (S (length w0)) (app_halftape (c :: w0) f)) =
@@ -587,7 +589,6 @@ Proof.
   lia.
 Qed.
 
-
 Lemma halftape_skipn_0 f:
   halftape_skipn 0 f = f.
 Proof.
@@ -604,132 +605,132 @@ Lemma RepWL_step00_spec tm x w0 r0:
     exists n st1, (Steps Σ tm (1+n) st0 st1 /\ In_RepWL_ES st1 x1)
   end.
 Proof.
-unfold RepWL_step00.
-destruct x as [l0 r0' s0 sgn0].
-pose proof (WordUpdate_spec tm s0 w0 sgn0).
-destruct (WordUpdate tm s0 w0 sgn0) as [[[s1 w1] d1]|].
-2: trivial.
-destruct d1 eqn:Ed1.
-- intros.
-  destruct st0 as [s0' t0'].
-  invst H0.
-  destruct sgn0.
-  + specialize (H l1 (halftape_skipn (length w0) r1)).
-    destruct H as [n H]. cbn. cbn in H.
-    exists n.
-    exists (s1, make_tape'' (app_halftape w1 (halftape_skipn (length w0) r1)) nil 
-        (l1) Dpos).
-    split.
-    * unfold make_tape'' in H.
-      destruct w0;
-      cbn in H.
-      ++ apply H.
-      ++ replace (make_tape' (half_tape_cdr r1) nil (r1 0) nil l1) with
-        (make_tape' (halftape_skipn (S (length w0)) r1) w0 σ nil l1).
-        apply H.
-        unfold make_tape'.
-        invst H8.
-        invst H3.
-        rewrite <-app_halftape_assoc.
-        cbn.
-        f_equal.
-        rewrite app_halftape_nil.
-        apply app_halftape_skipn_cdr.
-    * ector; eauto 1.
-      invst H8. invst H3. invst H7.
-      rewrite app_nil_r.
-      apply push_spec.
-      rewrite app_halftape_skipn.
-      apply H6.
-  + specialize (H l1 (halftape_skipn (length w0) r1)).
-    destruct H as [n H]. cbn. cbn in H.
-    exists n.
-    exists (s1, make_tape'' (app_halftape w1 (halftape_skipn (length w0) r1)) nil 
-        (l1) Dneg).
-    split.
-    * unfold make_tape'' in H.
-      destruct w0;
-      cbn in H.
-      ++ rewrite halftape_skipn_0 in H.
-        rewrite halftape_skipn_0.
-        unfold make_tape''.
-        apply H.
-      ++ replace (make_tape' l1 nil (r1 0) nil (half_tape_cdr r1)) with
-        (make_tape' l1 nil σ w0 (halftape_skipn (S (length w0)) r1)).
-        apply H.
-        unfold make_tape'.
-        invst H8.
-        invst H3.
-        rewrite <-app_halftape_assoc.
-        cbn.
-        f_equal.
-        rewrite app_halftape_nil.
-        apply app_halftape_skipn_cdr.
-    * ector; eauto 1.
-      invst H8. invst H3. invst H7.
-      rewrite app_nil_r.
-      apply push_spec.
-      rewrite app_halftape_skipn.
-      apply H6.
-- intros.
-  destruct st0 as [s0' t0'].
-  invst H0.
-  destruct sgn0.
-  + specialize (H l1 (halftape_skipn (length w0) r1)).
-    destruct H as [n H]. cbn. cbn in H.
-    exists n.
-    exists (s1, make_tape'' (app_halftape w1 l1) nil (halftape_skipn (length w0) r1)
-        Dneg).
-    split.
-    * unfold make_tape'' in H.
-      destruct w0;
-      cbn in H.
-      ++ rewrite halftape_skipn_0 in H.
-        rewrite halftape_skipn_0.
-        unfold make_tape''.
-        apply H.
-      ++ replace (make_tape' (half_tape_cdr r1) nil (r1 0) nil l1) with (make_tape' (halftape_skipn (S (length w0)) r1) w0 σ nil l1).
-        apply H.
-        unfold make_tape'.
-        repeat rewrite app_halftape_nil.
-        invst H8. invst H3.
-        rewrite <-app_halftape_assoc.
-        cbn.
-        f_equal.
-        apply app_halftape_skipn_cdr.
-    * invst H8. invst H3. invst H7.
-      ector; eauto 1.
-      -- apply push_spec,H4.
-      -- rewrite app_nil_r,app_halftape_skipn.
-         apply H6.
-  + specialize (H l1 (halftape_skipn (length w0) r1)).
-    destruct H as [n H]. cbn. cbn in H.
-    exists n.
-    exists (s1, make_tape'' (app_halftape w1 l1) nil (halftape_skipn (length w0) r1)
-        Dpos).
-    split.
-    * unfold make_tape'' in H.
-      destruct w0;
-      cbn in H.
-      ++ rewrite halftape_skipn_0 in H.
-        rewrite halftape_skipn_0.
-        unfold make_tape''.
-        apply H.
-      ++ replace (make_tape' l1 nil (r1 0) nil (half_tape_cdr r1)) with 
+  unfold RepWL_step00.
+  destruct x as [l0 r0' s0 sgn0].
+  pose proof (WordUpdate_spec tm s0 w0 sgn0).
+  destruct (WordUpdate tm s0 w0 sgn0) as [[[s1 w1] d1]|].
+  2: trivial.
+  destruct d1 eqn:Ed1.
+  - intros.
+    destruct st0 as [s0' t0'].
+    invst H0.
+    destruct sgn0.
+    + specialize (H l1 (halftape_skipn (length w0) r1)).
+      destruct H as [n H]. cbn. cbn in H.
+      exists n.
+      exists (s1, make_tape'' (app_halftape w1 (halftape_skipn (length w0) r1)) nil 
+          (l1) Dpos).
+      split.
+      * unfold make_tape'' in H.
+        destruct w0;
+        cbn in H.
+        ++ apply H.
+        ++ replace (make_tape' (half_tape_cdr r1) nil (r1 0) nil l1) with
+          (make_tape' (halftape_skipn (S (length w0)) r1) w0 σ nil l1).
+          apply H.
+          unfold make_tape'.
+          invst H8.
+          invst H3.
+          rewrite <-app_halftape_assoc.
+          cbn.
+          f_equal.
+          rewrite app_halftape_nil.
+          apply app_halftape_skipn_cdr.
+      * ector; eauto 1.
+        invst H8. invst H3. invst H7.
+        rewrite app_nil_r.
+        apply push_spec.
+        rewrite app_halftape_skipn.
+        apply H6.
+    + specialize (H l1 (halftape_skipn (length w0) r1)).
+      destruct H as [n H]. cbn. cbn in H.
+      exists n.
+      exists (s1, make_tape'' (app_halftape w1 (halftape_skipn (length w0) r1)) nil 
+          (l1) Dneg).
+      split.
+      * unfold make_tape'' in H.
+        destruct w0;
+        cbn in H.
+        ++ rewrite halftape_skipn_0 in H.
+          rewrite halftape_skipn_0.
+          unfold make_tape''.
+          apply H.
+        ++ replace (make_tape' l1 nil (r1 0) nil (half_tape_cdr r1)) with
           (make_tape' l1 nil σ w0 (halftape_skipn (S (length w0)) r1)).
-        apply H.
-        unfold make_tape'.
-        repeat rewrite app_halftape_nil.
-        invst H8. invst H3.
-        rewrite <-app_halftape_assoc.
-        cbn.
-        f_equal.
-        apply app_halftape_skipn_cdr.
-    * invst H8. invst H3. invst H7.
-      ector; eauto 1.
-      -- apply push_spec,H4.
-      -- rewrite app_nil_r,app_halftape_skipn.
-         apply H6.
+          apply H.
+          unfold make_tape'.
+          invst H8.
+          invst H3.
+          rewrite <-app_halftape_assoc.
+          cbn.
+          f_equal.
+          rewrite app_halftape_nil.
+          apply app_halftape_skipn_cdr.
+      * ector; eauto 1.
+        invst H8. invst H3. invst H7.
+        rewrite app_nil_r.
+        apply push_spec.
+        rewrite app_halftape_skipn.
+        apply H6.
+  - intros.
+    destruct st0 as [s0' t0'].
+    invst H0.
+    destruct sgn0.
+    + specialize (H l1 (halftape_skipn (length w0) r1)).
+      destruct H as [n H]. cbn. cbn in H.
+      exists n.
+      exists (s1, make_tape'' (app_halftape w1 l1) nil (halftape_skipn (length w0) r1)
+          Dneg).
+      split.
+      * unfold make_tape'' in H.
+        destruct w0;
+        cbn in H.
+        ++ rewrite halftape_skipn_0 in H.
+          rewrite halftape_skipn_0.
+          unfold make_tape''.
+          apply H.
+        ++ replace (make_tape' (half_tape_cdr r1) nil (r1 0) nil l1) with (make_tape' (halftape_skipn (S (length w0)) r1) w0 σ nil l1).
+          apply H.
+          unfold make_tape'.
+          repeat rewrite app_halftape_nil.
+          invst H8. invst H3.
+          rewrite <-app_halftape_assoc.
+          cbn.
+          f_equal.
+          apply app_halftape_skipn_cdr.
+      * invst H8. invst H3. invst H7.
+        ector; eauto 1.
+        -- apply push_spec,H4.
+        -- rewrite app_nil_r,app_halftape_skipn.
+          apply H6.
+    + specialize (H l1 (halftape_skipn (length w0) r1)).
+      destruct H as [n H]. cbn. cbn in H.
+      exists n.
+      exists (s1, make_tape'' (app_halftape w1 l1) nil (halftape_skipn (length w0) r1)
+          Dpos).
+      split.
+      * unfold make_tape'' in H.
+        destruct w0;
+        cbn in H.
+        ++ rewrite halftape_skipn_0 in H.
+          rewrite halftape_skipn_0.
+          unfold make_tape''.
+          apply H.
+        ++ replace (make_tape' l1 nil (r1 0) nil (half_tape_cdr r1)) with 
+            (make_tape' l1 nil σ w0 (halftape_skipn (S (length w0)) r1)).
+          apply H.
+          unfold make_tape'.
+          repeat rewrite app_halftape_nil.
+          invst H8. invst H3.
+          rewrite <-app_halftape_assoc.
+          cbn.
+          f_equal.
+          apply app_halftape_skipn_cdr.
+      * invst H8. invst H3. invst H7.
+        ector; eauto 1.
+        -- apply push_spec,H4.
+        -- rewrite app_nil_r,app_halftape_skipn.
+          apply H6.
 Qed.
 
 Lemma RepWL_step0_spec tm x w0 r0:
@@ -773,8 +774,6 @@ Proof.
       repeat split; auto 1. right. auto 1.
 Qed.
 
-
-
 Lemma RepWL_step_spec tm x:
   match RepWL_step tm x with
   | None => True
@@ -806,10 +805,6 @@ Proof.
   ctor. ctor.
 Qed.
 
-Definition RepeatWord_enc(x:RepeatWord):positive :=
-  let (w0,mc,isc):=x in
-  enc_list ((listΣ_enc w0)::(Pos.of_succ_nat mc)::(bool_enc isc)::nil).
-
 Lemma RepeatWord_enc_inj: is_inj RepeatWord_enc.
 Proof.
   intros x1 x2 H.
@@ -821,9 +816,6 @@ Proof.
   - lia.
   - apply bool_enc_inj; auto 1.
 Qed.
-
-Definition list_enc{T}(T_enc:T->positive)(ls:list T) :=
-  enc_list (map T_enc ls).
 
 Lemma list_enc_inj{T}(T_enc:T->positive):
   is_inj T_enc ->
@@ -848,10 +840,6 @@ Proof.
         cg.
 Qed.
 
-Definition RepWL_ES_enc(x:RepeatWordList_ES):positive :=
-let (l0,r0,s0,sgn0):=x in
-enc_list ((Dir_enc sgn0)::(St_enc s0)::(list_enc RepeatWord_enc l0)::(list_enc RepeatWord_enc r0)::nil).
-
 Lemma RepWL_ES_enc_inj: is_inj RepWL_ES_enc.
 Proof.
   intros x1 x2 H.
@@ -866,10 +854,6 @@ Proof.
   - apply St_enc_inj; auto 1.
   - apply Dir_enc_inj; auto 1.
 Qed.
-
-
-Definition RepWL_InitES :=
-  {| l:=nil; r:=nil; s:=St0; sgn:=Dpos |}.
 
 Lemma In_RepWL_ES_InitES:
   In_RepWL_ES (InitES Σ Σ0) RepWL_InitES.
@@ -893,39 +877,41 @@ Lemma set_ins_spec'{T}{T_enc:T->positive} {q st a q' st' flag}:
      set_in T_enc (q', st') x) /\ 
     (((a = x) /\ ~ set_in T_enc (q, st) x \/ In x q) -> In x q').
 Proof.
-intros.
-unfold set_ins in H0.
-cbn in H0.
-destruct (PositiveMap.find (T_enc a) st) eqn:E.
-- invst H0.
-  assert (a=x -> set_in T_enc (q',st') x). {
-    intro. subst a.
-    unfold set_in. cbn.
-    destruct u. apply E.
-  }
-  split. 1: tauto.
-  tauto.
-- invst H0.
-  clear H0.
-  split.
-  + unfold set_in.
-    cbn.
-    split; intro.
-    * destruct H0 as [H0|H0].
-      -- subst a. apply PositiveMap.gss.
-      -- assert (a<>x) by cg.
-         rewrite PositiveMap.gso; auto 1.
-         intro H2.
-         apply H1. symmetry. apply H,H2.
-    * rewrite PositiveMapAdditionalFacts.gsspec in H0.
-      destruct (PositiveMap.E.eq_dec (T_enc x) (T_enc a)) eqn:E0.
-      -- left. symmetry. apply H,e.
-      -- tauto.
-  + intros.
-    destruct H0 as [[H0a H0b]|H0].
-    * subst a. cbn. tauto.
-    * cbn. tauto.
+  intros.
+  unfold set_ins in H0.
+  cbn in H0.
+  destruct (PositiveMap.find (T_enc a) st) eqn:E.
+  - invst H0.
+    assert (a=x -> set_in T_enc (q',st') x). {
+      intro. subst a.
+      unfold set_in. cbn.
+      destruct u. apply E.
+    }
+    split. 1: tauto.
+    tauto.
+  - invst H0.
+    clear H0.
+    split.
+    + unfold set_in.
+      cbn.
+      split; intro.
+      * destruct H0 as [H0|H0].
+        -- subst a. apply PositiveMap.gss.
+        -- assert (a<>x) by cg.
+          rewrite PositiveMap.gso; auto 1.
+          intro H2.
+          apply H1. symmetry. apply H,H2.
+      * rewrite PositiveMapAdditionalFacts.gsspec in H0.
+        destruct (PositiveMap.E.eq_dec (T_enc x) (T_enc a)) eqn:E0.
+        -- left. symmetry. apply H,e.
+        -- tauto.
+    + intros.
+      destruct H0 as [[H0a H0b]|H0].
+      * subst a. cbn. tauto.
+      * cbn. tauto.
 Qed.
+
+(* End: Proofs I *)
 
 Section ClosedSetSearcher.
 
@@ -947,6 +933,8 @@ Hypothesis T_step_spec:
      | None => True
      end.
 
+(* Begin: Implementation of abstract closed set searcher *)
+
 Definition T_eqb t1 t2 := Pos.eqb (T_enc t1) (T_enc t2).
 Lemma T_eqb_spec t1 t2:
   if T_eqb t1 t2 then t1=t2 else t1<>t2.
@@ -956,6 +944,16 @@ Proof.
   cg.
 Qed.
 
+(** Adds all elemets of `ls` in the set of seen configurations `st` and in the list of configurations to expand `q`.
+
+  Args:
+    - q:list T, list of configurations to expand.
+    - st:PositiveMap.tree unit, set of seen configurations.
+    - ls:list T, list of configurations to add to `q` and `st`.
+
+  Returns:
+    - list T * PositiveMap.tree unit, updated list of configurations to expand and set of seen configurations.
+*)
 Fixpoint ins_all(q:list T)(st:PositiveMap.tree unit)(ls:list T) :=
   match ls with
   | nil => (q,st)
@@ -964,6 +962,19 @@ Fixpoint ins_all(q:list T)(st:PositiveMap.tree unit)(ls:list T) :=
     ins_all q' st' ls0
   end.
 
+(** Recursively tries to build a closed set of abstract configurations.
+
+  Args:
+    - tm: TM Σ, the Turing machine to decide.
+    - n:nat, gas parameter, maximum size of the closed set we're willing to consider.
+    - q:list T, current list of configurations to expand.
+    - st:PositiveMap.tree unit, current set of configurations we've already expanded.
+
+  Returns:
+    - option (list T * PositiveMap.tree unit), None if the search failed (undefined transition met), otherwise, the list of configuration to expand together with the set of (encoded) configurations we've already expanded. The set is closed iff the list is empty (i.e. no configuration remains to expand).
+
+    Note: here `list T * PositiveMap.tree unit` is not the same as `SetOfEncodings T` (see Prelims.v) because the list does not correspond to the elements of the set.
+*)
 Fixpoint T_close_set_searcher(tm:TM Σ)(n:nat)(q:list T)(st:PositiveMap.tree unit):
   option (list T * PositiveMap.tree unit) :=
   match n with
@@ -981,6 +992,22 @@ Fixpoint T_close_set_searcher(tm:TM Σ)(n:nat)(q:list T)(st:PositiveMap.tree uni
     end
   end.
 
+(** Searches for a closed set of abstract configurations, excluding the initial one.
+
+  Args:
+    - n:nat, gas parameter, maximum size of the closed set we're willing to consider.
+    - tm: TM Σ, the Turing machine to decide.
+
+  Implicit Section Args:
+    - T: Type, TM configuration type.
+    - T_enc: T->positive, encoding function for T.
+    - T_InitES: T, initial configuration.
+    - T_step: (TM Σ)->T->option (list T), step function for T.
+
+  Returns:
+    - bool, true if a closed set is found, not including the initial configuration, false otherwise.
+
+*)
 Definition T_decider0(n:nat)(tm:TM Σ):bool :=
   let (q0,st0) := fst (set_ins T_enc (nil, PositiveMap.empty unit) T_InitES) in
   match T_close_set_searcher tm n q0 st0 with
@@ -992,9 +1019,26 @@ Definition T_decider0(n:nat)(tm:TM Σ):bool :=
   | _ => false
   end.
 
+(** Abstract decider used to implement  `RepWL_ES_decider`. Wrapper around `T_decider0`
+
+  Args:
+    - n:nat, gas parameter, maximum size of the closed set we're willing to consider.
+
+  Implicit Section Args:
+    - T: Type, TM configuration type.
+    - T_enc: T->positive, encoding function for T.
+    - T_InitES: T, initial configuration.
+    - T_step: (TM Σ)->T->option (list T), step function for T.
+
+  Returns:
+    - fun tm:TM -> HaltDecider, decider function.
+*)
 Definition T_decider(n:nat):HaltDecider :=
   fun tm => if T_decider0 n tm then Result_NonHalt else Result_Unknown.
 
+(* End: Implementation of abstract closed set searcher *)
+
+(* Begin: Proofs of abstract closed set searcher *)
 
 Definition search_state_WF tm (qst:(list T * PositiveMap.tree unit)):=
   let (q,st):=qst in
@@ -1004,11 +1048,6 @@ Definition search_state_WF tm (qst:(list T * PositiveMap.tree unit)):=
     | None => False
     | Some ls => forall y, In y ls -> set_in T_enc qst y
     end).
-
-
-
-
-
 
 Lemma ins_all_spec {q st ls q' st'}:
   (ins_all q st ls) = (q',st') ->
@@ -1057,7 +1096,6 @@ Proof.
   - left. reflexivity.
   - right. cg.
 Qed.
-
 
 Lemma T_close_set_searcher_spec tm n q st:
   search_state_WF tm (q,st) ->
@@ -1117,10 +1155,8 @@ Proof.
         right. apply H,H2.
 Qed.
 
-
 Definition in_search_state(st0:ExecState Σ)(S:(list T * PositiveMap.tree unit)) :=
   exists s0, set_in T_enc S s0 /\ In_T st0 s0.
-
 
 Lemma T_decider0_spec n tm:
   T_decider0 n tm = true ->
@@ -1197,11 +1233,11 @@ Proof.
   destruct (T_decider0 n tm); tauto.
 Qed.
 
+(* End: Proofs of abstract closed set searcher *)
+
 End ClosedSetSearcher.
 
-
-
-
+(* Begin: RepWL decider *)
 
 Definition RepWL_ES_decider(n:nat):HaltDecider :=
   (T_decider _ RepWL_ES_enc RepWL_InitES RepWL_step n).
@@ -1214,5 +1250,7 @@ Proof.
   - apply In_RepWL_ES_InitES.
   - apply RepWL_step_spec.
 Qed.
+
+(* End: RepWL decider *)
 
 End MacroMachine_secion.
