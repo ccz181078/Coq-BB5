@@ -7,7 +7,7 @@ cp ._CoqProject _CoqProject
 
 # Define replacements using parallel arrays
 search_terms=("CoqBB5" "BB5_Statement" "BB5_Encodings" "BB5_Deciders_Generic" "BB5_Make_TM" "BB5_minus_one" "47176870" "47176869")
-replace_terms=("CoqBB4" "BB4_Statement" "BB4_Encodings" "BB4_Deciders_Generic" "BB4_Make_TM" "BB4_minus_one" "3932964" "3932963")
+replace_terms=("CoqBB4" "BB4_Statement" "BB4_Encodings" "BB4_Deciders_Generic" "BB4_Make_TM" "BB4_minus_one" "107" "106")
 
 # Define files to process for general replacements
 files=(
