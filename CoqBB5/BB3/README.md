@@ -1,14 +1,12 @@
-# BB(4) = 107
+# BB(3) = 21
 
-This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)) proof that `BB(4) = 107`. This result was first proved, to a certain extent[^1], in [[Brady, 1983]](https://www.ams.org/journals/mcom/1983-40-162/S0025-5718-1983-0689479-6/).
+This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)) proof that `BB(3) = 21`. This result was first proved, in [[Lin, 1963]](https://etd.ohiolink.edu/acprod/odb_etd/etd/r/1501/10?clear=10&p10_accession_num=osu1486554418657614).
 
-This result means that the maximum number of steps that a halting 4-state Turing machine can do from all-0 tape is 107. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
+This result means that the maximum number of steps that a halting 3-state Turing machine can do from all-0 tape is 21. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 
-Proving this results involves enumerating 4-state Turing machines and deciding for each whether it halts or not and, if it halts, that it halts in at most 107 steps.
+Proving this results involves enumerating 3-state Turing machines and deciding for each whether it halts or not and, if it halts, that it halts in at most 21 steps.
 
 The extracted data from this proof is available at [https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB3_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB3_verified_enumeration.csv) in the form of a CSV file listing each enumerated machine with its halting status (halt/nonhalt) as well as the ID of the decider that decided it (IDs as defined in `BB3_Deciders_Generic.v`). More details [below](#extracting-results).
-
-The original monolithic proof (without extraction) is saved into `_BB3_Legacy_Monolith.v` which you can run simply by running `coqc -Q . CoqBB3 _BB3_Legacy_Monolith.v` -- assuming you have [Coq v8.20.1 installed](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md).
 
 ## Compiling the proof
 
@@ -46,11 +44,11 @@ This axiom is used to simplify the equality between `TM` and `ExecState` (both d
 
 ## Proof structure
 
-The main definitions and `BB(4) = 107` theorem statement are in `BB3_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB3_Theorem.v`.
+The main definitions and `BB(3) = 21` theorem statement are in `BB3_Statement.v` (this file does not require much Coq knowledge to be understood). The entry-point of the proof is located in `BB3_Theorem.v`.
 
 ### Tree Normal Form (TNF) enumeration
 
-The proof enumerates 4-state machines in [Tree Normal Form](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form) (**TNF**). Each enumerated machine is passed through a pipeline of deciders which are algorithm trying to prove whether the machine halts or not:
+The proof enumerates 3-state machines in [Tree Normal Form](https://wiki.bbchallenge.org/wiki/Tree_Normal_Form) (**TNF**). Each enumerated machine is passed through a pipeline of deciders which are algorithm trying to prove whether the machine halts or not:
 
 - If the machine halts, i.e. meets an undefined transition, a new subtree of machines is visited for all the possible ways to fill the undefined transition
 - If the machine does not halt, it is a leaf of the TNF tree
@@ -86,15 +84,15 @@ Which should produce the file `BB3_verified_enumeration.csv` with shasum ending 
 
 ```
 machine,status,decider
-------_------_------_------,halt,LOOP1_params_107
-0RA---_------_------_------,nonhalt,LOOP1_params_107
-1RA---_------_------_------,nonhalt,LOOP1_params_107
-0RB---_------_------_------,halt,LOOP1_params_107
-0RB---_0LA---_------_------,nonhalt,LOOP1_params_107
-0RB---_1LA---_------_------,halt,LOOP1_params_107
-0RB---_1LA0LA_------_------,nonhalt,LOOP1_params_107
-0RB---_1LA1LA_------_------,nonhalt,LOOP1_params_107
-0RB---_1LA0RA_------_------,nonhalt,LOOP1_params_107
+------_------_------,halt,LOOP1_params_21
+0RA---_------_------,nonhalt,LOOP1_params_21
+1RA---_------_------,nonhalt,LOOP1_params_21
+0RB---_------_------,halt,LOOP1_params_21
+0RB---_0LA---_------,nonhalt,LOOP1_params_21
+0RB---_1LA---_------,halt,LOOP1_params_21
+0RB---_1LA0LA_------,nonhalt,LOOP1_params_21
+0RB---_1LA1LA_------,nonhalt,LOOP1_params_21
+0RB---_1LA0RA_------,nonhalt,LOOP1_params_21
 ...
 ```
 
@@ -106,35 +104,11 @@ This extracted `BB3_verified_enumeration.csv` is also available at [https://docs
 
 ### Results
 
-The proof enumerates **858,909** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB3_verified_enumeration.csv)) of decided machines per decider:
+The proof enumerates **5,417** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB3_verified_enumeration.csv)) of decided machines per decider:
 
-| Decider                    | Nonhalt | Halt    | Total   |
-| ---------------------------| ------- | ------- | ------- |
-| Loops                      | 588,373 | 249,693 | 838,066 |
-| n-gram Closed Position Set | 20,841  | 0       | 20,841  |
-| Repeated Word List         | 2       | 0       | 2       |
-| Total                      | 609,216 | 249,693 | 858,909 |
+TODO
 
-Here are more precise counts exactly following the pipeline used by the proof (`BB3_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB3_Deciders_Generic.v` which contains parameters information:
 
-| Decider ID                          | Nonhalt | Halt    | Total   |
-| ----------------------------------- | ------- | ------- | ------- |
-| LOOP1_params_107                    | 588,373 | 249,693 | 838,066 |
-| NGRAM_CPS_IMPL2_params_1_1_100      | 11,644  |         |         |
-| NGRAM_CPS_IMPL2_params_2_2_200      | 4,759   |         |         |
-| NGRAM_CPS_IMPL2_params_3_3_400      | 1,731   |         |         |
-| NGRAM_CPS_IMPL1_params_2_2_2_1600   | 2,296   |         |         |
-| NGRAM_CPS_IMPL1_params_2_3_3_1600   | 161     |         |         |
-| NGRAM_CPS_IMPL1_params_4_2_2_600    | 174     |         |         |
-| NGRAM_CPS_IMPL1_params_4_3_3_1600   | 29      |         |         |
-| NGRAM_CPS_IMPL1_params_6_2_2_3200   | 14      |         |         |
-| NGRAM_CPS_IMPL1_params_6_3_3_3200   | 10      |         |         |
-| NGRAM_CPS_IMPL1_params_8_2_2_1600   | 8       |         |         |
-| NGRAM_CPS_IMPL1_params_8_3_3_1600   | 3       |         |         |
-| NGRAM_CPS_LRU_params_2_2_10000      | 8       |         |         |
-| NGRAM_CPS_IMPL1_params_10_4_4_10000 | 4       |         |         |
-| REPWL_params_4_3_320_10000          | 2       |         |         |
-| Total                               | 609,216 | 249,693 | 858,909 |
 
 ## Files index
 
@@ -145,10 +119,10 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 - `BB3_Deciders_Pipeline.v`: decider pipeline definition and lemmas
 - `BB3_Encodings.v`: routines that encode objects into numbers for fast lookup using Coq's `FSets.FMapPositive`
 - `BB3_Extraction.v`: OCaml extraction, see [above](#extracting-results)
-- `BB3_Make_TM.v`: mainly routines to build 4-state Turing machines
+- `BB3_Make_TM.v`: mainly routines to build 3-state Turing machines
 - `BB3_Statement.v`: main definition and `BB(4) = 107` theorem statement
 - `BB3_Theorem.v`: entry point of the proof of `BB(4) = 107`
-- `BB3_TNF_Enumeration.v`: Tree Normal Form enumeration of 4-state Turing machines
+- `BB3_TNF_Enumeration.v`: Tree Normal Form enumeration of 3-state Turing machines
 - `BB3_Extraction/BB3_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB3_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
 
 Files imported from `../BB5` after running `create_proof_files.sh`:
