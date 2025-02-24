@@ -1,3 +1,38 @@
+(**
+
+The Repeated Word List decider uses a very simple idea: let's fix a threshold after which we consider that repeated blocks on the tape will repeat for ever.  
+
+In practice, it represents TM's tapes as a regex 
+with two parameters:
+
+- `len`: the length of the words in the regex
+- `min_nonconst_len`: if a word `w` repeats more than `min_nonconst_len` times, then it is replaced with `(w)^min_nonconst_len+`, i.e. meaning that we consider the block will repeat unboundedly.
+
+the form, e.g:
+
+(00)^3+ (10)^2  (11)^3+ A> (11) (00)^3+
+
+Here with `len=2` and `min_nonconst_len=3` and the machine in state A.
+
+Note: this formalism uses directional Turing machines, where the head leaves in between tape cells, and `sgn` indicates whether the head is looking to the right or to the left.
+
+Then, when facing a repeated word with + symbol, such as `A> (11)^3+`, the decider adds both following configurations to visit:
+  - A> (11) (11)^2
+  - A> (11) (11)^3+
+
+If the decider reaches a closed set of such regex configurations and it does not contain any halting configuration then the machine is decided to NONHALT.
+
+The implementation of the decider is divided in two:
+
+  - Regex sepcific routines: all the routines to represent and execute a TM using the above described system of regex configuration. Search for 'Begin: Implementation of Repeated Words List's machinery'.
+
+  - Closed set construction: an abstract implementation of searching for a closed set of configurations. Search for 'Begin: Implementation of abstract closed set searcher'.
+
+The RepWL decider, `RepWL_ES_decider`, is then defined at the very end of this file.
+
+Node: closed set construction is entirely documented with comments but regex specific routines are not currently all documented.
+*)
+
 Require Import Lia.
 Require Import List.
 Require Import ZArith.
@@ -15,10 +50,12 @@ From CoqBB5 Require Import Deciders_Common.
 
 Section MacroMachine_secion.
 
-(* Begin: implementation I *)
+(* Begin: Implementation of Repeated Words List's machinery *)
 
+(** A word is a list of tape symbols. *)
 Definition Word := list Σ.
 
+(** Represents the regexp `(w)^min_cnt+` if `is_const` is false (at least `min_cnt`repeats of `w`) and `(w)^min_cnt` otherwise (exactly `min_cnt`repeats of `w`). *)
 Record RepeatWord := {
   w: Word;
   min_cnt: nat;
@@ -46,6 +83,15 @@ Inductive RepWL_match:(list RepeatWord)->(nat->Σ)->Prop :=
   RepWL_match (h::t) (app_halftape fh ft)
 .
 
+(** Represents an abstract TM Execustion State (i.e. configuration) where the tape is a list of `RepeatWord` regex, e.g.
+
+  (00)^3+ (w)^2  (w')^3+ s> (w'') (00)^3+
+
+Where all words have the smae length (here, 2).
+
+Note: this formalism uses directional Turing machines, where the head leaves in between tape cells, and `sgn` indicates whether the head is looking to the right or to the left.
+
+*)
 Record RepeatWordList_ES := {
   l: list RepeatWord;
   r: list RepeatWord;
@@ -53,6 +99,13 @@ Record RepeatWordList_ES := {
   sgn: Dir;
 }.
 
+(** Initial `RepeatWordList_ES`:
+          A>
+*)
+Definition RepWL_InitES :=
+  {| l:=nil; r:=nil; s:=St0; sgn:=Dpos |}.
+
+(** Checks if a word is all Σ0. *)
 Fixpoint all0(x:Word):bool :=
 match x with
 | nil => true
@@ -60,6 +113,7 @@ match x with
 | _::t => false
 end.
 
+(** Equality on words. *)
 Fixpoint Word_eqb(x1 x2:Word):bool :=
 match x1,x2 with
 | nil,nil => true
@@ -72,7 +126,7 @@ Hypothesis len:nat.
 
 Definition pop(wl:list RepeatWord): option (Word*(list (list RepeatWord))) :=
   match wl with
-  | nil => Some (repeat Σ0 len,(nil)::nil)
+  | nil => Some (repeat Σ0 len,(nil)::nil) (* Σ0^len, [[]] *)
   | v::wl0 =>
     match min_cnt v with
     | O => None
@@ -200,19 +254,6 @@ Definition RepWL_step(tm:TM Σ)(x:RepeatWordList_ES) :=
     RepWL_step0 tm x w0 ls
   end.
 
-Inductive In_RepWL_ES:(ExecState Σ)->RepeatWordList_ES->Prop :=
-| In_RepWL_ES_intro l1 r1 l0 r0 s0 sgn0:
-  RepWL_match l0 l1 ->
-  RepWL_match r0 r1 ->
-  In_RepWL_ES (s0,make_tape'' l1 nil r1 sgn0) (Build_RepeatWordList_ES l0 r0 s0 sgn0)
-.
-
-Definition push'(wl:list RepeatWord)(w0:Word):=
-  {| w := w0; min_cnt := 1; is_const := true |} :: wl.
-
-Definition halftape_skipn(n:nat)(f:nat->Σ):nat->Σ :=
-  fun m => f (n+m).
-
 Definition RepeatWord_enc(x:RepeatWord):positive :=
   let (w0,mc,isc):=x in
   enc_list ((listΣ_enc w0)::(Pos.of_succ_nat mc)::(bool_enc isc)::nil).
@@ -224,12 +265,16 @@ Definition RepWL_ES_enc(x:RepeatWordList_ES):positive :=
   let (l0,r0,s0,sgn0):=x in
   enc_list ((Dir_enc sgn0)::(St_enc s0)::(list_enc RepeatWord_enc l0)::(list_enc RepeatWord_enc r0)::nil).
 
-Definition RepWL_InitES :=
-  {| l:=nil; r:=nil; s:=St0; sgn:=Dpos |}.
+(* End: Implementation of Repeated Words List's machinery *)
 
-(* End: implementation I *)
+(* Begin: Proofs of Repeated Words List's machinery *)
 
-(* Begin: Proofs I *)
+Inductive In_RepWL_ES:(ExecState Σ)->RepeatWordList_ES->Prop :=
+| In_RepWL_ES_intro l1 r1 l0 r0 s0 sgn0:
+  RepWL_match l0 l1 ->
+  RepWL_match r0 r1 ->
+  In_RepWL_ES (s0,make_tape'' l1 nil r1 sgn0) (Build_RepeatWordList_ES l0 r0 s0 sgn0)
+.
 
 Lemma all0_spec x:
   all0 x = true -> x = repeat Σ0 (length x).
@@ -560,6 +605,9 @@ Proof.
   }
 Qed.
 
+Definition halftape_skipn(n:nat)(f:nat->Σ):nat->Σ :=
+  fun m => f (n+m).
+
 Lemma app_halftape_skipn_cdr c w0 f:
 app_halftape w0
   (halftape_skipn (S (length w0)) (app_halftape (c :: w0) f)) =
@@ -595,6 +643,9 @@ Proof.
   fext.
   reflexivity.
 Qed.
+
+Definition push'(wl:list RepeatWord)(w0:Word):=
+  {| w := w0; min_cnt := 1; is_const := true |} :: wl.
 
 Lemma RepWL_step00_spec tm x w0 r0:
   match RepWL_step00 tm x w0 r0 with
@@ -911,7 +962,7 @@ Proof.
       * cbn. tauto.
 Qed.
 
-(* End: Proofs I *)
+(* End: Proofs of Repeated Words List's machinery *)
 
 Section ClosedSetSearcher.
 
@@ -992,7 +1043,7 @@ Fixpoint T_close_set_searcher(tm:TM Σ)(n:nat)(q:list T)(st:PositiveMap.tree uni
     end
   end.
 
-(** Searches for a closed set of abstract configurations, excluding the initial one.
+(** Searches for a closed set of abstract configurations.
 
   Args:
     - n:nat, gas parameter, maximum size of the closed set we're willing to consider.
@@ -1005,7 +1056,7 @@ Fixpoint T_close_set_searcher(tm:TM Σ)(n:nat)(q:list T)(st:PositiveMap.tree uni
     - T_step: (TM Σ)->T->option (list T), step function for T.
 
   Returns:
-    - bool, true if a closed set is found, not including the initial configuration, false otherwise.
+    - bool, true if a closed set is found, not including any halting configuration and including the initial configuration, false otherwise.
 
 *)
 Definition T_decider0(n:nat)(tm:TM Σ):bool :=
@@ -1239,6 +1290,20 @@ End ClosedSetSearcher.
 
 (* Begin: RepWL decider *)
 
+(** Repeated World List decider.
+
+  Args:
+    - n:nat, gas parameter, maximum size of the closed set we're willing to consider.
+
+  Implicit Section Args:
+    - len: nat, length the repeated words. e.g. if len = 2, then '111110' is encoded as '(11)^2 (10)'.
+    - min_nonconst_len: nat, number of repeats starting at which we use the + symbol. e.g. if min_nonconst_len = 3, then '11 11 11' is encoded as '(11)^3+'.
+    - WordUpdate_MAXT: nat, maximum number of TM steps allowed when processing a word
+
+  Returns:
+    - fun tm:TM -> HaltDecider, RepWL decider function.
+
+*)
 Definition RepWL_ES_decider(n:nat):HaltDecider :=
   (T_decider _ RepWL_ES_enc RepWL_InitES RepWL_step n).
 
@@ -1254,3 +1319,6 @@ Qed.
 (* End: RepWL decider *)
 
 End MacroMachine_secion.
+
+(* RepWL_ES_decider len mnc 320 150001 *)
+Check RepWL_ES_decider.
