@@ -63,16 +63,6 @@ Definition deciderIdentifierToString : DeciderIdentifier -> string :=
     | NGRAM_CPS_IMPL2_params_2_2_200 => "NGRAM_CPS_IMPL2_params_2_2_200"
     | NGRAM_CPS_IMPL2_params_3_3_400 => "NGRAM_CPS_IMPL2_params_3_3_400"
     | NGRAM_CPS_IMPL1_params_2_2_2_1600 => "NGRAM_CPS_IMPL1_params_2_2_2_1600"
-    | NGRAM_CPS_IMPL1_params_2_3_3_1600 => "NGRAM_CPS_IMPL1_params_2_3_3_1600"
-    | NGRAM_CPS_IMPL1_params_4_2_2_600 => "NGRAM_CPS_IMPL1_params_4_2_2_600"
-    | NGRAM_CPS_IMPL1_params_4_3_3_1600 => "NGRAM_CPS_IMPL1_params_4_3_3_1600"
-    | NGRAM_CPS_IMPL1_params_6_2_2_3200 => "NGRAM_CPS_IMPL1_params_6_2_2_3200"
-    | NGRAM_CPS_IMPL1_params_6_3_3_3200 => "NGRAM_CPS_IMPL1_params_6_3_3_3200"
-    | NGRAM_CPS_IMPL1_params_8_2_2_1600 => "NGRAM_CPS_IMPL1_params_8_2_2_1600"
-    | NGRAM_CPS_IMPL1_params_8_3_3_1600 => "NGRAM_CPS_IMPL1_params_8_3_3_1600"
-    | NGRAM_CPS_LRU_params_2_2_10000 => "NGRAM_CPS_LRU_params_2_2_10000"
-    | NGRAM_CPS_IMPL1_params_10_4_4_10000 => "NGRAM_CPS_IMPL1_params_10_4_4_10000"
-    | REPWL_params_4_3_320_10000 => "REPWL_params_4_3_320_10000"
     end.
 
 Definition tmAndStatusAndDeciderToString tnf_node decider_id b  :=

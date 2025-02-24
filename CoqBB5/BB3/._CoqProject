@@ -17,7 +17,6 @@ BB3_TNF_Enumeration.v
 Deciders/Deciders_Common.v
 Deciders/Decider_Loop.v
 Deciders/Decider_NGramCPS.v
-Deciders/Decider_RepWL.v
 Deciders/Verifier_Halt.v
 
 BB3_Deciders_Generic.v
