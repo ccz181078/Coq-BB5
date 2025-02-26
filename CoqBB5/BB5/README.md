@@ -204,18 +204,11 @@ Here are decider statistics on `TABLE_BASED` machines:
 | Decider/Verifier              | Nonhalt | Halt |
 | ----------------------------- | ------- | ---- |
 | REP_WL_params_custom          | 6,576   |      |
-| NGRAM_CPS_IMPL2_params_custom | 791     |      |
-| NGRAM_CPS_IMPL1_params_custom | 216     |      |
-| NGRAM_CPS_IMPL1_params_custom | 86      |      |
-| NGRAM_CPS_IMPL1_params_custom | 42      |      |
-| NGRAM_CPS_IMPL1_params_custom | 26      |      |
-| NGRAM_CPS_IMPL1_params_custom | 33      |      |
-| NGRAM_CPS_IMPL1_params_custom | 13      |      |
-| NGRAM_CPS_IMPL1_params_custom | 20      |      |
+| NGRAM_CPS_IMPL2_params_custom | 795     |      |
+| NGRAM_CPS_IMPL1_params_custom | 436     |      |
 | HALT_DECIDER_47176870         | 0       | 183  |
 | LOOP1_params_1050000          | 2       |      |
 | NGRAM_CPS_LRU_params_custom   | 182     |      |
-| NGRAM_CPS_IMPL2_params_custom | 4       |      |
 | REP_WL_params_20_2            | 1       |      |
 | FAR_certificates              | 23      |      |
 | WFAR_certificates             | 17      |      |
