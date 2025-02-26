@@ -165,8 +165,8 @@ The proof enumerates **181,385,789** machines, here are the summarized counts (c
 | n-gram Closed Position Set         | 6,005,142   |            | 6,005,142   |
 | Repeated Word List                 | 6,577       |            | 6,577       |
 | Halt Max (47,176,870 steps)        | 0           | 183        | 183         |
-| Finite Automata Reduction          | 23          |            | 32          |
-| Weighted Finite Automata Reduction | 17          |            | 31          |
+| Finite Automata Reduction          | 23          |            | 23          |
+| Weighted Finite Automata Reduction | 17          |            | 17          |
 | Sporadic Machines                  | 13          |            | 13          |
 | 1RB reduction ([see below](#table_based-and-normal_form_table_based))                 | 14          |            | 14          |
 | Total                              | 133,005,895 | 48,379,894 | 181,385,789 |
