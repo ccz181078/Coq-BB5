@@ -1127,7 +1127,7 @@ Proof.
   destruct s2 as [x2 xs2].
   inverts Z.
   unfold to_n_binary,snd,list_to_binary.
-  rewrite grey_to_binary_length,map_length,app_length.
+  rewrite grey_to_binary_length,length_map,length_app.
   cbn.
   rewrite map_app,map_odd_Even.
   2: auto 1.
@@ -1179,7 +1179,7 @@ Proof.
   destruct s2 as [x2 xs2].
   inverts I.
   - cbn.
-    repeat rewrite grey_to_binary_length,map_length,app_length.
+    repeat rewrite grey_to_binary_length,length_map,length_app.
     reflexivity.
   - reflexivity.
 Qed.
@@ -1205,7 +1205,7 @@ Proof.
   destruct s2 as [x2 xs2].
   inverts Z.
   cbn.
-  repeat rewrite grey_to_binary_length,map_length,app_length.
+  repeat rewrite grey_to_binary_length,length_map,length_app.
   cbn.
   lia.
 Qed.
@@ -1219,7 +1219,7 @@ Proof.
   destruct s2 as [x2 xs2].
   inverts Z.
   cbn.
-  repeat rewrite grey_to_binary_length,map_length,app_length.
+  repeat rewrite grey_to_binary_length,length_map,length_app.
   cbn.
   lia.
 Qed.
@@ -1440,7 +1440,7 @@ Proof.
     remember (grey_to_binary (map odd zs)) as v1.
     assert (E0:i<sl\/i=sl\/i>sl) by lia.
     assert (E1:length (xs++[y]) = sl). {
-      rewrite app_length.
+      rewrite length_app.
       cbn. lia.
     }
     rewrite app_cons_r.
@@ -1460,8 +1460,8 @@ Proof.
     + rewrite app_cons_r.
       symmetry. 
       rewrite app_cons_r.
-      assert (E2:length ((xs ++ [y]) ++ [S z])=S sl) by (rewrite app_length; cbn; lia).
-      assert (E3:length ((xs ++ [y]) ++ [z])=S sl) by (rewrite app_length; cbn; lia).
+      assert (E2:length ((xs ++ [y]) ++ [S z])=S sl) by (rewrite length_app; cbn; lia).
+      assert (E3:length ((xs ++ [y]) ++ [z])=S sl) by (rewrite length_app; cbn; lia).
       rewrite app_nth2. 2: lia.
       rewrite app_nth2. 2: lia.
       rewrite E2,E3.
@@ -1499,7 +1499,7 @@ Proof.
     remember (grey_to_binary (map odd zs)) as v1.
     assert (E0:i<sl\/i=sl\/i>sl) by lia.
     assert (E1:length (xs++[y]) = sl). {
-      rewrite app_length.
+      rewrite length_app.
       cbn. lia.
     }
     rewrite app_cons_r.
@@ -1519,8 +1519,8 @@ Proof.
     + rewrite app_cons_r.
       symmetry. 
       rewrite app_cons_r.
-      assert (E2:length ((xs ++ [y]) ++ [S z])=S sl) by (rewrite app_length; cbn; lia).
-      assert (E3:length ((xs ++ [y]) ++ [z])=S sl) by (rewrite app_length; cbn; lia).
+      assert (E2:length ((xs ++ [y]) ++ [S z])=S sl) by (rewrite length_app; cbn; lia).
+      assert (E3:length ((xs ++ [y]) ++ [z])=S sl) by (rewrite length_app; cbn; lia).
       rewrite app_nth2. 2: lia.
       rewrite app_nth2. 2: lia.
       rewrite E2,E3.
@@ -1796,7 +1796,7 @@ Proof.
     remember (hd false (grey_to_binary (map odd (xs++[y;0;0]%nat)))) as v1.
     remember (binary_to_nat (grey_to_binary (map odd (xs++[y;0;0]%nat)))) as v2.
     intro H.
-    rewrite grey_to_binary_length,map_length,app_length in H,IHxs.
+    rewrite grey_to_binary_length,length_map,length_app in H,IHxs.
     cbn in H,IHxs.
     replace (length xs + 3 - 1) with (1+(length xs + 3 - 2)) in H by lia.
     rewrite pow2_1a in H.
@@ -1826,7 +1826,7 @@ Proof.
   intro H.
   inverts H.
   cbn.
-  rewrite grey_to_binary_length,map_length.
+  rewrite grey_to_binary_length,length_map.
   replace (xs ++ y :: zs ++ [0; 0]%nat) with
   ((xs ++ y :: zs) ++ [0; 0]%nat).
   2: rewrite <-app_assoc; reflexivity.
@@ -1838,7 +1838,7 @@ Proof.
   cbn.
   remember (grey_to_binary (map odd (l ++ [0; 0]%nat))) as v1.
   generalize IHl; clear IHl.
-  rewrite app_length.
+  rewrite length_app.
   cbn.
   replace (length l + 2 - 1) with (1+(length l + 2 - 2)) by lia.
   rewrite pow2_1a.
@@ -1881,7 +1881,7 @@ Proof.
         unfold to_n,to_n_binary,snd.
         simpl_list_to_binary_0s.
         rewrite E. cbn.
-        rewrite (grey_to_binary_length),map_length,app_length.
+        rewrite (grey_to_binary_length),length_map,length_app.
         rewrite repeat_app_S,app_nil_r.
         rewrite binary_to_nat_1s,Nat.add_comm. cbn.
         intro. lia.
@@ -1974,7 +1974,7 @@ Proof.
         change (binary_to_nat [true; false]) with 1%nat.
         unfold to_l in H1.
         cbn in H1.
-        rewrite grey_to_binary_length,map_length,app_length in H1.
+        rewrite grey_to_binary_length,length_map,length_app in H1.
         cbn in H1.
         replace (length xs + 3 - 2) with (S (length xs)) in H1 by lia.
         intro H1'.
@@ -2276,7 +2276,7 @@ Proof.
     eexists.
     split.
     1: econstructor.
-    rewrite grey_to_binary_length,map_length in H1'.
+    rewrite grey_to_binary_length,length_map in H1'.
     cbn in H1'. lia.
   + cbn.
     eexists.
@@ -2715,7 +2715,7 @@ Proof.
   intros Z i.
   inverts Z.
   cbn.
-  rewrite grey_to_binary_length,map_length,app_length.
+  rewrite grey_to_binary_length,length_map,length_app.
   cbn.
   replace (length xs + 1 - 1) with (length xs) by lia.
   destruct (Nat.eqb_spec i (length xs)) as [E|E].
@@ -2746,7 +2746,7 @@ Proof.
   inverts Ov.
   unfold ai.
   cbn.
-  rewrite grey_to_binary_length,map_length,app_length.
+  rewrite grey_to_binary_length,length_map,length_app.
   cbn.
   rewrite add_sub.
   intro i.
@@ -4321,11 +4321,11 @@ Proof.
   }
   pose proof Base_l as Base_l'.
   cbn in Base_l.
-  rewrite grey_to_binary_length,map_length in Base_l.
+  rewrite grey_to_binary_length,length_map in Base_l.
   assert (Hxsnn:xs<>[]) by (intro X; rewrite X in Base_l; cbn in Base_l; lia).
   destruct (exists_last Hxsnn) as [xs0 [x1 Hxs]].
   subst xs.
-  rewrite app_length in Base_l. cbn in Base_l.
+  rewrite length_app in Base_l. cbn in Base_l.
   assert (Hl:length xs0 = k*2) by lia.
   assert (Hx1:x1=O). {
     specialize (Base_a (k*2)).
@@ -5581,7 +5581,7 @@ Lemma ai_out_of_bound_0 i s1:
 Proof.
   destruct s1 as [x xs].
   cbn.
-  rewrite grey_to_binary_length,map_length.
+  rewrite grey_to_binary_length,length_map.
   apply nth_overflow.
 Qed.
 
@@ -6819,7 +6819,7 @@ Proof.
   inverts Base_a0'.
   inverts Base_a0'0.
   cbn in Base_l,Base_l0.
-  rewrite grey_to_binary_length,map_length in Base_l,Base_l0.
+  rewrite grey_to_binary_length,length_map in Base_l,Base_l0.
   unfold lower,lowerL.
   cbn.
   assert (length xs <> length xs0) as H by lia.

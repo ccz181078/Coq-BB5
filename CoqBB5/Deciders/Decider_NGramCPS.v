@@ -474,9 +474,9 @@ Proof.
   injection H0b; intro.
   apply list_eq__nth_error.
   - rewrite H1b.
-    rewrite app_length,H0. cbn.
+    rewrite length_app,H0. cbn.
     lia.
-  - rewrite app_length,H0.
+  - rewrite length_app,H0.
     intros.
     cbn in H1.
     assert (n<length l1 \/ n=length l1) by lia.

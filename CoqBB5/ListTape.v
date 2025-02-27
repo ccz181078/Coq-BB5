@@ -615,7 +615,7 @@ Proof.
         {
           destruct H'AS as [H'len H'AS].
           split.
-          1: cbn; cbn in H'len; rewrite app_length; cbn; lia.
+          1: cbn; cbn in H'len; rewrite length_app; cbn; lia.
           intros.
           pose proof (H'AS (app_halftape (t1 Z0::nil) l1) r2) as H1.
           ector.
@@ -651,7 +651,7 @@ Proof.
           cbn in H'md.
           ector; eauto 1.
           cbn.
-          rewrite app_length.
+          rewrite length_app.
           cbn. lia.
         }
         exists (half_tape_cdr l1').
@@ -738,7 +738,7 @@ Proof.
         {
           destruct H'AS as [H'len H'AS].
           split.
-          1: cbn; cbn in H'len; rewrite app_length; cbn; lia.
+          1: cbn; cbn in H'len; rewrite length_app; cbn; lia.
           intros.
           pose proof (H'AS l2 (app_halftape (t1 Z0::nil) r1)) as H1.
           ector.
