@@ -26,10 +26,6 @@ Then, in order to compile the proof, do:
 make
 ```
 
-#### Compile time 
-
-Compiling the proof takes about 30 seconds (Apple silicon), using `coq-native`.
-
 ### Used Axiom
 
 As outputted at the end of the compilation, the proof only depends on Coq's standard library axiom [functional_extensionality_dep](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Logic.FunctionalExtensionality.html):
@@ -80,7 +76,7 @@ cd BB3_Extraction
 ./BB3_Extraction.sh
 ```
 
-Which should produce the file `BB3_verified_enumeration.csv` with shasum ending in `...3fc021f27` and file starting with:
+Which should produce the file `BB3_verified_enumeration.csv` with shasum ending in `...1c351e9c38` and file starting with:
 
 ```
 machine,status,decider
