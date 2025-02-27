@@ -120,8 +120,6 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 
 ## Files index
 
-- `_BB2_Legacy_Monolith.v`: original monolithic proof of `BB(4) = 107`, without extraction
-
 - `create_proof_files.sh`: copies and does some renaming on files imported from `../BB5`, also creates `Makefile` and `_CoqProject`
 - `BB2_Deciders_Generic.v`: deciders IDs definition
 - `BB2_Deciders_Pipeline.v`: decider pipeline definition and lemmas
