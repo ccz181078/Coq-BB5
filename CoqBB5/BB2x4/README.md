@@ -39,9 +39,9 @@ Compiling the proof takes about 2.5 minutes (Apple silicon), using `coq-native`.
 As outputted at the end of the compilation, the proof only depends on Coq's standard library axiom [functional_extensionality_dep](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Logic.FunctionalExtensionality.html):
 
 ```Coq
-functional_extensionality_dep
-  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
-    (forall x : A, f x = g x) -> f = g
+Axiom functional_extensionality_dep : forall {A} {B : A -> Type},
+  forall (f g : forall x : A, B x),
+  (forall x, f x = g x) -> f = g.
 ```
 
 This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB2x4_Statement.v`) since they are represented by functions[^1]. 
