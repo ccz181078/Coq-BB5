@@ -14,7 +14,7 @@ The original monolithic proof (without extraction) is saved into `_BB4_Legacy_Mo
 
 Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you can install Coq v8.20.1 using:
 
-```
+```sh
 opam switch create 4.14.2 # if already existent do: opam switch 4.14.2
 eval $(opam env)
 opam install coq-native
@@ -23,10 +23,12 @@ opam pin add coq 8.20.1
 
 Then, in order to compile the proof, do:
 
-```
+```sh
 ./create_proof_files.sh
 make
 ```
+
+The script `create_proof_files.sh` copies [Coq files](#files-copied-from-bb5) that are reused from the [BB5 proof](../BB5).
 
 #### Compile time 
 
@@ -36,7 +38,7 @@ Compiling the proof takes about 30 seconds (Apple silicon), using `coq-native`.
 
 As outputted at the end of the compilation, the proof only depends on Coq's standard library axiom [functional_extensionality_dep](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Logic.FunctionalExtensionality.html):
 
-```
+```Coq
 functional_extensionality_dep
   : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
     (forall x : A, f x = g x) -> f = g
@@ -77,7 +79,7 @@ The deciders' algorithms are programmed in Coq and then proved correct in Coq to
 
 The list of all enumerated machines (using [bbchallenge format](https://discuss.bbchallenge.org/t/standard-tm-text-format/60/28?u=cosmo)) with for each, halting status and decider ID can be extracted from the Coq proof by doing (once you've compiled the proof):
 
-```
+```sh
 cd BB4_Extraction
 ./BB4_Extraction.sh
 ```
@@ -151,7 +153,9 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 - `BB4_TNF_Enumeration.v`: Tree Normal Form enumeration of 4-state Turing machines
 - `BB4_Extraction/BB4_Extraction.sh`: compiles the OCaml extraction, runs it and saves results to [BB4_verified_enumeration.csv](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/) (also checks hashes)
 
-Files imported from `../BB5` after running `create_proof_files.sh`:
+### Files copied from ../BB5
+
+The following files are copied from `../BB5` after running `create_proof_files.sh` (the script also modifies Coq files' import statements using `sed`):
 
 - `Makefile`: allows to build the proof with `make`
 - `List_Routines.v`: routines to manipulate lists

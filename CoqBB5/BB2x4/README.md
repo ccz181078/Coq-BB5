@@ -24,7 +24,7 @@ opam pin add coq 8.20.1
 Then, in order to compile the proof, do:
 
 ```
-./create_proof_files.sh
+./create_proof_files.sh # copies files reused from ../BB5/
 make
 ```
 

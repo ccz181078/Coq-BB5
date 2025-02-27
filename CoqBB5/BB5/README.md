@@ -21,7 +21,7 @@ opam pin add coq 8.20.1
 
 Then, in order to compile the proof, do:
 
-```
+```sh
 cd ../../BusyCoq && make -j 13
 cd ../CoqBB5/BB5 && make -j 13
 ```
@@ -38,7 +38,7 @@ Compiling the BB5 proof takes about 45 minutes on 13 cores (Apple silicon) and u
 
 As outputted at the end of the compilation, the proof only depends on Coq's standard library axiom [functional_extensionality_dep](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Logic.FunctionalExtensionality.html):
 
-```
+```Coq
 functional_extensionality_dep
   : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
     (forall x : A, f x = g x) -> f = g
@@ -128,7 +128,7 @@ Proofs for all these machines except Skelet #17 were individually given in BusyC
 
 The list of all enumerated machines (using [bbchallenge format](https://discuss.bbchallenge.org/t/standard-tm-text-format/60/28?u=cosmo)) with for each, halting status and decider ID can be extracted from the Coq proof by doing (once you've compiled the proof):
 
-```
+```sh
 cd BB5_Extraction
 ./BB5_Extraction.sh
 ```
