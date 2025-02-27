@@ -19,6 +19,8 @@ From CoqBB5 Require Import Verifier_FAR.
 From CoqBB5 Require Import Verifier_WFAR.
 From CoqBB5 Require Import BB5_Sporadic_Machines.
 
+Set Warnings "-abstract-large-number".
+
 (* Deciders called with hardcoded parameters*)
 Inductive DeciderType :=
 | NG(hlen len:nat)
