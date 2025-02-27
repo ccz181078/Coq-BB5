@@ -82,7 +82,7 @@ cd BB4_Extraction
 ./BB4_Extraction.sh
 ```
 
-Which should produce the file `BB4_verified_enumeration.csv` with shasum ending in `...b64c6df621` and file starting with:
+Which should produce the file `BB4_verified_enumeration.csv` with shasum ending in `...3755b5c08` and file starting with:
 
 ```
 machine,status,decider

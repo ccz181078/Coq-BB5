@@ -33,10 +33,6 @@ echo "Running extraction, see generated 'BB4_verified_enumeration.csv'..."
 echo "machine,status,decider" > BB4_verified_enumeration.csv
 ./BB4_verified_enumeration.native >> BB4_verified_enumeration.csv
 
-# Remove empty trailing line
-printf "%s" "$(< BB4_verified_enumeration.csv)" > tmp
-mv tmp BB4_verified_enumeration.csv
-
 echo "BB4 extraction done!"
 
 if command -v sha256sum &> /dev/null; then
@@ -48,7 +44,7 @@ else
     exit 1
 fi
 
-EXPECTED_HASH=c517de277a3f0c8c95ffefa510caf834d8f53763e59623813f98c2b64c6df621
+EXPECTED_HASH=6a4abba432b1b36ad7c45a2382ed1d8ce08aee30401964e36ce74453755b5c08
 # Compare the hashes
 if [[ "$ACTUAL_HASH" == "$EXPECTED_HASH" ]]; then
     echo "Success: Hash matches the expected one from BB4 extraction."
