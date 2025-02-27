@@ -102,8 +102,22 @@ This extracted `BB3_verified_enumeration.csv` is also available at [https://docs
 
 The proof enumerates **5,417** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB3_verified_enumeration.csv)) of decided machines per decider:
 
-TODO
+| Decider                    | Nonhalt | Halt  | Total |
+| -------------------------- | ------- | ----- | ----- |
+| Loops                      | 3,492   | 1,772 | 5,264 |
+| n-gram Closed Position Set | 153     | 0     | 153   |
+| Total                      | 3,645   | 1,772 | 5,417 |
 
+Here are more precise counts exactly following the pipeline used by the proof (`BB3_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB3_Deciders_Generic.v` which contains parameters information:
+
+| Decider ID                        | Nonhalt | Halt  | Total |
+| --------------------------------- | ------- | ----- | ----- |
+| LOOP1_params_21                   | 3,492   | 1,772 | 5,264 |
+| NGRAM_CPS_IMPL2_params_1_1_100    | 80      |       |       |
+| NGRAM_CPS_IMPL2_params_2_2_200    | 35      |       |       |
+| NGRAM_CPS_IMPL2_params_3_3_400    | 20      |       |       |
+| NGRAM_CPS_IMPL1_params_2_2_2_1600 | 18      |       |       |
+| Total                             | 3,645   | 1,772 | 5,417 |
 
 
 ## Files index
