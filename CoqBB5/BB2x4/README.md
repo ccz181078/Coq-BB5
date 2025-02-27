@@ -15,7 +15,7 @@ The original monolithic proof (without extraction) is saved into `_BB2x4_Legacy_
 Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you can install Coq v8.20.1 using:
 
 ```
-opam switch 4.14.2
+opam switch create 4.14.2 # if already existent do: opam switch 4.14.2
 eval $(opam env --switch=4.14.2)
 opam install coq-native
 opam pin add coq 8.20.1
@@ -83,7 +83,7 @@ cd BB2x4_Extraction
 ./BB2x4_Extraction.sh
 ```
 
-Which should produce the file `BB2x4_verified_enumeration.csv` with shasum ending in `...955769e7e` and file starting with:
+Which should produce the file `BB2x4_verified_enumeration.csv` with shasum ending in `...bcb60a9ce9` and file starting with:
 
 ```
 machine,status,decider

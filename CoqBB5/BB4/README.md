@@ -15,7 +15,7 @@ The original monolithic proof (without extraction) is saved into `_BB4_Legacy_Mo
 Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you can install Coq v8.20.1 using:
 
 ```
-opam switch 4.14.2
+opam switch create 4.14.2 # if already existent do: opam switch 4.14.2
 eval $(opam env --switch=4.14.2)
 opam install coq-native
 opam pin add coq 8.20.1
