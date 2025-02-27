@@ -12,8 +12,8 @@ The extracted data from this proof is available at [https://docs.bbchallenge.org
 
 Assuming you have [opam installed](https://opam.ocaml.org/doc/Install.html), you can install Coq v8.20.1 using:
 
-```
-opam switch 4.14.1
+```sh
+opam switch 4.14.2 # if not existent do: opam create switch 4.14.2
 eval $(opam env)
 opam install coq-native
 opam pin add coq 8.20.1
