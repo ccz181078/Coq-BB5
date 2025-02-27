@@ -80,15 +80,15 @@ Which should produce the file `BB2_verified_enumeration.csv` with shasum ending 
 
 ```
 machine,status,decider
-------_------_------,halt,LOOP1_params_6
-0RA---_------_------,nonhalt,LOOP1_params_6
-1RA---_------_------,nonhalt,LOOP1_params_6
-0RB---_------_------,halt,LOOP1_params_6
-0RB---_0LA---_------,nonhalt,LOOP1_params_6
-0RB---_1LA---_------,halt,LOOP1_params_6
-0RB---_1LA0LA_------,nonhalt,LOOP1_params_6
-0RB---_1LA1LA_------,nonhalt,LOOP1_params_6
-0RB---_1LA0RA_------,nonhalt,LOOP1_params_6
+------_------,halt,LOOP1_params_6
+0RA---_------,nonhalt,LOOP1_params_6
+1RA---_------,nonhalt,LOOP1_params_6
+0RB---_------,halt,LOOP1_params_6
+0RB---_0LA---,nonhalt,LOOP1_params_6
+0RB---_1LA---,halt,LOOP1_params_6
+0RB---_1LA0LA,nonhalt,NGRAM_CPS_IMPL2_params_1_1_100
+0RB---_1LA1LA,nonhalt,LOOP1_params_6
+0RB---_1LA0RA,nonhalt,NGRAM_CPS_IMPL2_params_1_1_100
 ...
 ```
 
@@ -102,9 +102,19 @@ This extracted `BB2_verified_enumeration.csv` is also available at [https://docs
 
 The proof enumerates **61** machines, here are the summarized counts (computed from [the CSV extraction](https://docs.bbchallenge.org/CoqBB5_release_v1.0.0/BB2_verified_enumeration.csv)) of decided machines per decider:
 
-TODO
+| Decider                    | Nonhalt | Halt | Total |
+| -------------------------- | ------- | ---- | ----- |
+| Loops                      | 29      | 19   | 48    |
+| n-gram Closed Position Set | 13      | 0    | 13    |
+| Total                      | 42      | 19   | 61    |
 
+Here are more precise counts exactly following the pipeline used by the proof (`BB2_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB2_Deciders_Generic.v` which contains parameters information:
 
+| Decider ID                     | Nonhalt | Halt | Total |
+| ------------------------------ | ------- | ---- | ----- |
+| LOOP1_params_6                 | 29      | 19   | 48    |
+| NGRAM_CPS_IMPL2_params_1_1_100 | 13      |      |       |
+| Total                          | 42      | 19   | 61    |
 
 ## Files index
 
