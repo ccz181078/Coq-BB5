@@ -69,7 +69,7 @@ In order to reach acceptable compile time, efforts were put into parellelising t
 
 This technique could be iterated (i.e. break the tree in even more subtrees) to even further decrease compile time (provided enough cores).
 
-**Note:** parallel compilation was not needed for the proofs of `BB(4)` and `BB(2,4)` (see `../BB4` and `../BB2x4`) whose search spaces are respectively about 200 and 100 times smaller than for `BB(5)` and whose proofs compile already quickly (about 30s for `BB(4)` and 2m30s for `BB(2,4)` on Apple silicon). As comparison, the unparallelised proof of `BB(5)` compiles in about 3 hours (on Apple silicon) with Coq's `native_compute` enabled (`opam install coq-native`), instead of about 45 minutes in the parallel version.
+**Note:** parallel compilation was not needed for all the other proofs such as the proofs of `BB(4)` and `BB(2,4)` (see `../BB4` and `../BB2x4`) whose search spaces are respectively about 200 and 100 times smaller than for `BB(5)` and whose proofs compile already quickly (about 30s for `BB(4)` and 2m30s for `BB(2,4)` on Apple silicon). As comparison, the unparallelised proof of `BB(5)` compiles in about 3 hours (on Apple silicon) with Coq's `native_compute` enabled (`opam install coq-native`), instead of about 45 minutes in the parallel version.
 
 ### Deciders
 
