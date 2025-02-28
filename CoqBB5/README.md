@@ -12,7 +12,7 @@ Previously known:
 - `BB(2) = 6`, see [BB2/](BB2/), first proved in [[Radó, 1962]](https://ieeexplore.ieee.org/document/6769603)
 - `BB(2,3) = 38`, see [BB2x3/](BB2x3/), first proved in [[Lafitte and Papazian, 2007]](https://arxiv.org/pdf/0906.3749)
 
-*Note:* The Coq proofs for the previously known result confirm the results but do not reproduce the original proofs.
+**Note:** the Coq proofs for the previously known results confirm the results but do not reproduce the original proofs.
 
 ## Structure of the proofs
 
