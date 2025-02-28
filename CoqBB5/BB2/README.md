@@ -63,7 +63,6 @@ Deciders are algorithms trying to prove whether a given Turing machine halts or 
 
 1. Loops, see `../BB5/Deciders/Decider_Loop.v`
 2. n-gram Closed Position Set (n-gram CPS), see `../BB5/Deciders/Decider_NGramCPS.v`
-3. Repeated Word List (RepWL), see `../BB5/Deciders/Decider_RepWL.v`
 
 Each of these techniques is described at length in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper), also see `../BB5/Deciders/README.md` and the comments in each file listed above for some information.
 
