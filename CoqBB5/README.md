@@ -12,7 +12,9 @@ Previously known:
 - `BB(2) = 6`, see [BB2/](BB2/)
 - `BB(2,3) = 38`, see [BB2x3/](BB2x3/)
 
+## Proof structures
+
 The [proof of BB(5)](BB5/) is the most general one in the sense that:
 
 1. All the other proofs only use subsets of the techniques used to prove BB(5).
-2. All the other proofs use the same overall [structure of the BB(4) proof](BB4/README.md#proof-structure), which is itself a slight simplification of the [structure of the BB(5) proof](BB5/README.md#proof-structure).
+2. All the other proofs use the same overall [structure than the BB(4) proof](BB4/README.md#proof-structure), which is itself a slight simplification of the [structure than the BB(5) proof](BB5/README.md#proof-structure).
