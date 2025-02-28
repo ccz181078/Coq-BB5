@@ -12,7 +12,7 @@ Previously known:
 - `BB(2) = 6`, see [CoqBB5/BB2/](CoqBB5/BB2/)
 - `BB(2,3) = 38`, see [CoqBB5/BB2x3/](CoqBB5/BB2x3/)
 
-## Proof structures
+## Structure of the proofs
 
 The [proof of BB(5)](CoqBB5/BB5/) is the most general one in the sense that:
 

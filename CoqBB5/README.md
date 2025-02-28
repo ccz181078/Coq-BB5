@@ -12,7 +12,7 @@ Previously known:
 - `BB(2) = 6`, see [BB2/](BB2/)
 - `BB(2,3) = 38`, see [BB2x3/](BB2x3/)
 
-## Proof structures
+## Structure of the proofs
 
 The [proof of BB(5)](BB5/) is the most general one in the sense that:
 
