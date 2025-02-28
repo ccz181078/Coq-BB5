@@ -22,11 +22,8 @@ opam pin add coq 8.20.1
 Then, in order to compile the proof, do:
 
 ```sh
-./create_proof_files.sh
 make
 ```
-
-The script `create_proof_files.sh` copies [Coq files](#files-copied-from-bb5) that are reused from the [BB5 proof](../BB5).
 
 ### Used Axiom
 
@@ -124,7 +121,6 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 
 ## Files index
 
-- `create_proof_files.sh`: copies and does some renaming on files imported from `../BB5`, also creates `Makefile` and `_CoqProject`
 - `BB2x3_Deciders_Generic.v`: deciders IDs definition
 - `BB2x3_Deciders_Pipeline.v`: decider pipeline definition and lemmas
 - `BB2x3_Encodings.v`: routines that encode objects into numbers for fast lookup using Coq's `FSets.FMapPositive`
@@ -137,9 +133,8 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 
 ### Files copied from ../BB5
 
-The following files are copied from `../BB5` after running `create_proof_files.sh` (the script also modifies Coq files' import statements using `sed`):
+The following files are copied from `../BB5` after running `copy_from_BB5.sh` (the script also modifies Coq files' import statements using `sed`):
 
-- `Makefile`: allows to build the proof with `make`
 - `List_Routines.v`: routines to manipulate lists
 - `List_Tape.v`: routines to manipulate Turing machines tapes as lists
 - `Prelims.v`: various definitions of general interest
@@ -156,5 +151,9 @@ The following files are copied from `../BB5` after running `create_proof_files.s
 - `Deciders/Verifier_Halt.v`: verifier that a machine does halt after a given number of steps
 
 The deciders are described at length in [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper), also see `../BB5/Deciders/README.md` and the comments in each file listed above for some information.
+
+#### Note to maintainers
+
+Maintainers and programmers of this repo must re-run `./copy_from_BB5.sh` when changing these files in `../BB5` in order to make sure they are propagated here.
 
 [^1]: Removing this axiom would introduce [Setoid](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Setoids.Setoid.html) everywhere.

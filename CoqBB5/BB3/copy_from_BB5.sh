@@ -1,13 +1,16 @@
 #!/bin/bash
 
-cp ../BB5/Prelims.v ../BB5/List_Routines.v ../BB5/List_Tape.v ../BB5/Tactics.v ../BB5/TM.v ../BB5/TNF.v ../BB5/Makefile .
+# This script copies the files that are reused from ../BB5
+# This script is to be executed by maintainers of the proofs 
+# when the files are modified in ../BB5.
+
+cp ../BB5/Prelims.v ../BB5/List_Routines.v ../BB5/List_Tape.v ../BB5/Tactics.v ../BB5/TM.v ../BB5/TNF.v .
 mkdir -p Deciders
-cp ../BB5/Deciders/Decider_Loop.v ../BB5/Deciders/Decider_NGramCPS.v ../BB5/Deciders/Decider_RepWL.v ../BB5/Deciders/Deciders_Common.v ../BB5/Deciders/Verifier_Halt.v Deciders
-cp ._CoqProject _CoqProject
+cp ../BB5/Deciders/Decider_Loop.v ../BB5/Deciders/Decider_NGramCPS.v ../BB5/Deciders/Deciders_Common.v ../BB5/Deciders/Verifier_Halt.v Deciders
 
 # Define replacements using parallel arrays
 search_terms=("CoqBB5" "BB5_Statement" "BB5_Encodings" "BB5_Deciders_Generic" "BB5_Make_TM" "BB5_minus_one" "47176870" "47176869")
-replace_terms=("CoqBB4" "BB4_Statement" "BB4_Encodings" "BB4_Deciders_Generic" "BB4_Make_TM" "BB4_minus_one" "107" "106")
+replace_terms=("CoqBB3" "BB3_Statement" "BB3_Encodings" "BB3_Deciders_Generic" "BB3_Make_TM" "BB3_minus_one" "21" "20")
 
 # Define files to process for general replacements
 files=(
@@ -19,7 +22,6 @@ files=(
     TNF.v
     Deciders/Decider_Loop.v
     Deciders/Decider_NGramCPS.v
-    Deciders/Decider_RepWL.v
     Deciders/Deciders_Common.v
     Deciders/Verifier_Halt.v
 )
