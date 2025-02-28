@@ -1,6 +1,6 @@
 # BB(2,3) = 38
 
-This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)) proof that `BB(2,3) = 38`. This result was first proved, in [Lafitte and Papazian, 2007](https://arxiv.org/pdf/0906.3749).
+This folder contains the Coq ([v8.20.1](https://github.com/coq/coq/blob/V8.20.1/INSTALL.md)) proof that `BB(2,3) = 38`. This result was first proved, in [[Lafitte and Papazian, 2007]](https://arxiv.org/pdf/0906.3749).
 
 This result means that the maximum number of steps that a halting 2-state 3-symbol Turing machine can do from all-0 tape is 38. See [bbchallenge's wiki](https://wiki.bbchallenge.org/wiki/Main_Page) or [bbchallenge's BB5 paper](https://github.com/bbchallenge/bbchallenge-paper) for more background and detailed information.
 

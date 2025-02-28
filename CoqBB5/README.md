@@ -7,10 +7,10 @@ Original results:
 - `BB(2,4) = 3,932,964`, see [BB2x4/](BB2x4/)
 
 Previously known:
-- `BB(4) = 107`, see [BB4/](BB4/)
-- `BB(3) = 21`, see [BB3/](BB3/)
-- `BB(2) = 6`, see [BB2/](BB2/)
-- `BB(2,3) = 38`, see [BB2x3/](BB2x3/)
+- `BB(4) = 107` [[Brady, 1983]](https://www.ams.org/journals/mcom/1983-40-162/S0025-5718-1983-0689479-6/), see [BB4/](BB4/)
+- `BB(3) = 21` [[Lin, 1963]](https://etd.ohiolink.edu/acprod/odb_etd/etd/r/1501/10?clear=10&p10_accession_num=osu1486554418657614), see [BB3/](BB3/)
+- `BB(2) = 6` [[Radó, 1962]](https://ieeexplore.ieee.org/document/6769603), see [BB2/](BB2/)
+- `BB(2,3) = 38` [[Lafitte and Papazian, 2007]](https://arxiv.org/pdf/0906.3749), see [BB2x3/](BB2x3/)
 
 ## Structure of the proofs
 
