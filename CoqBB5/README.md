@@ -10,3 +10,4 @@ Previously known:
 - `BB(4) = 107`, see [CoqBB5/BB4/](CoqBB5/BB4/)
 - `BB(3) = 21`, see [CoqBB5/BB3/](CoqBB5/BB3/)
 - `BB(2) = 6`, see [CoqBB5/BB2/](CoqBB5/BB2/)
+- `BB(2,3) = 38`, see [CoqBB5/BB2x3/](CoqBB5/BB2x3/)
