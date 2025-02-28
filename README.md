@@ -14,7 +14,7 @@ Previously known:
 
 The [proof of BB(5)](CoqBB5/BB5/) is the most general one in the sense that:
 
-1. All the other proofs only use subsets of the techniques used to prove BB(5)
+1. All the other proofs only use subsets of the techniques used to prove BB(5).
 2. All the other proofs use the same overall [structure of the BB(4) proof](CoqBB5/BB4/README.md#proof-structure), which is itself a slight simplification of the [structure of the BB(5) proof](CoqBB5/BB5/README.md#proof-structure).
 
 ## BusyCoq
