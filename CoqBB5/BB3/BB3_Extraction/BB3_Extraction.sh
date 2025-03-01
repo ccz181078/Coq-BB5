@@ -1,0 +1,57 @@
+#!/bin/bash
+
+cp printers.out printers.ml
+cp BB3_verified_enumeration.out BB3_verified_enumeration.ml
+
+# We need high stack size for compiling the OCaml extraction
+# Get the hard limit for stack size
+HARD_LIMIT=$(ulimit -H -s 2>/dev/null)
+
+# Get the current soft limit
+SOFT_LIMIT=$(ulimit -S -s 2>/dev/null)
+
+
+# Verify the change
+echo "Stack size limit: $(ulimit -S -s)"
+
+echo "Compiling extraction..."
+
+ocamlbuild BB3_verified_enumeration.native -pkg zarith
+
+if [ $? -ne 0 ]; then  # Check if the command failed
+    echo ""
+    echo "Compilation failed most likely because of stack overflow"
+    echo "To extend your stack size do:"
+    echo "    ulimit -s unlimited"
+    echo "After that, retry"
+    exit -1
+fi
+
+echo "Extraction compiled with success"
+echo "Running extraction, see generated 'BB3_verified_enumeration.csv'..."
+
+echo "machine,status,decider" > BB3_verified_enumeration.csv
+./BB3_verified_enumeration.native >> BB3_verified_enumeration.csv
+
+echo "BB3 extraction done!"
+
+if command -v sha256sum &> /dev/null; then
+    ACTUAL_HASH=$(sha256sum "BB3_verified_enumeration.csv" | awk '{print $1}')
+elif command -v shasum &> /dev/null; then
+    ACTUAL_HASH=$(shasum -a 256 "BB3_verified_enumeration.csv" | awk '{print $1}')
+else
+    echo "Error: No SHA-256 hashing tool found."
+    exit 1
+fi
+
+EXPECTED_HASH=d1b5df70df506eab6607edeaa181274d5f5a7c58e8aad24bba4a991c351e9c38
+# Compare the hashes
+if [[ "$ACTUAL_HASH" == "$EXPECTED_HASH" ]]; then
+    echo "Success: Hash matches the expected one from BB3 extraction."
+    exit 0
+else
+    echo "Error: Hash does not match the expected one from BB3 extraction."
+    echo "Expected: $EXPECTED_HASH"
+    echo "Actual:   $ACTUAL_HASH"
+    exit 1
+fi

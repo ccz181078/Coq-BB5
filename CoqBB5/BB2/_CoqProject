@@ -1,0 +1,27 @@
+-Q . CoqBB2
+
+BB2_Statement.v
+
+Tactics.v
+Prelims.v
+BB2_Encodings.v
+List_Routines.v
+TM.v
+BB2_Make_TM.v
+TNF.v
+List_Tape.v
+BB2_Deciders_Pipeline.v
+
+BB2_TNF_Enumeration.v
+
+Deciders/Deciders_Common.v
+Deciders/Decider_Loop.v
+Deciders/Decider_NGramCPS.v
+Deciders/Verifier_Halt.v
+
+BB2_Deciders_Generic.v
+
+BB2_Extraction.v
+
+
+BB2_Theorem.v
