@@ -5,7 +5,7 @@ From CoqBB5 Require Import TM.
 From CoqBB5 Require Import BB5_Make_TM.
 From CoqBB5 Require Import BB5_Deciders_Hardcoded.
 
-Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
+Definition tm_RWL1:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR0 HR1 AL1 CL0 DR1 CL1 CL1 ER0 BL1 ER1,RWL 2 3)::
 (makeTM BR0 HR1 AL1 CR0 DL0 CR1 ER1 DL1 CL1 BR1,RWL 2 2)::
 (makeTM BR0 HR1 AL1 CR0 DL0 CR1 ER1 DL1 CR1 BR1,RWL 2 2)::
@@ -998,6 +998,8 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR0 CL1 CR1 HR1 DR1 CL0 ER1 AR0 AL0 ER0,RWL 4 2)::
 (makeTM BR0 CL1 CR1 AR0 DR0 AR1 DL1 EL0 BL1 HR1,RWL 5 2)::
 (makeTM BR0 CL1 CR1 AR0 DL1 ER0 AL0 AL1 HR1 BR1,RWL 4 2)::
+nil.
+Definition tm_RWL2:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR0 CL1 CR1 AR1 AL1 DR1 ER1 DL0 CR0 HR1,RWL 21 2)::
 (makeTM BR0 CL1 CR1 AR1 DL1 CR1 HR1 EL0 AL1 BL0,RWL 4 2)::
 (makeTM BR0 CL1 CR1 BR1 AL1 DR0 BR1 ER1 HR1 AL0,RWL 6 2)::
@@ -1996,6 +1998,8 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 HR1 CR1 BR1 DR0 EL0 ER1 AR1 CL1 DR0,RWL 2 3)::
 (makeTM BR1 HR1 CR1 BR1 DL1 BR0 AL1 EL0 BL1 CL0,RWL 1 3)::
 (makeTM BR1 HR1 CR1 BR1 DL1 DL0 ER1 CL0 AR0 DR1,RWL 4 3)::
+nil.
+Definition tm_RWL3:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 HR1 CR1 BR1 DR1 EL0 EL1 AR0 ER1 CL1,RWL 6 2)::
 (makeTM BR1 HR1 CR1 BR1 DR1 EL0 ER1 AR1 CL1 DR0,RWL 4 4)::
 (makeTM BR1 HR1 CR1 CL0 DL0 AR0 BL1 EL0 HR1 CL1,RWL 3 3)::
@@ -2994,6 +2998,8 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 AR1 CL1 BL1 AR1 DL0 CL1 EL0 HR1 BR1,RWL 2 2)::
 (makeTM BR1 AR1 CL1 BL1 AR1 DL0 CL1 EL0 HR1 DR1,RWL 2 2)::
 (makeTM BR1 AR1 CL1 BL1 AR1 DL0 CL1 EL1 HR1 DL0,RWL 2 2)::
+nil.
+Definition tm_RWL4:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 AR1 CL1 BL1 AR1 DL1 AR0 EL0 HR1 DL1,RWL 2 2)::
 (makeTM BR1 AR1 CL1 BL1 AR1 DL1 AR0 EL1 HR1 DL0,RWL 2 2)::
 (makeTM BR1 AR1 CL1 BL1 AR1 DL1 AL1 EL0 HR1 DL1,RWL 2 2)::
@@ -3991,6 +3997,8 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 CL0 CR1 EL0 AL1 DL0 DR1 BR0 HR1 AR1,RWL 14 2)::
 (makeTM BR1 CL0 CR1 EL0 AL1 DL1 BL0 DR0 HR1 AR1,RWL 5 3)::
 (makeTM BR1 CL0 CR1 EL0 DL1 AR0 HR1 EL1 AL1 BL1,RWL 4 3)::
+nil.
+Definition tm_RWL5:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 CL0 CR1 EL0 DR1 BR0 DL1 AL0 AL1 HR1,RWL 2 3)::
 (makeTM BR1 CL0 CR1 ER0 AL1 DL0 BL0 AR0 AL0 HR1,RWL 10 2)::
 (makeTM BR1 CL0 CR1 ER0 AL1 DL0 CR1 AL0 AR0 HR1,RWL 4 2)::
@@ -4990,6 +4998,8 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 DL0 CR1 ER0 AL1 CR1 CL0 BL0 AR0 HR1,RWL 3 3)::
 (makeTM BR1 DL0 CR1 ER0 AL1 EL0 HR1 CL0 BR1 ER1,RWL 7 2)::
 (makeTM BR1 DL0 CR1 ER0 DL0 HR1 AL1 DL1 DR1 AR0,RWL 1 3)::
+nil.
+Definition tm_RWL6:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 DL0 CR1 ER0 DR0 HR1 AL1 DL1 DR1 AR0,RWL 1 3)::
 (makeTM BR1 DL0 CR1 ER0 DL1 HR1 AL1 DL1 DR1 AR0,RWL 1 3)::
 (makeTM BR1 DL0 CR1 ER0 DL1 AL1 HR1 CL1 AR1 ER1,RWL 8 2)::
@@ -5988,6 +5998,8 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 ER0 CL0 BR1 DL0 CL1 DR1 AR1 HR1 BR0,RWL 3 2)::
 (makeTM BR1 ER0 CL0 BR1 DL0 CL1 DR1 AR1 HR1 DR1,RWL 3 2)::
 (makeTM BR1 ER0 CL0 BR1 DL1 CL1 AR1 AL1 HR1 AR1,RWL 4 2)::
+nil.
+Definition tm_RWL7:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 ER0 CL0 BR1 DL1 CL1 AR1 DL0 HR1 AR1,RWL 4 2)::
 (makeTM BR1 ER0 CL0 BR1 DR1 CL1 HR1 AR1 HR1 BR1,RWL 2 2)::
 (makeTM BR1 ER0 CL0 BR1 DR1 CL1 HR1 AR1 BR0 EL1,RWL 2 2)::
@@ -6583,6 +6595,9 @@ Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
 (makeTM BR1 ER1 CR1 EL0 DL1 AL0 HR1 BL0 AR1 CL0,RWL 2 3)::
 (makeTM BR1 ER1 CR1 EL0 DL1 AR1 DR1 CL0 HR1 BR0,RWL 4 2)::
 nil.
+
+Definition tm_RWL:list ((TM Σ)*(DeciderType)) :=
+tm_RWL1 ++ tm_RWL2 ++ tm_RWL3 ++ tm_RWL4 ++ tm_RWL5 ++ tm_RWL6 ++ tm_RWL7.
 
 Definition tm_RWL' :=
 (makeTM BR1 HR1 CR0 DR1 DL0 CR1 EL1 AR0 AR1 EL0,RWL 20 2)::
