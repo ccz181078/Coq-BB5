@@ -35,7 +35,7 @@ Axiom functional_extensionality_dep : forall {A} {B : A -> Type},
   (forall x, f x = g x) -> f = g.
 ```
 
-This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB2_Statement.v`) since they are represented by functions[^2]. 
+This axiom is used to simplify the equality between `TM` and `ExecState` (both defined in `BB2_Statement.v`) since they are represented by functions[^1]. 
 
 ## Proof structure
 
@@ -151,5 +151,4 @@ These deciders are described at length in [bbchallenge's BB5 paper](https://gith
 
 Maintainers and programmers of this repo must re-run `./copy_from_BB5.sh` when changing these files in `../BB5` in order to make sure they are propagated here.
 
-[^1]: Quoting the paper: "All of the remaining holdouts were examined by means of voluminous printouts of their histories along with some program extracted features. It was determined to the author's satisfaction that none of these machines will ever stop." 
-[^2]: Removing this axiom would introduce [Setoid](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Setoids.Setoid.html) everywhere.
+[^1]: Removing this axiom would introduce [Setoid](https://coq.inria.fr/doc/v8.9/stdlib/Coq.Setoids.Setoid.html) everywhere.
