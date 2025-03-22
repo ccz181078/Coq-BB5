@@ -197,7 +197,7 @@ Definition SearchQueue_WF (q:SearchQueue) x0:=
 
 (**
 The following two definitions are needed for printing purpose: the OCaml extraction will insert print statements
-in place of these definitions. See BB52Extraction.v.
+in place of these definitions. See the extraction folder.
 **)
 Definition node_halt (h : TNF_Node) (decider_id: DeciderIdentifier) {A} : A -> A := fun a => a.
 Definition node_nonhalt (h : TNF_Node) (decider_id: DeciderIdentifier) {A} : A -> A := fun a => a.
