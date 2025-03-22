@@ -131,7 +131,7 @@ Record MidWord:Set := {
 meaning that objects are encoded as positive natural numbers keys of a map mapping to unit.
 This allows to efficiently test the presence of an object in a set.
 
-Hence, we define encoding functions mapping `MidWord` to positive for this purpose (also see Encodings.v).
+Hence, we define encoding functions mapping `MidWord` to positive for this purpose.
 *)
 Definition MidWord_enc(mw:MidWord):positive :=
   let (l,r,m,s):=mw in
@@ -1429,17 +1429,17 @@ Proof.
   - apply listT_enc_inj,Σ_history_enc_inj.
 Qed.
 
-(* NGramCPS decider with fixed-length history augmentation *)
+(** NGramCPS decider with fixed-length history augmentation *)
 Definition NGramCPS_decider_impl1 (len_h len_l len_r m:nat):HaltDecider :=
   fun tm =>
   if NGramCPS_decider_impl1_0 len_h len_l len_r m tm then Result_NonHalt else Result_Unknown.
 
-(* Standard NGramCPS decider wihout augmentation *)
+(** Standard NGramCPS decider wihout augmentation *)
 Definition NGramCPS_decider_impl2 (len_l len_r m:nat):HaltDecider :=
   fun tm =>
   if NGramCPS_decider_impl2_0 len_l len_r m tm then Result_NonHalt else Result_Unknown.
 
-(* NGramCPS decider with LRU augmentation *)
+(** NGramCPS decider with LRU augmentation *)
 Definition NGramCPS_LRU_decider (len_l len_r m:nat):HaltDecider :=
   fun tm =>
   if NGramCPS_LRU_decider_0 len_l len_r m tm then Result_NonHalt else Result_Unknown.
