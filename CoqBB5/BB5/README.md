@@ -168,7 +168,7 @@ The proof enumerates **181,385,789** machines, here are the summarized counts (c
 | Finite Automata Reduction          | 23          |            | 23          |
 | Weighted Finite Automata Reduction | 17          |            | 17          |
 | Sporadic Machines                  | 13          |            | 13          |
-| 1RB reduction ([see below](#table_based-and-normal_form_table_based))                 | 14          |            | 14          |
+| 1RB-reduction ([see below](#table_based-and-normal_form_table_based))                 | 24          |            | 24          |
 | Total                              | 133,005,895 | 48,379,894 | 181,385,789 |
 
 Here are more precise counts exactly following the pipeline used by the proof (`BB5_Deciders_Pipeline.v`). Deciders IDs are the same as defined in `BB5_Deciders_Generic.v` which contains parameters information:
@@ -197,7 +197,7 @@ Here are more precise counts exactly following the pipeline used by the proof (`
 
 The `TABLE_BASED` ID stands for the machines that were decided using [hardcoded parameters](#generic-vs-hardcoded-parameters) and [Sporadic Machines](#sporadic-machines).
 
-The `NORMAL_FORM_TABLE_BASED` concerns 24 machines whose first transition is `0RB` which are first converted to have `1RB` instead in their first transition (this amounts to simulate the machine until it writes a 1 and then renaming states accordingly), and then decided because the `1RB` version of the machine is listed among the `TABLE_BASED` machines.
+The `NORMAL_FORM_TABLE_BASED` (or 1RB-reduction) concerns 24 machines whose first transition is `0RB` which are first converted to have `1RB` instead in their first transition (this amounts to simulate the machine until it writes a 1 and then renaming states accordingly), and then decided because the `1RB` version of the machine is listed among the `TABLE_BASED` machines.
 
 Here are decider statistics on `TABLE_BASED` machines:
 
