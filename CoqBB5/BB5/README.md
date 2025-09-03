@@ -203,16 +203,16 @@ Here are decider statistics on `TABLE_BASED` machines:
 
 | Decider/Verifier              | Nonhalt | Halt |
 | ----------------------------- | ------- | ---- |
-| REP_WL_params_custom          | 6,576   |      |
+| REPWL_params_custom          | 6,576   |      |
 | NGRAM_CPS_IMPL2_params_custom | 795     |      |
 | NGRAM_CPS_IMPL1_params_custom | 436     |      |
 | HALT_DECIDER_47176870         | 0       | 183  |
 | LOOP1_params_1050000          | 2       |      |
 | NGRAM_CPS_LRU_params_custom   | 182     |      |
-| REP_WL_params_20_2            | 1       |      |
+| REPWL_params_20_2            | 1       |      |
 | FAR_certificates              | 23      |      |
 | WFAR_certificates             | 17      |      |
-| Sporadic Machines             | 13      |      |
+| SPORADIC_MACHINES             | 13      |      |
 | Total                         | 8,045   | 183  |
 
 And on `NORMAL_FORM_TABLE_BASED`:
