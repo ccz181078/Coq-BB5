@@ -14,15 +14,15 @@ Previously known:
 
 **Note:** the Coq proofs for the previously known results confirm the results but do not reproduce the original proofs.
 
-**ArXiv preprint:** See our arXiv preprint, which serves as a guide to Coq-BB5: [https://arxiv.org/abs/2509.12337](https://arxiv.org/abs/2509.12337).
+**ArXiv preprint:** see our arXiv preprint, which serves as a guide to Coq-BB5: [https://arxiv.org/abs/2509.12337](https://arxiv.org/abs/2509.12337).
 
 ## Citing this work
 
 Please cite the following two entries:
 
 ```bibtex
-@misc{thebbchallengecollaboration2025determinationfifthbusybeaver,
-      title={Determination of the fifth Busy Beaver value}, 
+@misc{BB5,
+      title={{Determination of the fifth Busy Beaver value}}, 
       author={The bbchallenge Collaboration and Justin Blanchard and Daniel Briggs and Konrad Deka and Nathan Fenner and Yannick Forster and Georgi Georgiev and Matthew L. House and Rachel Hunter and Iijil and Maja Kądziołka and Pavel Kropitz and Shawn Ligocki and mxdys and Mateusz Naściszewski and savask and Tristan Stérin and Chris Xu and Jason Yuen and Théo Zimmermann},
       year={2025},
       eprint={2509.12337},
